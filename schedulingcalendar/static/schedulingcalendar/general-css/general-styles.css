@@ -41,6 +41,7 @@ main {
   float: left;
   max-width: 1200px;
   margin: 0 auto;
+  visibility: hidden;
 }
 
 
@@ -80,6 +81,7 @@ main {
 .schedule-editor {
  float: left;
   width:200px;
+  margin-top: 53px;
   margin-left: 10px;
   margin-right: 15px;
 }
@@ -94,6 +96,10 @@ main {
   margin: -16px -16px 16px -16px;
 }
 
+#schedule-info {
+  visibility: hidden;
+}
+
 ul#eligable-list {
   list-style-type: none;
   margin: 0;
@@ -101,7 +107,7 @@ ul#eligable-list {
 }
 
 #eligable-list-header {
-    background: #00BFFF;
+    background: #0079D7;
     padding: 4px 0;
     font-size: 140%;
     font-weight: 300;

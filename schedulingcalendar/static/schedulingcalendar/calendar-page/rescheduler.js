@@ -10,13 +10,11 @@ $(document).ready(function() {
    * Selectors
    */
   var $fullCal = $("#calendar");
+  var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
-  
-  
-  // Hide calendar div until fullCalendar is fully loaded
-  $fullCal.css("visibility", "hidden");
+
       
   $fullCal.fullCalendar({
     editable: true,       
@@ -97,6 +95,8 @@ $(document).ready(function() {
             
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         $eligableList.empty();
+        $scheduleInfo.css("visibility", "hidden");
+        
         
         // Disable remove schedule button, no schedule selected if new day clicked
         $(".fc-removeSchedule-button").addClass("fc-state-disabled");
@@ -129,7 +129,7 @@ $(document).ready(function() {
     // Change calendar title and schedule adding form title to new department
     var depName = $("#cal-department-selector option[value='"+info['department']+"']").text();
     $addScheduleDep.val(info["department"]);
-    $(".fc-center").find("h2").text(depName + ": " + newCalDate.format("MMMM, YYYY"));
+    $(".fc-center").find("h2").text(depName + " Calendar: " + newCalDate.format("MMMM, YYYY"));
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
@@ -220,6 +220,7 @@ $(document).ready(function() {
    */    
   function displayEligables(data) {
     $eligableList.empty();
+    $scheduleInfo.css("visibility", "visible");
     var info = JSON.parse(data);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
@@ -349,6 +350,7 @@ $(document).ready(function() {
     $fullCal.fullCalendar("removeEvents", schedulePk);
     // Clear out eligable list
     $eligableList.empty();
+    $scheduleInfo.css("visibility", "hidden");
     // Disable remove button since no schedule will be selected after delete
     $(".fc-removeSchedule-button").addClass("fc-state-disabled");
   }
