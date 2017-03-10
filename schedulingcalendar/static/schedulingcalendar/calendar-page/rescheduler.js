@@ -58,7 +58,7 @@ $(document).ready(function() {
       // Make remove button active since an event is clicked
       $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
       var pk = calEvent.id;
-      $.get("get_schedule_info", {pk: pk}, displayEligables);  
+      $.get("get_schedule_info", {pk: pk}, displayEligables);
     },
         
     /** Highlight event when mouse hovers over event. */
@@ -91,11 +91,11 @@ $(document).ready(function() {
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
         $curr_day_clicked.addClass("fc-day-clicked");
+        
         $addScheduleDate.val(date.format("YYYY-MM-DD"));
             
         $(".fc-event-clicked").removeClass("fc-event-clicked");
-        $eligableList.empty();
-        $scheduleInfo.css("visibility", "hidden");
+        clearEligables();
         
         
         // Disable remove schedule button, no schedule selected if new day clicked
@@ -219,7 +219,7 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
-    $eligableList.empty();
+    clearEligables();
     $scheduleInfo.css("visibility", "visible");
     var info = JSON.parse(data);
     var eligableList = info["eligable_list"];
@@ -242,6 +242,13 @@ $(document).ready(function() {
     
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(currAssignedEmployeeID);
+  }
+  
+  
+  /** Clear out eligable list and hide the schedule info section */
+  function clearEligables() {
+    $eligableList.empty();
+    $scheduleInfo.css("visibility", "hidden");
   }
     
     
