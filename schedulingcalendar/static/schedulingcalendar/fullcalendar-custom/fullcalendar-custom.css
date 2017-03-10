@@ -1,0 +1,32 @@
+.fc-day-clicked {
+    background: #C6ECFF;
+}
+
+.fc-day:hover:not(.fc-day-clicked), 
+.fc-days-event-mouseover:not(.fc-day-clicked) {
+   background: #F7F7F7;
+}
+
+/*Allow pointer-events through*/
+.fc-slats, /*horizontals*/
+.fc-content-skeleton, /*day numbers*/
+.fc-bgevent-skeleton, /*events container*/
+.fc-event-container
+{
+    pointer-events:none;
+}
+
+/*Turn pointer events back on*/
+.fc-bgevent,
+.fc-content{
+    pointer-events:auto; /*events*/
+}
+
+.fc-event-clicked {
+    background: #59bcff;
+    border-color: #59bcff;
+}
+
+.fc-content:hover:not(.fc-event-clicked) {
+    background: #A4D5FF
+}
