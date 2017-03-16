@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+  <head>
+    {% block meta_tags %}
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% endblock meta_tags %}
+    
+    <title>
+      {% block title %}ReScheduler{% endblock title %}
+    </title>
+    
+    {% block stylesheets %}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" />
+      <link rel="stylesheet" href="{% static 'site/css/bootstrap.min.css' %}" />
+      <link rel="stylesheet" href="{% static 'site/css/base.css' %}" />
+    {% endblock stylesheets %}
+    
+    {% block extra_head %}{% endblock extra_head %}
+  </head>
+  <body>
+    <!-- Header and navigation -->
+    <header class="no-print">
+      <h1>ReScheduler</h1>
+    </header>
+    
+    <main>
+    {% block content %}
+    {% endblock content %}
+    </main>  
+    
+    {% block javascript %}
+      <script src="{% static 'site/js/jquery.min.js' %}" ></script>
+      <script src="{% static 'site/js/moment.min.js' %}" ></script>
+      <script src="{% static 'site/js/jquery.form.min.js' %}" ></script>
+      <script src="{% static 'site/js/bootstrap.min.js' %}" ></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+      <script>
+      $(document).ready(function() {  
+        $.ajaxSetup({
+          data: {csrfmiddlewaretoken: "{{ csrf_token }}" },
+        });
+      });
+      </script>
+    {% endblock javascript %}
+  </body>
+</html>

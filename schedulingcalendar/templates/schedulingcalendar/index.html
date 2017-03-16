@@ -1,120 +1,101 @@
-<!DOCTYPE html> 
-<html>
-  <head>
-    <title>ReScheduler</title>
-    <meta charset="utf-8">
-    
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/general-css/general-styles.css' %}" />
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/pickadate.js-3.5.6/lib/themes/default.css' %}" />
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/pickadate.js-3.5.6/lib/themes/default.time.css' %}" />
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/fullcalendar/fullcalendar.css' %}" />
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/fullcalendar-custom/fullcalendar-custom.css' %}" />
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/fullcalendar/fullcalendar.print.css' %}" media="print"/>
-    <link rel="stylesheet" href="{% static 'schedulingcalendar/fullcalendar-custom/fullcalendar-print-custom.css' %}" media="print"/>
-    <script src="{% static 'schedulingcalendar/lib/jquery.min.js' %}" ></script>
-    <script src="{% static 'schedulingcalendar/lib/moment.min.js' %}" ></script>
-    <script src="{% static 'schedulingcalendar/jquery-form/jquery.form.min.js' %}" ></script>
-    <script src="{% static 'schedulingcalendar/fullcalendar/fullcalendar.js' %}" ></script>
-    <script src="{% static 'schedulingcalendar/pickadate.js-3.5.6/lib/picker.js' %}" ></script>
-    <script src="{% static 'schedulingcalendar/pickadate.js-3.5.6/lib/picker.time.js' %}" ></script>
-  </head>
-  <body>
-    <div class="center">
-      <!-- Header and navigation -->
-      <header class="no-print">
-        <h1>ReScheduler</h1>
-      </header>
+{% extends "site/__base.html" %}
 
-      <main>
-        <!-- Calendar Toolbar -->
-        <aside class="calendar-page-toolbar no-print">
-          <section class="calendar-loader">
-            <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_schedules' %}" 
-                  onsubmit="return(validateGetCalendarForm())"
-                  method="get">
-              {% csrf_token %}
-              <label>Department</label>
-              <select id="cal-department-selector" name="department">
-                {% for department in department_list %}
-                <option value="{{ department.id }}">{{ department.name }}</option>
-                {% endfor %}
-              </select>
-              <label>Month</label>
-              <select id="cal-month-selector" name="month">
-                <option value="1">January</option>
-                <option value="2">February</option>
-                <option value="3">March</option>
-                <option value="4">April</option>
-                <option value="5">May</option>
-                <option value="6">June</option>
-                <option value="7">July</option>
-                <option value="8">August</option>
-                <option value="9">September</option>
-                <option value="10">October</option>
-                <option value="11">November</option>
-                <option value="12">December</option>
-              </select>  
-              <label>Year</label>
-              <select id="cal-year-selector" name="year">
-                {% for year in year_list %}
-                <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-              </select>
-              <input type="submit" id="get-calendar-button" value="Get Calendar">
-            </form>
-          </section>
-        </aside>
+{% block stylesheets %}
+  {{ block.super }}
+  {% load static %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar.print.css' %}" media="print" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-print-custom.css' %}" media="print" />
+{% endblock stylesheets %}
+
+{% block content %}
+  <!-- Calendar Toolbar -->
+  <aside class="calendar-page-toolbar no-print">
+    <section class="calendar-loader">
+      <form id="load-calendar-form"
+            action="{% url 'schedulingcalendar:get_schedules' %}" 
+            onsubmit="return(validateGetCalendarForm())"
+            method="get">
+        {% csrf_token %}
+        <label>Department</label>
+        <select id="cal-department-selector" class="selectpicker" name="department">
+          {% for department in department_list %}
+          <option value="{{ department.id }}">{{ department.name }}</option>
+          {% endfor %}
+        </select>
+        <label>Month</label>
+        <select id="cal-month-selector" class="selectpicker" name="month">
+          <option value="1">January</option>
+          <option value="2">February</option>
+          <option value="3">March</option>
+          <option value="4">April</option>
+          <option value="5">May</option>
+          <option value="6">June</option>
+          <option value="7">July</option>
+          <option value="8">August</option>
+          <option value="9">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>  
+        <label>Year</label>
+        <select id="cal-year-selector" class="selectpicker" name="year">
+          {% for year in year_list %}
+          <option value="{{ year }}">{{ year }}</option>
+          {% endfor %}
+        </select>
+        <input class="btn btn-default" type="submit" id="get-calendar-button" value="Get Calendar">
+      </form>
+    </section>
+  </aside>
         
-        <!-- Schedule Editor -->
-        <aside class="schedule-editor no-print">
-            <section class="schedule-adder">
-                <h1>Schedule Editor</h1>
-              <form id="schedule-add-form"
-                    name= "addingScheduleForm"
-                    action="{% url 'schedulingcalendar:add_schedule' %}" 
-                    onsubmit="return(validateAddScheduleForm())" 
-                    method="post" 
-                    align="left">
-                  {% csrf_token %}
-                  <input type="hidden" id="add-date" value="" name="date">
-                  <input type="hidden" id="new-schedule-dep" value="" name="department">
-                  <label for="start-timepicker">Start Time</label>
-                  <input type="text" id="start-timepicker" name="start-timepicker"/><br>
-                  <input type="hidden" value="False" name="hide-start">
-                  <input type="checkbox" name="hide-start" value="True">Hide Start Time<br>
-                  <br>
-                  <label for="end-timepicker">End Time</label>
-                  <input type="text" id="end-timepicker" name="end-timepicker"/><br>
-                  <input type="hidden" value="False" name="hide-end">
-                  <input type="checkbox" name="hide-end" value="True">Hide End Time<br><br>
-                  <input type="submit" value="Add Schedule">
-              </form>
-            </section>
+  <!-- Schedule Editor -->
+  <aside class="schedule-editor no-print">
+    <section class="schedule-adder">
+      <h1>Schedule Editor</h1>
+      <form id="schedule-add-form"
+            name= "addingScheduleForm"
+            action="{% url 'schedulingcalendar:add_schedule' %}" 
+            onsubmit="return(validateAddScheduleForm())" 
+            method="post" 
+            align="left">
+        {% csrf_token %}
+        <input type="hidden" id="add-date" value="" name="date">
+        <input type="hidden" id="new-schedule-dep" value="" name="department">
+        <label for="start-timepicker">Start Time</label>
+        <input type="text" id="start-timepicker" name="start-timepicker"/><br>
+        <input type="hidden" value="False" name="hide-start">
+        <input type="checkbox" name="hide-start" value="True">Hide Start Time<br>
+        <br>
+        <label for="end-timepicker">End Time</label>
+        <input type="text" id="end-timepicker" name="end-timepicker"/><br>
+        <input type="hidden" value="False" name="hide-end">
+        <input type="checkbox" name="hide-end" value="True">Hide End Time<br><br>
+        <input type="submit" value="Add Schedule">
+      </form>
+    </section>
           
-            <section id="schedule-info">
-              <h3 id="eligable-list-header">Eligable List</h3>
-              <ul id="eligable-list"></ul>
-            </section>
-      </aside>
+    <section id="schedule-info">
+      <h3 id="eligable-list-header">Eligable List</h3>
+      <ul id="eligable-list"></ul>
+    </section>
+  </aside>
       
-      <!-- Fullcalendar -->
-      <section>       
-          <div id="calendar"></div>
-      </section>
+  <!-- Fullcalendar -->
+  <section>       
+    <div id="calendar"></div>
+  </section>
+{% endblock content %}
         
-      </main>
-    
-    </div>
-    <script src="{% static 'schedulingcalendar/calendar-page/rescheduler.js' %}" ></script>
-    <script>
-      $(document).ready(function() {  
-        $.ajaxSetup({
-          data: {csrfmiddlewaretoken: "{{ csrf_token }}" },
-        });
-      });
-    </script>
-  </body>
-</html>
+{% block javascript %}   
+  {{ block.super }}     
+  <script src="{% static 'schedulingcalendar/js/fullcalendar.js' %}" ></script>
+  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
+  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
+  <script src="{% static 'schedulingcalendar/js/rescheduler.js' %}" ></script>
+{% endblock javascript %}    
 
