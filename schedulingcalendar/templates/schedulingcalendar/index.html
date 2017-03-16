@@ -69,7 +69,7 @@
         <label for="start-timepicker">Start Time</label>
         <input type="text" id="start-timepicker" name="start-timepicker"/><br>
         <input type="hidden" value="False" name="hide-start">
-        <input type="checkbox" name="hide-start" value="True">Hide Start Time<br>
+        <input type="checkbox" class="regular-checkbox" name="hide-start" value="True">Hide Start Time<br>
         <br>
         <label for="end-timepicker">End Time</label>
         <input type="text" id="end-timepicker" name="end-timepicker"/><br>
@@ -84,14 +84,14 @@
       <ul id="eligable-list"></ul>
     </section>
   </aside>
-      
+
   <!-- Fullcalendar -->
-  <section>       
+  <section>
     <div id="calendar"></div>
   </section>
 {% endblock content %}
-        
-{% block javascript %}   
+
+{% block javascript %}
   {{ block.super }}     
   <script src="{% static 'schedulingcalendar/js/fullcalendar.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
