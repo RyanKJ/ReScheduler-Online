@@ -17,6 +17,7 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" />
       <link rel="stylesheet" href="{% static 'site/css/bootstrap.min.css' %}" />
       <link rel="stylesheet" href="{% static 'site/css/base.css' %}" />
+      <link rel="stylesheet" href="{% static 'site/css/bootstrap-custom.css' %}" />
     {% endblock stylesheets %}
     
     {% block extra_head %}{% endblock extra_head %}
@@ -24,12 +25,12 @@
   <body>
     <!-- Header and navigation -->
     <header class="no-print">
-      <h1>ReScheduler</h1>
+      {% include "site/_navigation.html" %}
     </header>
     
     <main>
-    {% block content %}
-    {% endblock content %}
+      {% block content %}
+      {% endblock content %}
     </main>  
     
     {% block javascript %}

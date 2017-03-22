@@ -221,11 +221,8 @@ input[type=checkbox] {
 --------------------------------------------------------------------------------------------------*/
 
 .schedule-editor {
- float: left;
-  width:200px;
-  margin-top: 52px;
-  margin-left: 10px;
-  margin-right: 15px;
+  margin-top: 62px;
+  margin-left: 4px;
 }
 
 .schedule-adder h1{
@@ -251,12 +248,11 @@ ul#eligable-list {
 #eligable-list-header {
     background: #0079D7;
     padding: 4px 0;
+    margin-bottom: 0px;
     font-size: 140%;
     font-weight: 300;
     text-align: center;
     color: #fff;
-    margin: 16px -16px 0px 0px;
-    max-width: 200px;
 }
 
 li.eligable-list {
@@ -280,7 +276,6 @@ li:hover.eligable-list:not(.curr-assigned-employee) {
 
 .schedule-adder{
     font: 95% Arial, Helvetica, sans-serif;
-    max-width: 400px;
     margin: 10px auto;
     padding: 16px;
     background: #F7F7F7;
