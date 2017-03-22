@@ -120,7 +120,7 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
-        
+
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
