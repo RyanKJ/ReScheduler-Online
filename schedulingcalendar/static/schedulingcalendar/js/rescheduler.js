@@ -17,7 +17,7 @@ $(document).ready(function() {
 
       
   $fullCal.fullCalendar({
-    editable: true,       
+    editable: true,
     events: [],
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
@@ -120,7 +120,6 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
-
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
@@ -143,6 +142,8 @@ $(document).ready(function() {
       var schedulePk = schedules[i]["id"];
       var startDateTime = schedules[i]["start_datetime"]; 
       var endDateTime = schedules[i]["end_datetime"];
+      var hideStart = schedules[i]["hide_start_time"]; 
+      var hideEnd = schedules[i]["hide_end_time"];
           
       // Get employee name for event title string
       var employeeName = "";
@@ -150,7 +151,9 @@ $(document).ready(function() {
       if (schEmployePk != null) {
         employeeName = employeeNameDict[schEmployePk];
       }
-      var str = getEventStr(startDateTime, endDateTime, employeeName);
+      var str = getEventStr(startDateTime, endDateTime, 
+                            hideStart, hideEnd,
+                            employeeName);
           
       // Create fullcalendar events corresponding to schedule
       var event = {
@@ -188,18 +191,26 @@ $(document).ready(function() {
    * the schedule has an employee assigned). start and end are javascript 
    * moment objects.
    */
-  function getEventStr(start, end, employeeName) {
-    var startDateTime = moment(start);
-    var endDateTime = moment(end);
-
-    var startStr = startDateTime.format("h:mm");
-    var endStr = endDateTime.format("h:mm");
+  function getEventStr(start, end, hideStart, hideEnd, employeeName) {
+    var startStr = "?";
+    if (!hideStart) {
+       var startDateTime = moment(start);
+       startStr = startDateTime.format("h:mm");
+    }
+    
+    var endStr = "?";
+    if (!hideEnd) {
+       var endDateTime = moment(end);
+       endStr = endDateTime.format("h:mm");
+    }
+    
     var employeeStr = "";
     if (employeeName) {
       employeeStr = ": " + employeeName;
-      }
+    }
+      
     var str = startStr + " - " + endStr + employeeStr;
-    return str
+    return str;
   }
       
       
@@ -222,6 +233,7 @@ $(document).ready(function() {
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
     var info = JSON.parse(data);
+    console.log(info);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
@@ -282,8 +294,12 @@ $(document).ready(function() {
     var schedulePk = info["schedule"]["id"];
     var startDateTime = info["schedule"]["start_datetime"]; 
     var endDateTime = info["schedule"]["end_datetime"];
+    var hideStart = info["schedule"]["hide_start_time"];
+    var hideEnd = info["schedule"]["hide_end_time"];
     var employee = info["employee"]["first_name"];
-    var str = getEventStr(startDateTime, endDateTime, employee);
+    var str = getEventStr(startDateTime, endDateTime,
+                          hideStart, hideEnd,
+                          employee);
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(info["employee"]["id"]);
     // Update title string to reflect changes to schedule
@@ -312,7 +328,11 @@ $(document).ready(function() {
     var schedulePk = json_schedule["id"];
     var startDateTime = json_schedule["start_datetime"]; 
     var endDateTime = json_schedule["end_datetime"];
-    var str = getEventStr(startDateTime, endDateTime, null);
+    var hideStart = json_schedule["hide_start_time"];
+    var hideEnd = json_schedule["hide_end_time"];
+    var str = getEventStr(startDateTime, endDateTime,
+                          hideStart, hideEnd,
+                          null);
       
     var event = {
       id: schedulePk,
@@ -322,10 +342,12 @@ $(document).ready(function() {
       allDay: true
     }       
     $fullCal.fullCalendar("renderEvent", event);
-    //Highlight newly created schedule
+    //Highlight newly created event
     $(".fc-event-clicked").removeClass("fc-event-clicked");
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
+    // Get eligables for this new schedule
+    $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
     // Enable remove button, new schedule is selected
     $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
   }

@@ -30,8 +30,6 @@ def index(request):
     
 @login_required
 def get_schedules(request):
-    print 'request.users is: '
-    print request.user
     year = request.GET['year']
     month = request.GET['month']
     department_id = request.GET['department']
@@ -50,10 +48,7 @@ def get_schedules(request):
     for s in schedules:
         if s.employee:
             employees.add(s.employee)
-
-    #combined = list(chain(schedules, employees))
-    #combined_json = serializers.serialize("json", combined)
-    
+            
     # Convert schedules and employees to dicts for json dump
     schedules_as_dicts = []
     employees_as_dicts = []
@@ -81,12 +76,23 @@ def add_schedule(request):
         department = request.POST['department']
         start_time = request.POST['start-timepicker']
         end_time = request.POST['end-timepicker']
+        
         start_str = date + " " + start_time
         end_str = date + " " + end_time
-        
-        str_format = '%Y-%m-%d %H:%M %p'
+        print "START TIME IS:"
+        print start_str
+        print "END TIME IS:"
+        print end_str
+        print
+        print
+        str_format = '%Y-%m-%d %I:%M %p'
         start = datetime.strptime(start_str, str_format)
         end = datetime.strptime(end_str, str_format)
+        print "START DATETIME IS:"
+        print start
+        print "END DATETIME IS:"
+        print end
+        
         
         s_hide = request.POST['hide-start']
         if s_hide == 'True':

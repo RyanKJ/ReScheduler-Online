@@ -20,7 +20,7 @@
         <aside class="calendar-page-toolbar no-print">
           <section class="calendar-loader">
             <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_schedules' %}" 
+                  action="{% url 'schedulingcalendar:get_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
                   method="get">
               {% csrf_token %}
@@ -29,7 +29,7 @@
                 <div class="select-cal-loader">
                   <select id="cal-department-selector" name="department">
                     {% for department in department_list %}
-                    <option value="{{ department.id }}">{{ department.name }}</option>
+                      <option value="{{ department.id }}">{{ department.name }}</option>
                     {% endfor %}
                   </select>
                 </div>

@@ -43,6 +43,14 @@ def get_eligables(schedule_pk):
         eligables.append((employee, availability, sorting_score))
     
     eligables.sort(key=lambda e: e[2])
+    print "-----------------------------------------------------------"
+    print ""
+    print "ELIGABLES IN get_eligables FUNCTION IS:"
+    for e in eligables:
+      print e
+      print ""
+    print ""
+    print "-----------------------------------------------------------"
     return {'schedule': schedule, 'eligables': eligables}
     
     
@@ -106,6 +114,17 @@ def get_availability(employee, schedule):
     schedules = Schedule.objects.filter(employee=employee.id)
     if schedule in schedules:
         schedules.exclude(pk=schedule.pk)
+    print "-----------------------------------------------------------"
+    print ""
+    print "SCHEDULES IN get_availability FUNCTION IS:"
+    print "For employee: "
+    print employee
+    print
+    for s in schedules:
+      print s
+      print ""
+    print ""
+    print "-----------------------------------------------------------"
     vacations = Vacation.objects.filter(employee=employee.id)
     sch_weekday = schedule.start_datetime.weekday()
     unav_repeat = RepeatUnavailability.objects.filter(employee=employee.id,
@@ -147,11 +166,11 @@ def get_eligable_info(employee_availability):
     
 def eligable_list_to_dict(eligable_list):
     MODEL_CONFLICTS = ('(S)', '(V)', '(U)')
-    
-    # Serialize the eligble list
     eligable_serialized_list = []
+    
     for e in eligable_list['eligables']:
         eligable_serialized = []
+        
         employee_serialized = model_to_dict(e[0])
         eligable_serialized.append(employee_serialized)
         
