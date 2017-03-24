@@ -5,7 +5,6 @@
  */
 
 $(document).ready(function() {
-      
   /**
    * Selectors
    */
@@ -218,6 +217,10 @@ $(document).ready(function() {
   var nowDate = new Date();
   var m = nowDate.getMonth();
   var y = nowDate.getFullYear();
+  
+  console.log(nowDate);
+  
+  
     
   $("#cal-month-selector").val(m + 1);
   $("#cal-year-selector").val(y);
@@ -230,10 +233,11 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
+    console.log(data);
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
     var info = JSON.parse(data);
-    console.log(info);
+    
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
@@ -246,7 +250,12 @@ $(document).ready(function() {
         "text": name,
         "class": "eligable-list",
         "data-employee-pk": eligableList[i][0].id,
-        "data-schedule-pk": schedulePk
+        "data-schedule-pk": schedulePk,
+        "data-schedule-conflicts": "",
+        "data-vacation-conflicts": "",
+        "data-unavailability-conflicts": "",
+        "data-overtime-conflicts": "",
+        "data-curr-assigned-hours": ""
         }
       ).on("click", eligableClick
       ).appendTo("#eligable-list");
@@ -254,6 +263,11 @@ $(document).ready(function() {
     
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(currAssignedEmployeeID);
+  }
+  
+  /** */
+  function _compileConflictWarnings() {
+    
   }
   
   
@@ -276,12 +290,18 @@ $(document).ready(function() {
     
   /** Tell server to assign employee to schedule. */       
   function eligableClick(event) {
+    _eligableWarning(this);
     var empPk = $(this).attr("data-employee-pk");
     var schPk = $(this).attr("data-schedule-pk");
     //TODO: Assert that empPk != schedule.employee_id, if so, do nothing.
     $.post("add_employee_to_schedule",
            {employee_pk: empPk, schedule_pk: schPk},
            assignEmployee);
+  }
+  
+  /** Display yes/no dialogue displaying all conflicts between employee & schedules */
+  function _eligableWarning($eligableLi) {
+    $("#confirmationModal").modal('show');
   }
     
 

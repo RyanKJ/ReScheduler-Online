@@ -111,17 +111,17 @@ def get_availability(employee, schedule):
     availability = {'(S)': [], '(V)': [], '(U)': [], '(O)': False,
                     'Hours Scheduled': 0}
     # Get schedules, vacations, and unavailabilities employee is assigned to
-    schedules = Schedule.objects.filter(employee=employee.id)
-    if schedule in schedules:
-        schedules.exclude(pk=schedule.pk)
+    schedules = (Schedule.objects.filter(employee=employee.id)
+                                 .exclude(pk=schedule.pk))
     print "-----------------------------------------------------------"
     print ""
-    print "SCHEDULES IN get_availability FUNCTION IS:"
+    print "SCHEDULE ID IN get_availability FUNCTION IS:"
+    print schedule.id
     print "For employee: "
     print employee
     print
     for s in schedules:
-      print s
+      print s.id
       print ""
     print ""
     print "-----------------------------------------------------------"
