@@ -43,14 +43,6 @@ def get_eligables(schedule_pk):
         eligables.append((employee, availability, sorting_score))
     
     eligables.sort(key=lambda e: e[2])
-    print "-----------------------------------------------------------"
-    print ""
-    print "ELIGABLES IN get_eligables FUNCTION IS:"
-    for e in eligables:
-      print e
-      print ""
-    print ""
-    print "-----------------------------------------------------------"
     return {'schedule': schedule, 'eligables': eligables}
     
     
@@ -113,18 +105,6 @@ def get_availability(employee, schedule):
     # Get schedules, vacations, and unavailabilities employee is assigned to
     schedules = (Schedule.objects.filter(employee=employee.id)
                                  .exclude(pk=schedule.pk))
-    print "-----------------------------------------------------------"
-    print ""
-    print "SCHEDULE ID IN get_availability FUNCTION IS:"
-    print schedule.id
-    print "For employee: "
-    print employee
-    print
-    for s in schedules:
-      print s.id
-      print ""
-    print ""
-    print "-----------------------------------------------------------"
     vacations = Vacation.objects.filter(employee=employee.id)
     sch_weekday = schedule.start_datetime.weekday()
     unav_repeat = RepeatUnavailability.objects.filter(employee=employee.id,

@@ -218,10 +218,6 @@ $(document).ready(function() {
   var m = nowDate.getMonth();
   var y = nowDate.getFullYear();
   
-  console.log(nowDate);
-  
-  
-    
   $("#cal-month-selector").val(m + 1);
   $("#cal-year-selector").val(y);
   $("#get-calendar-button").trigger("click"); 
@@ -286,7 +282,10 @@ $(document).ready(function() {
     $(".curr-assigned-employee").removeClass("curr-assigned-employee");
     $("#" + employeeID).addClass("curr-assigned-employee");
   }
-    
+
+  // 1) When eligable is clicked, if no conflicts call assignEmployee
+  // 2) If conflict exists, call eligableWarning
+  // 3) For eligableModal, call assignEmployee as a button callback
     
   /** Tell server to assign employee to schedule. */       
   function eligableClick(event) {
@@ -296,12 +295,24 @@ $(document).ready(function() {
     //TODO: Assert that empPk != schedule.employee_id, if so, do nothing.
     $.post("add_employee_to_schedule",
            {employee_pk: empPk, schedule_pk: schPk},
-           assignEmployee);
+           updateScheduleView);
   }
+  
   
   /** Display yes/no dialogue displaying all conflicts between employee & schedules */
   function _eligableWarning($eligableLi) {
-    $("#confirmationModal").modal('show');
+    // 1 - If no conflicts exist, return true.
+    
+    $("#conflict-manifest").append("<p>Test</p>");
+    
+    $conflictModal = $("#confirmationModal");
+    $conflictModal.css("margin-top", Math.max(0, ($(window).height() - $conflictModal.height()) / 2));
+    $conflictModal.modal('show');
+  }
+  
+  
+  function assignEmployee() {
+    console.log("Modal test");
   }
     
 
@@ -309,7 +320,7 @@ $(document).ready(function() {
    * Given a successful HTTP response update event string to reflect newly
    * assigned employee.
    */
-  function assignEmployee(data) {
+  function updateScheduleView(data) {
     var info = JSON.parse(data);
     var schedulePk = info["schedule"]["id"];
     var startDateTime = info["schedule"]["start_datetime"]; 
