@@ -13,7 +13,11 @@ $(document).ready(function() {
   var $eligableList = $("#eligable-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
+  var $conflictAssignBtn = $("#conflict-assign-btn");
 
+
+  $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
+      
       
   $fullCal.fullCalendar({
     editable: true,
@@ -229,17 +233,17 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
-    console.log(data);
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
+
     var info = JSON.parse(data);
-    
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
    
     // Create li corresponding to eligable employees for selected schedule
     for (var i=0;i<eligableList.length;i++) {  
+      var warningStr = _compileConflictWarnings(eligableList[i][1]);
       var name = eligableList[i][0].first_name + " " +  eligableList[i][0].last_name;
       var $li = $("<li>", {
         "id": eligableList[i][0]['id'], 
@@ -261,9 +265,12 @@ $(document).ready(function() {
     _highlightAssignedEmployee(currAssignedEmployeeID);
   }
   
-  /** */
-  function _compileConflictWarnings() {
-    
+  
+  /** Given */
+  function _compileConflictWarnings(availability) {
+    console.log("Availability is:");
+    console.log(availability);
+    return "Test";
   }
   
   
@@ -283,36 +290,47 @@ $(document).ready(function() {
     $("#" + employeeID).addClass("curr-assigned-employee");
   }
 
-  // 1) When eligable is clicked, if no conflicts call assignEmployee
-  // 2) If conflict exists, call eligableWarning
-  // 3) For eligableModal, call assignEmployee as a button callback
     
   /** Tell server to assign employee to schedule. */       
   function eligableClick(event) {
-    _eligableWarning(this);
-    var empPk = $(this).attr("data-employee-pk");
-    var schPk = $(this).attr("data-schedule-pk");
     //TODO: Assert that empPk != schedule.employee_id, if so, do nothing.
-    $.post("add_employee_to_schedule",
-           {employee_pk: empPk, schedule_pk: schPk},
-           updateScheduleView);
+    if (true) {
+      _eligableWarning(this);
+    } else {
+      var empPk = $(this).attr("data-employee-pk");
+      var schPk = $(this).attr("data-schedule-pk");
+      $.post("add_employee_to_schedule",
+             {employee_pk: empPk, schedule_pk: schPk},
+             updateScheduleView);
+    }
   }
   
   
   /** Display yes/no dialogue displaying all conflicts between employee & schedules */
-  function _eligableWarning($eligableLi) {
-    // 1 - If no conflicts exist, return true.
+  function _eligableWarning(eligableLi) {
+    // Set the data-employee-pk and data-schedule-pk in button for callback
+    var empPk = $(eligableLi).attr("data-employee-pk");
+    var schPk = $(eligableLi).attr("data-schedule-pk");
+    $conflictAssignBtn.data("schedule-pk", schPk);
+    $conflictAssignBtn.data("employee-pk", empPk);
     
-    $("#conflict-manifest").append("<p>Test</p>");
+    // Display conflicts between schedule and employee in modal body
+    $("#conflict-manifest").append("<p>" + $(eligableLi).attr("data-employee-pk") + "</p>");
     
+    // Show conflict warning modal
     $conflictModal = $("#confirmationModal");
     $conflictModal.css("margin-top", Math.max(0, ($(window).height() - $conflictModal.height()) / 2));
     $conflictModal.modal('show');
   }
   
   
-  function assignEmployee() {
-    console.log("Modal test");
+  /** Assign employee to schedule after user clicks okay for warning modal */
+  function _assignEmployeeAfterWarning(event) { 
+    var empPk = $(this).data("employee-pk");
+    var schPk = $(this).data("schedule-pk");
+    $.post("add_employee_to_schedule",
+           {employee_pk: empPk, schedule_pk: schPk},
+           updateScheduleView);
   }
     
 
