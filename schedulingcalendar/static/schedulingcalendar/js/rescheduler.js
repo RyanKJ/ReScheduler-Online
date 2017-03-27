@@ -251,11 +251,7 @@ $(document).ready(function() {
         "class": "eligable-list",
         "data-employee-pk": eligableList[i][0].id,
         "data-schedule-pk": schedulePk,
-        "data-schedule-conflicts": "",
-        "data-vacation-conflicts": "",
-        "data-unavailability-conflicts": "",
-        "data-overtime-conflicts": "",
-        "data-curr-assigned-hours": ""
+        "data-warning-str": warningStr,
         }
       ).on("click", eligableClick
       ).appendTo("#eligable-list");
@@ -266,11 +262,25 @@ $(document).ready(function() {
   }
   
   
-  /** Given */
+  /** Given availability object, compile all conflicts into readable string. */
   function _compileConflictWarnings(availability) {
-    console.log("Availability is:");
-    console.log(availability);
-    return "Test";
+    console.log("Availability[(S)] is:");
+    console.log(availability['(S)']);
+    
+    var warningStr = "";
+    
+    for (schedule in availability['(S)']) {
+      var str = _scheduleConflictToStr(schedule);
+      warningStr += str;
+    }
+    
+    return warningStr;
+  }
+  
+  
+  /** Helper function to translate a schedule into warning string. */ 
+  function _scheduleConflictToStr(schedule) {
+    return "Schedule Conflict"
   }
   
   
@@ -291,14 +301,21 @@ $(document).ready(function() {
   }
 
     
-  /** Tell server to assign employee to schedule. */       
+  /**
+   * Tell server to assign employee to schedule, create warning if conflict 
+   * exists to inform user of any conflicts and allow a dialog for user to
+   * decide if they wish to assign employee to schedule or not.
+   */       
   function eligableClick(event) {
     //TODO: Assert that empPk != schedule.employee_id, if so, do nothing.
-    if (true) {
-      _eligableWarning(this);
+    var $eligableLi = $(this);
+    var warningStr = $eligableLi.attr("data-warning-str");
+    
+    if (warningStr) {
+      _eligableWarning(this, warningStr);
     } else {
-      var empPk = $(this).attr("data-employee-pk");
-      var schPk = $(this).attr("data-schedule-pk");
+      var empPk = $eligableLi.attr("data-employee-pk");
+      var schPk = $eligableLi.attr("data-schedule-pk");
       $.post("add_employee_to_schedule",
              {employee_pk: empPk, schedule_pk: schPk},
              updateScheduleView);
@@ -307,7 +324,7 @@ $(document).ready(function() {
   
   
   /** Display yes/no dialogue displaying all conflicts between employee & schedules */
-  function _eligableWarning(eligableLi) {
+  function _eligableWarning(eligableLi, warningStr) {
     // Set the data-employee-pk and data-schedule-pk in button for callback
     var empPk = $(eligableLi).attr("data-employee-pk");
     var schPk = $(eligableLi).attr("data-schedule-pk");
@@ -315,7 +332,7 @@ $(document).ready(function() {
     $conflictAssignBtn.data("employee-pk", empPk);
     
     // Display conflicts between schedule and employee in modal body
-    $("#conflict-manifest").append("<p>" + $(eligableLi).attr("data-employee-pk") + "</p>");
+    $("#conflict-manifest").append("<p>" + warningStr + "</p>");
     
     // Show conflict warning modal
     $conflictModal = $("#confirmationModal");
