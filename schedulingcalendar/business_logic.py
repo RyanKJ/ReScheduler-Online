@@ -39,8 +39,8 @@ def get_eligables(schedule_pk):
     Args:
         schedule_pk: primary key of the schedule to assign an employee to.
     Returns:
-        A dict containing the schedule pk and eligable list. The eligable list is 
-        a sorted list of eligable employees, along with their availability 
+        A dict containing the schedule pk and eligable list. The eligable list 
+        is a sorted list of eligable employees, along with their availability 
         dictionary (see get_availability) and their sorting score.
     """
     
@@ -62,7 +62,7 @@ def get_eligables(schedule_pk):
                          desired_times_score, desired_hours_score)
                          
         eligables.append((employee, availability, sorting_score))
-    
+        
     eligables.sort(key=lambda e: e[2])
     return {'schedule': schedule, 'eligables': eligables}
     
