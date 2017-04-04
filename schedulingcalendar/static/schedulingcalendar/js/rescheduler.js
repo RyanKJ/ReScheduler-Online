@@ -264,14 +264,14 @@ $(document).ready(function() {
   
   /** Given availability object, compile all conflicts into readable string. */
   function _compileConflictWarnings(availability) {
-    console.log("Availability[(S)] is:");
-    console.log(availability['(S)']);
-    
     var warningStr = "";
     
-    for (schedule in availability['(S)']) {
-      var str = _scheduleConflictToStr(schedule);
-      warningStr += str;
+    if (availability['(S)'].length > 0) {
+      warningStr += "<p>The employee is assigned to the following schedules that overlap:</p>";
+      for (schedule of availability['(S)']) {
+        var str = _scheduleConflictToStr(schedule);
+        warningStr += "<p>" + str + "</p>";
+      }
     }
     
     return warningStr;
@@ -280,7 +280,16 @@ $(document).ready(function() {
   
   /** Helper function to translate a schedule into warning string. */ 
   function _scheduleConflictToStr(schedule) {
-    return "Schedule Conflict"
+    var str = "Department "
+    str += $("#cal-department-selector > option:nth-child("+schedule.department+")").text();
+    
+    var startDate = moment(schedule.start_datetime);
+    str += startStr = startDate.format(" on MMMM Do, YYYY: ");
+    
+    time_and_employee = getEventStr(schedule.start_datetime, schedule.end_datetime, 
+                                    false, false, null);              
+    str += time_and_employee;
+    return str
   }
   
   
@@ -332,7 +341,9 @@ $(document).ready(function() {
     $conflictAssignBtn.data("employee-pk", empPk);
     
     // Display conflicts between schedule and employee in modal body
-    $("#conflict-manifest").append("<p>" + warningStr + "</p>");
+    $conflictManifest = $("#conflict-manifest");
+    $conflictManifest.empty();
+    $conflictManifest.append(warningStr);
     
     // Show conflict warning modal
     $conflictModal = $("#confirmationModal");
