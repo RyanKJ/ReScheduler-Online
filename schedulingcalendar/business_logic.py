@@ -7,11 +7,11 @@ import datetime
 
 
 def get_eligables(schedule_pk):
-    """Returns a sorted list of eligable employee pk's along with info.
+    """Return a sorted list of eligable employee pk's along with info.
     
     The eligable list is a sorted list of employee primary keys, a dictionary
     containing any potential conflicts the eligable employee has relative to
-    the schedule, and a tuple of numbers that represents a multiple criterion 
+    the schedule, and a tuple of integers that represents multiple criterion 
     for sorting their 'eligability'.
     
     Eligability is determined by how few conflicts the employee has with the
@@ -39,10 +39,11 @@ def get_eligables(schedule_pk):
     Args:
         schedule_pk: primary key of the schedule to assign an employee to.
     Returns:
-      A dict containing the schedule pk and eligable list. The eligable list is 
-      a sorted list of eligable employees, along with their availability 
-      dictionary (see get_availability) and their sorting score.
+        A dict containing the schedule pk and eligable list. The eligable list is 
+        a sorted list of eligable employees, along with their availability 
+        dictionary (see get_availability) and their sorting score.
     """
+    
     # Get schedule and department members
     schedule = Schedule.objects.get(pk=schedule_pk)
     eligables = []
