@@ -6,22 +6,42 @@ import json
 import datetime
 
 
-"""
-So this True Eligables (TM)........function will basically fill the gaps
-that the original one didnt. I think that is a couple of things. So what do
-we want to return?
-"""
-
 def get_eligables(schedule_pk):
     """Returns a sorted list of eligable employee pk's along with info.
     
+    The eligable list is a sorted list of employee primary keys, a dictionary
+    containing any potential conflicts the eligable employee has relative to
+    the schedule, and a tuple of numbers that represents a multiple criterion 
+    for sorting their 'eligability'.
     
-    The next tier down will sort all sublists created by its parent tier
-    Tier 1 Sort: A, O, U, V, S
-    Tier 2 Sort: Priority of department
-    Tier 3 Sort: Desired time sort (Depending on user desire...)
-    Tier 4 Sort: Desired hour sort (Push employees over it down, push employees
-                                    under it up)
+    Eligability is determined by how few conflicts the employee has with the
+    schedule. An employee that has no conflicting schedules, has no conflicting 
+    time off, is not in overtime, etc. is a more 'eligable' employee for the 
+    schedule than, say, an employee who asks for time off that overlaps with 
+    the schedule and is already working overtime. These conflicts are kept
+    track of via the availability dictionary.
+    
+    The eligability is sorted according to tiers. That is, the eligable list
+    is sorted multiple times. Each tier has a helper function that gives the
+    desired integer value that 'scores' the employee's eligability. The list is
+    sorted first according to the first tier, then each 'sub-list' demarcated 
+    by the first tier is sorted by the second tier, and so on. This ensures
+    that the overall sorting of the parent tier remains stable as each tier is 
+    more individually refined/sorted.
+    
+    Tier 1 Sort: Availability conflicts (See get_availability)
+    Tier 2 Sort: Priority of department for employee
+    Tier 3 Sort: Differential between overlap of employee's desired work hours 
+                 and hours of the schedule.
+    Tier 4 Sort: Differential between current amount of hours the employee is
+                 assigned and how many hours a week the employee desires.
+                 
+    Args:
+        schedule_pk: primary key of the schedule to assign an employee to.
+    Returns:
+      A dict containing the schedule pk and eligable list. The eligable list is 
+      a sorted list of eligable employees, along with their availability 
+      dictionary (see get_availability) and their sorting score.
     """
     # Get schedule and department members
     schedule = Schedule.objects.get(pk=schedule_pk)
