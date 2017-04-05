@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Employee(models.Model):
+
+    user = models.ForeignKey(User)
 
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
@@ -22,6 +25,8 @@ class Employee(models.Model):
         
 class Department(models.Model):
 
+    user = models.ForeignKey(User)
+
     name = models.CharField(max_length=100)
     members = models.ManyToManyField(Employee, through='DepartmentMembership')
     
@@ -30,6 +35,8 @@ class Department(models.Model):
         
         
 class DepartmentMembership(models.Model):
+
+    user = models.ForeignKey(User)
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
@@ -40,6 +47,9 @@ class DepartmentMembership(models.Model):
     
 
 class Schedule(models.Model):
+
+    user = models.ForeignKey(User)
+
     start_datetime = models.DateTimeField('start datetime')
     end_datetime = models.DateTimeField('end datetime')
     
@@ -58,6 +68,8 @@ class Schedule(models.Model):
         
         
 class Vacation(models.Model):
+
+    user = models.ForeignKey(User)
     
     start_datetime = models.DateTimeField('start datetime')
     end_datetime = models.DateTimeField('end datetime')
@@ -66,6 +78,9 @@ class Vacation(models.Model):
     
     
 class RepeatUnavailability(models.Model):
+
+    user = models.ForeignKey(User)
+    
     start_time = models.TimeField('start time')
     end_time = models.TimeField('end time')
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
@@ -76,12 +91,16 @@ class RepeatUnavailability(models.Model):
     
 class MonthlyRevenue(models.Model):
 
+    user = models.ForeignKey(User)
+
     monthly_total = models.IntegerField('monthly total revenue')
     month_year = models.DateField('month and year')
     
     
 class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
+    user = models.ForeignKey(User)
+    
     overtime = models.IntegerField('overtime')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
     

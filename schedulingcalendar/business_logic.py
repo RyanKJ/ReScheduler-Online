@@ -2,11 +2,12 @@ from operator import itemgetter
 from .models import (Schedule, Department, DepartmentMembership, 
                      Employee, Vacation, RepeatUnavailability)
 from django.forms.models import model_to_dict
+from django.contrib.auth.models import User
 import json
 import datetime
 
 
-def get_eligables(schedule_pk):
+def get_eligables(schedule):
     """Return a sorted list of eligable employee pk's along with info.
     
     The eligable list is a sorted list of employee primary keys, a dictionary
@@ -37,18 +38,16 @@ def get_eligables(schedule_pk):
                  assigned and how many hours a week the employee desires.
                  
     Args:
-        schedule_pk: primary key of the schedule to assign an employee to.
+        schedule: schedule to calculate employee eligability for assignment. 
     Returns:
         A dict containing the schedule pk and eligable list. The eligable list 
         is a sorted list of eligable employees, along with their availability 
         dictionary (see get_availability) and their sorting score.
     """
     
-    # Get schedule and department members
-    schedule = Schedule.objects.get(pk=schedule_pk)
     eligables = []
+    
     dep_membership = DepartmentMembership.objects.filter(department=schedule.department)
-    # get employee availability and its sorting score
     for dep_mem in dep_membership:
         employee = dep_mem.employee
         availability = get_availability(employee, schedule)
@@ -78,7 +77,13 @@ def _calculate_availability_score(availability):
     
     Mathematically this means that the next level of conflict's score will be
     the sum of all the lesser conflicts + 1
+    
+    Args:
+      availability: the availability dict containing conflict information
+    Returns:
+      score: an integer value of conflict. Higher score means more conflicts.
     """
+    
     score = 0
     if availability['(S)']: score += 8
     if availability['(V)']: score += 4
@@ -92,6 +97,7 @@ def _calculate_dep_priority_score(dep_member):
     Sort list by priority of department for employee, 0 means main department,
     thus employees with 0 will be at beginning of list.
     """
+    
     return dep_member.priority
     
     
@@ -101,6 +107,7 @@ def _calculate_desired_times_score(employee):
     overlaps but not entirely, and return 0 if desired time is contained within
     schedule time duration.
     """
+    
     return 2
     
     
@@ -110,6 +117,7 @@ def _calculate_desired_hours_score(availability, employee):
     to employee. The list is sorted with smallest differential at 0th index,
     largest differential at end of index.
     """
+    
     return availability['Hours Scheduled'] - employee.desired_hours
     
     
@@ -199,8 +207,12 @@ def eligable_list_to_dict(eligable_list):
     
 def date_handler(obj):
     """
-    Anthony Hatchkins: http://stackoverflow.com/questions/23285558/datetime-date2014-4-25-is-not-json-serializable-in-django
+    Add converting instructions to JSON parser for datetime objects. 
+    
+    Written by Anthony Hatchkins: 
+    http://stackoverflow.com/questions/23285558/datetime-date2014-4-25-is-not-json-serializable-in-django
     """
+    
     if hasattr(obj, 'isoformat'):
         return obj.isoformat()
     else:
@@ -208,17 +220,17 @@ def date_handler(obj):
         
         
 def yearify(curr_year, n):
-        """Return a string list of n+5 years starting 4 years before curr_year.
+    """Return a string list of n+5 years starting 4 years before curr_year.
+    
+    Args:
+        curr_year: string representation of present year
+        n: number of years after present year desired to be in list
+    """
         
-        Args:
-            curr_year: string representation of present year
-            n: number of years after present year desired to be in list
-        """
-        
-        year_list = []
-        start_year = int(curr_year) - 4
-        
-        for i in range(start_year, start_year + n + 5):
-            year_list.append(str(i))
+    year_list = []
+    start_year = int(curr_year) - 4
+    
+    for i in range(start_year, start_year + n + 5):
+        year_list.append(str(i))
            
-        return year_list
+    return year_list
