@@ -1,3 +1,11 @@
+"""
+Author: Ryan Johnson
+
+Python module containing business logic. Functions for processing eligability
+of employees and getting employee availability for a given schedule are
+contained here.
+"""
+
 from operator import itemgetter
 from .models import (Schedule, Department, DepartmentMembership, 
                      Employee, Vacation, RepeatUnavailability)
@@ -166,11 +174,6 @@ def calculate_weekly_hours(employee):
         return 0
         # WorkWeek.objects.all()... Use this to determine beginning of workweek
         # All schedules that have any overlap with this will have to be appended
-    
-    
-def get_eligable_info(employee_availability):
-    """Given employee availability dict, return string descriptions."""
-    pass
     
     
 def eligable_list_to_dict(eligable_list):
