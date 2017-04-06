@@ -141,18 +141,20 @@ def get_availability(employee, schedule):
     
     availability = {}
     
-    # Get schedules, vacations, and unavailabilities employee is assigned to
+    # Get schedules employee is assigned to that overlap with schedule
     schedules = (Schedule.objects.filter(employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)
                                  .exclude(pk=schedule.pk))
     availability['(S)'] = schedules
     
+    # Get vacations employee is assigned to that overlap with schedule
     vacations = (Vacation.objects.filter(employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)) 
     availability['(V)'] = vacations            
-                
+           
+    # Get unavailabilities employee is assigned to that overlap with schedule
     sch_weekday = schedule.start_datetime.weekday()
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
