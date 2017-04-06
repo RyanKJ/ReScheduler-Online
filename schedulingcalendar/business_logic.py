@@ -12,7 +12,7 @@ from .models import (Schedule, Department, DepartmentMembership,
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 import json
-import datetime
+from datetime import datetime, timedelta
 
 
 def get_eligables(schedule):
@@ -93,10 +93,12 @@ def _calculate_availability_score(availability):
     """
     
     score = 0
+    
     if availability['(S)']: score += 8
     if availability['(V)']: score += 4
     if availability['(U)']: score += 2
     if availability['(O)']: score += 1
+    
     return score
     
     
@@ -137,37 +139,35 @@ def get_availability(employee, schedule):
     Add: hourly flag, Overtime flag should be calculated here    
     """
     
-    availability = {'(S)': [], '(V)': [], '(U)': [], '(O)': False,
-                    'Hours Scheduled': 0}
+    availability = {}
+    
     # Get schedules, vacations, and unavailabilities employee is assigned to
-    schedules = (Schedule.objects.filter(employee=employee.id)
+    schedules = (Schedule.objects.filter(employee=employee.id,
+                                         start_datetime__lt=schedule.end_datetime,
+                                         end_datetime__gt=schedule.start_datetime)
                                  .exclude(pk=schedule.pk))
-    vacations = Vacation.objects.filter(employee=employee.id)
+    availability['(S)'] = schedules
+    
+    vacations = (Vacation.objects.filter(employee=employee.id,
+                                         start_datetime__lt=schedule.end_datetime,
+                                         end_datetime__gt=schedule.start_datetime)) 
+    availability['(V)'] = vacations            
+                
     sch_weekday = schedule.start_datetime.weekday()
-    unav_repeat = RepeatUnavailability.objects.filter(employee=employee.id,
-                                                      weekday=sch_weekday)
+    start_time = schedule.start_datetime.time()
+    end_time = schedule.end_datetime.time()
+    unav_repeat = (RepeatUnavailability.objects.filter(employee=employee.id,
+                                                       weekday=sch_weekday,
+                                                       start_time__lt=end_time,
+                                                       end_time__gt=start_time))
+    availability['(U)'] = unav_repeat         
 
-    # Check for schedule conflict    
-    for s in schedules:
-        if schedule.start_datetime < s.end_datetime and s.start_datetime < schedule.end_datetime:
-            availability['(S)'].append(s)
-    # Check for vacation conflict          
-    for v in vacations:
-        if schedule.start_datetime < v.end_datetime and v.start_datetime < schedule.end_datetime:
-            availability['(V)'].append(v)
-    # Check for repeating unavailability conflict        
-    for unav in unav_repeat:
-        start_time = schedule.start_datetime.time()
-        end_time = schedule.end_datetime.time()
-        if start_time < unav.end_time and unav.start_time < end_time:
-            availability['(U)'].append(unav)
     # Check current hours worked for later evaluation of overtime       
     hours_curr_worked = calculate_weekly_hours(employee)
     availability['Hours Scheduled'] = hours_curr_worked
     availability['(O)'] = False
             
     return availability
-    
     
     
 def calculate_weekly_hours(employee):

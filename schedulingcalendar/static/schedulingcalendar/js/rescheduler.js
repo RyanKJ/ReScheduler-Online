@@ -233,6 +233,7 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
+    console.log(data);
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
 
