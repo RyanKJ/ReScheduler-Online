@@ -126,7 +126,6 @@ def get_schedule_info(request):
     schedule_pk = request.GET['pk']
     schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
     
-    
     eligable_list = get_eligables(schedule)
     eligable_dict_list = eligable_list_to_dict(eligable_list)
     json_data = json.dumps(eligable_dict_list, default=date_handler)

@@ -244,13 +244,13 @@ $(document).ready(function() {
    
     // Create li corresponding to eligable employees for selected schedule
     for (var i=0;i<eligableList.length;i++) {  
-      var warningStr = _compileConflictWarnings(eligableList[i][1]);
-      var name = eligableList[i][0].first_name + " " +  eligableList[i][0].last_name;
+      var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
+      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name;
       var $li = $("<li>", {
-        "id": eligableList[i][0]['id'], 
+        "id": eligableList[i]['employee']['id'], 
         "text": name,
         "class": "eligable-list",
-        "data-employee-pk": eligableList[i][0].id,
+        "data-employee-pk": eligableList[i]['employee'].id,
         "data-schedule-pk": schedulePk,
         "data-warning-str": warningStr,
         }

@@ -39,7 +39,7 @@ def get_eligables(schedule):
     more individually refined/sorted.
     
     Tier 1 Sort: Availability conflicts (See get_availability)
-    Tier 2 Sort: Priority of department for employee
+    Tier 2 Sort: Priority of department for employee.
     Tier 3 Sort: Differential between overlap of employee's desired work hours 
                  and hours of the schedule.
     Tier 4 Sort: Differential between current amount of hours the employee is
@@ -68,9 +68,11 @@ def get_eligables(schedule):
         sorting_score = (availability_score, dep_priority_score, 
                          desired_times_score, desired_hours_score)
                          
-        eligables.append((employee, availability, sorting_score))
+        eligables.append({'employee': employee, 
+                          'availability': availability, 
+                          'sorting_score': sorting_score})
         
-    eligables.sort(key=lambda e: e[2])
+    eligables.sort(key=lambda e: e['sorting_score'])
     return {'schedule': schedule, 'eligables': eligables}
     
     
@@ -87,9 +89,9 @@ def _calculate_availability_score(availability):
     the sum of all the lesser conflicts + 1
     
     Args:
-      availability: the availability dict containing conflict information
+      availability: The availability dict containing conflict information.
     Returns:
-      score: an integer value of conflict. Higher score means more conflicts.
+      score: aAn integer value of conflict. Higher score means more conflicts.
     """
     
     score = 0
@@ -103,19 +105,37 @@ def _calculate_availability_score(availability):
     
     
 def _calculate_dep_priority_score(dep_member):
-    """
-    Sort list by priority of department for employee, 0 means main department,
-    thus employees with 0 will be at beginning of list.
+    """Calculate if the schedule's department is the employee's main dep.
+    
+    Sort list by priority of department for employee, 0 means main department.
+    A larger number means the employee can sometimes be a part of this
+    department, but it is not their usual department, thus a higher score
+    puts them lower on the list of eligablity.
+    
+    Args:
+        dep_member: Django DepartmentMembership model.
+    Returns:
+        Integer score of employee's relationship to department of schedule.
     """
     
     return dep_member.priority
     
     
 def _calculate_desired_times_score(employee):
-    """
-    Query desired times in employee. Return 2 if no overlaps, return 1 if 
-    overlaps but not entirely, and return 0 if desired time is contained within
-    schedule time duration.
+    """Calculate if schedule has overlap with employee desired working time.
+    
+    Employee's are able to set days and hours that they would prefer to work.
+    If a schedule overlaps with these desired times, the employee is more
+    eligable for the schedule than those who don't have overlapping desired
+    time. Mathematically this is represented by returnning 2 if no overlaps, 
+    returnning 1 if there are overlaps but not entirely, and return 0 if 
+    desired time is contained within schedule time duration.
+    
+    Args:
+        employee: Django Employee model
+    Returns:
+        Integer score of overlap of desired time with schedule's interval of 
+        time. A lower score means more overlap.
     """
     
     return 2
@@ -152,7 +172,7 @@ def get_availability(employee, schedule):
     vacations = (Vacation.objects.filter(employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)) 
-    availability['(V)'] = vacations            
+    availability['(V)'] = vacations
            
     # Get unavailabilities employee is assigned to that overlap with schedule
     sch_weekday = schedule.start_datetime.weekday()
@@ -179,36 +199,45 @@ def calculate_weekly_hours(employee):
     
     
 def eligable_list_to_dict(eligable_list):
-    MODEL_CONFLICTS = ('(S)', '(V)', '(U)')
     eligable_serialized_list = []
     
     for e in eligable_list['eligables']:
-        eligable_serialized = []
-        
-        employee_serialized = model_to_dict(e[0])
-        eligable_serialized.append(employee_serialized)
-        
-        # Serialize the models contained in the availability conflict dict
-        avail_serialized = {}
-        for key in MODEL_CONFLICTS:
-            serialized_conflicts = []
-            for conflict in e[1][key]: # e[1] is the availability dictionary
-                serial_conf = model_to_dict(conflict)
-                serialized_conflicts.append(serial_conf)
-            avail_serialized[key] = serialized_conflicts
-        avail_serialized['(O)'] = e[1]['(O)']
-        avail_serialized['Hours Scheduled'] = e[1]['Hours Scheduled']
-        
-        eligable_serialized.append(avail_serialized)
+        eligable_serialized = {}
         eligable_serialized_list.append(eligable_serialized)
+        
+        # Serialize the employee model
+        employee_serialized = model_to_dict(e['employee'])
+        eligable_serialized['employee'] = employee_serialized
+        # Serialize the availability dict
+        avail_serialized = _availability_to_dict(e['availability'])
+        eligable_serialized['availability'] = avail_serialized
         
     # Serialize the corresponding schedule
     serialized_schedule = model_to_dict(eligable_list['schedule'])
     
     data = {'schedule': serialized_schedule, 
             'eligable_list': eligable_serialized_list}
+            
     return data
     
+    
+def _availability_to_dict(availability):
+    MODEL_CONFLICTS = ('(S)', '(V)', '(U)')
+    avail_serialized = {}
+    
+    for key in MODEL_CONFLICTS:
+        serialized_conflicts = []
+        for conflict in availability[key]:
+            serial_conf = model_to_dict(conflict)
+            serialized_conflicts.append(serial_conf)
+            
+        avail_serialized[key] = serialized_conflicts
+            
+    avail_serialized['(O)'] = availability['(O)']
+    avail_serialized['Hours Scheduled'] = availability['Hours Scheduled']
+    
+    return avail_serialized
+      
     
 def date_handler(obj):
     """
