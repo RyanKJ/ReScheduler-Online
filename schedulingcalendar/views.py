@@ -33,43 +33,48 @@ def index(request):
 @login_required
 def get_schedules(request):
     logged_in_user = request.user
-    year = request.GET['year']
-    month = request.GET['month']
-    department_id = request.GET['department']
-    # Get date month for calendar for queries
-    cal_date = datetime.strptime(year + month, "%Y%m")
-    lower_bound_dt = cal_date - timedelta(7)
-    upper_bound_dt = cal_date + timedelta(42)
-    
-    # Get schedule and employee models from database appropriate for calendar
-    schedules = (Schedule.objects.select_related('employee')
-                                 .filter(user=logged_in_user)
-                                 .filter(start_datetime__gte=lower_bound_dt)
-                                 .filter(end_datetime__lte=upper_bound_dt)
-                                 .filter(department=department_id)
-                )
-    employees = set()
-    for s in schedules:
-        if s.employee:
-            employees.add(s.employee)
-            
-    # Convert schedules and employees to dicts for json dump
-    schedules_as_dicts = []
-    employees_as_dicts = []
-    for s in schedules:
-        schedule_dict = model_to_dict(s)
-        schedules_as_dicts.append(schedule_dict)
-    for e in employees:
-        employee_dict = model_to_dict(e)
-        employees_as_dicts.append(employee_dict)
+    try:
+        year = request.GET['year']
+        month = request.GET['month']
+        department_id = request.GET['department']
+    except KeyError:
+        err_msg = "Year, Month, or Department was not selected."
+        # TODO: Send back Unsuccessful Response
+    else:
+        # Get date month for calendar for queries
+        cal_date = datetime.strptime(year + month, "%Y%m")
+        lower_bound_dt = cal_date - timedelta(7)
+        upper_bound_dt = cal_date + timedelta(42)
         
-    # Combine all appropriate data into dict for serialization
-    combined_dict = {'date': cal_date.isoformat(), 
-                     'department': department_id,
-                     'schedules': schedules_as_dicts,
-                     'employees': employees_as_dicts}
-    combined_json = json.dumps(combined_dict, default=date_handler)
-    return JsonResponse(combined_json, safe=False)
+        # Get schedule and employee models from database appropriate for calendar
+        schedules = (Schedule.objects.select_related('employee')
+                                     .filter(user=logged_in_user,
+                                             start_datetime__gte=lower_bound_dt,
+                                             end_datetime__lte=upper_bound_dt,
+                                             department=department_id))
+        employees = set()
+        for s in schedules:
+            if s.employee:
+                employees.add(s.employee)
+                
+        # Convert schedules and employees to dicts for json dump
+        schedules_as_dicts = []
+        employees_as_dicts = []
+        for s in schedules:
+            schedule_dict = model_to_dict(s)
+            schedules_as_dicts.append(schedule_dict)
+        for e in employees:
+            employee_dict = model_to_dict(e)
+            employees_as_dicts.append(employee_dict)
+            
+        # Combine all appropriate data into dict for serialization
+        combined_dict = {'date': cal_date.isoformat(), 
+                         'department': department_id,
+                         'schedules': schedules_as_dicts,
+                         'employees': employees_as_dicts}
+        combined_json = json.dumps(combined_dict, default=date_handler)
+        
+        return JsonResponse(combined_json, safe=False)
 
     
 @login_required
@@ -106,8 +111,7 @@ def add_schedule(request):
                             hide_start_time=s_hide,
                             hide_end_time=e_hide,
                             department=dep)
-    except (KeyError):
-        # Redisplay the question voting form.
+    except KeyError:
         return render(request, 'schedulingcalendar/index.html', {
             'error_message': "Something went wrong. Beep. Boop. Bop. flop...",
         })
