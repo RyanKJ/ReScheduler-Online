@@ -6,13 +6,13 @@ of employees and getting employee availability for a given schedule are
 contained here.
 """
 
+from datetime import datetime, timedelta
 from operator import itemgetter
-from .models import (Schedule, Department, DepartmentMembership, 
-                     Employee, Vacation, RepeatUnavailability)
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
+from .models import (Schedule, Department, DepartmentMembership, 
+                     Employee, Vacation, RepeatUnavailability)
 import json
-from datetime import datetime, timedelta
 
 
 def get_eligables(schedule):
@@ -142,7 +142,7 @@ def _calculate_desired_times_score(employee):
     
     
 def _calculate_desired_hours_score(availability, employee):
-    """Calculate difference between curr # of hours worked and desired # hours
+    """Calculate difference between curr # of hours worked and desired # hours.
 
     The smaller the difference between current number of hours assigned to 
     employee (Including the schedule they may be assigned to.) the more
@@ -233,10 +233,23 @@ def get_availability(employee, schedule):
     return availability
     
     
-def calculate_weekly_hours(employee):
-        return 0
-        # WorkWeek.objects.all()... Use this to determine beginning of workweek
-        # All schedules that have any overlap with this will have to be appended
+def calculate_weekly_hours(employee, schedule):
+    """Calculate # of hours employee will be working if assigned to schedule.
+    
+    Given the employer's stated start of the week, say Friday, sum up the total
+    amount of time employee will be working for that week along with the length
+    of time of the schedule itself. So, if the schedule is 8 hours long and 
+    the employee is working 40 hours already, then the returned value is 48.
+    
+    Args:
+        employee: Employee model object.
+        schedule: Schedule model object.
+    Returns:
+        An integer value of how many hours that employee will be working for
+        that with, including the hours of the schedule they may be assigned to.
+    """
+    
+    return 0
     
     
 def eligable_list_to_dict(eligable_list):
