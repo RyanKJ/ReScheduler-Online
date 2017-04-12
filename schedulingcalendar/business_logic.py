@@ -226,7 +226,7 @@ def get_availability(employee, schedule):
     availability['(U)'] = unav_repeat         
 
     # Check current hours worked for later evaluation of overtime       
-    hours_curr_worked = calculate_weekly_hours(employee)
+    hours_curr_worked = calculate_weekly_hours(employee, schedule)
     availability['Hours Scheduled'] = hours_curr_worked
     availability['(O)'] = False
             
