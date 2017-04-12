@@ -4,9 +4,10 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
-from .models import Schedule, Department, Employee
 from django.forms.models import model_to_dict
+from .models import Schedule, Department, Employee
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler, yearify
+from .forms import CalendarForm, AddScheduleForm
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json

@@ -3,21 +3,21 @@ from django import forms
 TIME_FORMATS = ['%I:%M %p']
 
 class CalendarForm(forms.Form):
-    department = forms.IntegerField(label='Department', max_length=60)
-    year = forms.IntegerField(label='Year', max_length=4)
-    month = forms.IntegerField(label='Month', max_length=2)
+    department = forms.IntegerField(label='Department')
+    year = forms.IntegerField(label='Year', min_value=1900, max_value=9999)
+    month = forms.IntegerField(label='Month', min_value=0, max_value=13)
+    
     
     
 class AddScheduleForm(forms.Form):
-    department = forms.IntegerField(label='Department', max_length=60)
+    department = forms.IntegerField(label='Department')
     date = forms.DateField(label='Date')
     
-    start-timepicker =  forms.TimeField(label='Start Time',
+    start_time =  forms.TimeField(label='Start Time',
                                         input_formats=TIME_FORMATS)
-    end-timepicker = forms.TimeField(label='End Time',
+    end_time = forms.TimeField(label='End Time',
                                        input_formats=TIME_FORMATS)
-                                       
-                                       
-    hide-start = forms.BooleanField(label="Hide Start")
-    hide-end = forms.BooleanField(label="Hide End")
+                                                              
+    hide_start = forms.BooleanField(label="Hide Start")
+    hide_end = forms.BooleanField(label="Hide End")
     
