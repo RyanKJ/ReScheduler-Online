@@ -132,7 +132,7 @@ def _calculate_desired_times_score(employee):
     desired time is contained within schedule time duration.
     
     Args:
-        employee: Django Employee model
+        employee: Employee model object.
     Returns:
         Integer score of overlap of desired time with schedule's interval of 
         time. A lower score means more overlap.
@@ -142,21 +142,62 @@ def _calculate_desired_times_score(employee):
     
     
 def _calculate_desired_hours_score(availability, employee):
-    """
-    Calculate the differential between current_hours_assigned - desired_hours
-    to employee. The list is sorted with smallest differential at 0th index,
-    largest differential at end of index.
+    """Calculate difference between curr # of hours worked and desired # hours
+
+    The smaller the difference between current number of hours assigned to 
+    employee (Including the schedule they may be assigned to.) the more
+    eligable the employee is to be assigned to the schedule. Thus, an employee
+    who wishes to work 30 hours, who if assigned to schedule will then work 30
+    hours will have a score of 0. If the number of hours they'll be working is
+    32 or 28, they'll have an equivalent score of 2. 
+    
+    The further an employee is from their desired hours per week the higher
+    their score will be and thus via the sorting algorithm they will appear 
+    lower on the list.
+    
+    Args:
+        availability: The availability dict containing conflict information.
+        employee: Django Employee model.
+    Returns:
+        Integer score of absolute difference between current scheduled hours 
+        and employee's desired amount of hours per week.
     """
     
     return availability['Hours Scheduled'] - employee.desired_hours
     
     
 def get_availability(employee, schedule):
-    """
-    According to new availability, an available employee is one where
-    all the elements except O are empty...
+    """Create the availability dictionary for employee given a schedule.
+    
+    Availability is a dictionary containing information about conflicts an
+    employee will have with the given schedule. For example, if the schedule
+    is for Tuesday from 10 am to 4 pm, but said employee is already assigned to
+    a schedule on that same Tuesday from 12 pm to 6 pm, this function will
+    add this to the availability dictionary as a schedule conflict. These 
+    conflicts are used to weigh an employee's eligability. The more conflicts
+    an employee has, the less eligable they are to be assigned to the schedule.
+    
+    The keys and the values held by the dictionary are:
+      '(S)': A collection of schedule model objects that have any time overlap
+             with the schedule employee may be assigned to.
+      '(V)': A collection of vacation model objects that have any time overlap
+             with the schedule employee may be assigned to.
+      '(U)': A collection of repeating unavailability model objects that have 
+             any time overlap with the schedule employee may be assigned to.   
+      'Hours Scheduled': A numerical representation of how many hour the 
+             employee will be working for that work week if assigned to the
+             schedule.
+      '(O)': A boolean value representing if the hours scheduled value is 
+             greater than the employer's legal overtime limit.
         
-    Add: hourly flag, Overtime flag should be calculated here    
+    Args:
+        employee: Employee model object.
+        schedule: Schedule model object.
+    Returns:
+        availability: A dictionary containing keys that map to potential 
+        conflicts the employee may have with the given schedule. Also,
+        additional information such as how many hours the employee will
+        be working in the work week if assigned to the schedule.
     """
     
     availability = {}

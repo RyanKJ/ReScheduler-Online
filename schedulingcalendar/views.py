@@ -6,7 +6,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from .models import Schedule, Department, Employee
 from django.forms.models import model_to_dict
-from business_logic import get_eligables, eligable_list_to_dict, date_handler, yearify
+from .business_logic import get_eligables, eligable_list_to_dict, date_handler, yearify
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
