@@ -7,6 +7,12 @@ MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
 
 
 class CalendarForm(forms.Form):
+
+    def __init__(self, dep_choices, year_choices, *args, **kwargs):
+        super(CalendarForm, self).__init__(*args, **kwargs)
+        self.fields['department'].choices = dep_choices
+        self.fields['year'].choices = year_choices
+
     department = forms.IntegerField(label='Department', widget=forms.Select())
     
     month = forms.IntegerField(label='Month', 
@@ -15,9 +21,8 @@ class CalendarForm(forms.Form):
                                
     year = forms.IntegerField(label='Year', widget=forms.Select(), 
                               min_value=1900, max_value=9999)
-    
-    
-    
+                     
+                   
 class AddScheduleForm(forms.Form):
     # TODO Use SeperateDateTimeField?
     department = forms.IntegerField(label='Department')
