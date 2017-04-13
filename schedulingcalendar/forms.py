@@ -1,15 +1,25 @@
 from django import forms
 
 TIME_FORMATS = ['%I:%M %p']
+MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+                 (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+                 (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December'))
+
 
 class CalendarForm(forms.Form):
-    department = forms.IntegerField(label='Department')
-    year = forms.IntegerField(label='Year', min_value=1900, max_value=9999)
-    month = forms.IntegerField(label='Month', min_value=0, max_value=13)
+    department = forms.IntegerField(label='Department', widget=forms.Select())
+    
+    month = forms.IntegerField(label='Month', 
+                               widget=forms.Select(choices=MONTH_CHOICES), 
+                               min_value=0, max_value=13)
+                               
+    year = forms.IntegerField(label='Year', widget=forms.Select(), 
+                              min_value=1900, max_value=9999)
     
     
     
 class AddScheduleForm(forms.Form):
+    # TODO Use SeperateDateTimeField?
     department = forms.IntegerField(label='Department')
     date = forms.DateField(label='Date')
     

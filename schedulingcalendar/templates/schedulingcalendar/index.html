@@ -27,15 +27,14 @@
                   onsubmit="return(validateGetCalendarForm())"
                   method="get">
               {% csrf_token %}
-              <div class="select-custom-container">
-                <label for="cal-department-selector" class="cal-loader-label">Department</label>
-                <div class="select-cal-loader">
-                  <select id="cal-department-selector" name="department">
-                    {% for department in department_list %}
-                      <option value="{{ department.id }}">{{ department.name }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
+              
+              <label for="cal-department-selector">Department</label>
+              <div class="select-cal-loader">
+                <select id="cal-department-selector" name="department">
+                  {% for department in department_list %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                  {% endfor %}
+                </select>
               </div>
               
               <label for="cal-month-selector">Month</label>
