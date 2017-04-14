@@ -58,6 +58,24 @@
                   method="post" 
                   align="left">
               {% csrf_token %}
+              <!--
+              {{ add_sch_form.non_field_errors }}
+              {{ add_sch_form.department.errors }}
+              {{ add_sch_form.department.label_tag }}
+              {{ add_sch_form.department }}
+              
+              
+              {% for field in add_sch_form %}
+                {{ field.errors }}
+                {{ field.label_tag }} 
+                {{ field }}
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+              {% endfor %}
+              
+              -->
+              
               <input type="hidden" id="add-date" value="" name="date">
               <input type="hidden" id="new-schedule-dep" value="" name="department">
               <label for="start-timepicker">Start Time</label>

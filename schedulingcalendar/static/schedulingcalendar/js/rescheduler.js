@@ -129,7 +129,7 @@ $(document).ready(function() {
     $fullCal.fullCalendar("gotoDate", newCalDate);
         
     // Change calendar title and schedule adding form title to new department
-    var depName = $("#cal-department-selector option[value='"+info['department']+"']").text();
+    var depName = $("#id_department option[value='"+info['department']+"']").text();
     $addScheduleDep.val(info["department"]);
     $(".fc-center").find("h2").text(depName + " Calendar: " + newCalDate.format("MMMM, YYYY"));
         
