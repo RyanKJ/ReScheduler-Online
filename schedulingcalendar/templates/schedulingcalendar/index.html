@@ -28,42 +28,16 @@
                   method="get">
               {% csrf_token %}
               
-              <label for="cal-department-selector">Department</label>
-              <div class="select-cal-loader">
-                <select id="cal-department-selector" name="department">
-                  {% for department in department_list %}
-                    <option value="{{ department.id }}">{{ department.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              
-              <label for="cal-month-selector">Month</label>
-              <div class="select-cal-loader">
-                <select id="cal-month-selector" name="month">
-                  <option value="1">January</option>
-                  <option value="2">February</option>
-                  <option value="3">March</option>
-                  <option value="4">April</option>
-                  <option value="5">May</option>
-                  <option value="6">June</option>
-                  <option value="7">July</option>
-                  <option value="8">August</option>
-                  <option value="9">September</option>
-                  <option value="10">October</option>
-                  <option value="11">November</option>
-                  <option value="12">December</option>
-                </select>  
-              </div>
-              
-              <label for="cal-year-selector">Year</label> 
-              <div class="select-cal-loader">
-                <select id="cal-year-selector" name="year">
-                  {% for year in year_list %}
-                  <option value="{{ year }}">{{ year }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              
+              {% for field in calendar_form %}
+                {{ field.errors }}
+                {{ field.label_tag }} 
+                <div class="select-cal-loader">
+                  {{ field }}
+                </div>
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+              {% endfor %}
               <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
             </form>
           </section>

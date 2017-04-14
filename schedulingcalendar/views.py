@@ -6,7 +6,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from .models import Schedule, Department, Employee
-from .business_logic import get_eligables, eligable_list_to_dict, date_handler, yearify
+from .business_logic import get_eligables, eligable_list_to_dict, date_handler
 from .forms import CalendarForm, AddScheduleForm
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -16,66 +16,63 @@ import json
 @login_required
 def index(request):
     logged_in_user = request.user
-    now = datetime.now()
-    current_year = now.year
-    year_list = yearify(current_year, 5)
     
-    # TODO: Add edge case where user has 0 departments
-    department_list = Department.objects.filter(user=logged_in_user)
+    calendar_form = CalendarForm(logged_in_user)
     template = loader.get_template('schedulingcalendar/index.html')
-    context = {
-        'department_list': department_list,
-        'year_list': year_list
-    }
-    
+    context = {'calendar_form': calendar_form}
+
     return HttpResponse(template.render(context, request))
 
-    
+
 @login_required
 def get_schedules(request):
     logged_in_user = request.user
-    try:
-        year = request.GET['year']
-        month = request.GET['month']
-        department_id = request.GET['department']
-    except KeyError:
-        err_msg = "Year, Month, or Department was not selected."
-        # TODO: Send back Unsuccessful Response
-    else:
-        # Get date month for calendar for queries
-        cal_date = datetime.strptime(year + month, "%Y%m")
-        lower_bound_dt = cal_date - timedelta(7)
-        upper_bound_dt = cal_date + timedelta(42)
-        
-        # Get schedule and employee models from database appropriate for calendar
-        schedules = (Schedule.objects.select_related('employee')
-                                     .filter(user=logged_in_user,
-                                             start_datetime__gte=lower_bound_dt,
-                                             end_datetime__lte=upper_bound_dt,
-                                             department=department_id))
-        employees = set()
-        for s in schedules:
-            if s.employee:
-                employees.add(s.employee)
-                
-        # Convert schedules and employees to dicts for json dump
-        schedules_as_dicts = []
-        employees_as_dicts = []
-        for s in schedules:
-            schedule_dict = model_to_dict(s)
-            schedules_as_dicts.append(schedule_dict)
-        for e in employees:
-            employee_dict = model_to_dict(e)
-            employees_as_dicts.append(employee_dict)
+    if request.method == 'GET':
+        form = CalendarForm(logged_in_user, request.GET)
+        if form.is_valid():
+            department_id = form.cleaned_data['department']
+            year = form.cleaned_data['year']
+            month = form.cleaned_data['month']
+
+            # Get date month for calendar for queries
+            cal_date = datetime(year, month, 1)
+            lower_bound_dt = cal_date - timedelta(7)
+            upper_bound_dt = cal_date + timedelta(42)
             
-        # Combine all appropriate data into dict for serialization
-        combined_dict = {'date': cal_date.isoformat(), 
-                         'department': department_id,
-                         'schedules': schedules_as_dicts,
-                         'employees': employees_as_dicts}
-        combined_json = json.dumps(combined_dict, default=date_handler)
-        
-        return JsonResponse(combined_json, safe=False)
+            # Get schedule and employee models from database appropriate for calendar
+            schedules = (Schedule.objects.select_related('employee')
+                                         .filter(user=logged_in_user,
+                                                 start_datetime__gte=lower_bound_dt,
+                                                 end_datetime__lte=upper_bound_dt,
+                                                 department=department_id))
+            employees = set()
+            for s in schedules:
+                if s.employee:
+                    employees.add(s.employee)
+                    
+            # Convert schedules and employees to dicts for json dump
+            schedules_as_dicts = []
+            employees_as_dicts = []
+            for s in schedules:
+                schedule_dict = model_to_dict(s)
+                schedules_as_dicts.append(schedule_dict)
+            for e in employees:
+                employee_dict = model_to_dict(e)
+                employees_as_dicts.append(employee_dict)
+                
+            # Combine all appropriate data into dict for serialization
+            combined_dict = {'date': cal_date.isoformat(), 
+                             'department': department_id,
+                             'schedules': schedules_as_dicts,
+                             'employees': employees_as_dicts}
+            combined_json = json.dumps(combined_dict, default=date_handler)
+            
+            return JsonResponse(combined_json, safe=False)
+    
+    else:
+      # err_msg = "Year, Month, or Department was not selected."
+      # TODO: Send back Unsuccessful Response
+      pass
 
     
 @login_required

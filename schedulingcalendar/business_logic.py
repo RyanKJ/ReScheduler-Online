@@ -305,20 +305,3 @@ def date_handler(obj):
         return obj.isoformat()
     else:
         raise TypeError
-        
-        
-def yearify(curr_year, n):
-    """Return a string list of n+5 years starting 4 years before curr_year.
-    
-    Args:
-        curr_year: string representation of present year
-        n: number of years after present year desired to be in list
-    """
-        
-    year_list = []
-    start_year = int(curr_year) - 4
-    
-    for i in range(start_year, start_year + n + 5):
-        year_list.append(str(i))
-           
-    return year_list
