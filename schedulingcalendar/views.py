@@ -18,8 +18,9 @@ def index(request):
     logged_in_user = request.user
     
     calendar_form = CalendarForm(logged_in_user)
+    add_schedule_form = AddScheduleForm()
     template = loader.get_template('schedulingcalendar/index.html')
-    context = {'calendar_form': calendar_form}
+    context = {'calendar_form': calendar_form, 'add_sch_form': add_schedule_form}
 
     return HttpResponse(template.render(context, request))
 
@@ -78,47 +79,37 @@ def get_schedules(request):
 @login_required
 def add_schedule(request):
     """Add schedule to the database and return string of added schedule."""
-    try:
-        logged_in_user = request.user
-        date = request.POST['date']
-        department = request.POST['department']
-        start_time = request.POST['start-timepicker']
-        end_time = request.POST['end-timepicker']
-        
-        start_str = date + " " + start_time
-        end_str = date + " " + end_time
-
-        str_format = '%Y-%m-%d %I:%M %p'
-        start = datetime.strptime(start_str, str_format)
-        end = datetime.strptime(end_str, str_format)
-        
-        # TODO: Way to parse response such that this processing is redundant?
-        s_hide = request.POST['hide-start']
-        if s_hide == 'True':
-            s_hide = True
-        else:
-            s_hide = False
-        e_hide = request.POST['hide-end']
-        if e_hide == 'True':
-            e_hide = True
-        else:
-            e_hide = False
-        dep = Department.objects.get(user=logged_in_user, pk=department)
-        schedule = Schedule(user=logged_in_user,
-                            start_datetime=start, end_datetime=end,
-                            hide_start_time=s_hide,
-                            hide_end_time=e_hide,
-                            department=dep)
-    except KeyError:
-        return render(request, 'schedulingcalendar/index.html', {
-            'error_message': "Something went wrong. Beep. Boop. Bop. flop...",
-        })
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = AddScheduleForm(request.POST)
+        if form.is_valid():
+            department = form.cleaned_data['department']
+            date = form.cleaned_data['add_date']
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+            hide_start = form.cleaned_data['hide_start']
+            hide_end = form.cleaned_data['hide_end']
+            
+            start_dt = datetime.combine(date, start_time)
+            end_dt = datetime.combine(date, end_time)
+            
+            # TODO: Assert department belongs to user after form cleaning?
+            dep = Department.objects.get(user=logged_in_user, pk=department)
+            schedule = Schedule(user=logged_in_user,
+                                start_datetime=start_dt, end_datetime=end_dt,
+                                hide_start_time=hide_start,
+                                hide_end_time=hide_end,
+                                department=dep)
+            schedule.save()
+            schedule_dict = model_to_dict(schedule)
+            schedule_json = json.dumps(schedule_dict, default=date_handler)
+            
+            return JsonResponse(schedule_json, safe=False)
+            
+        print form.errors
     else:
-        schedule.save()
-        schedule_dict = model_to_dict(schedule)
-        schedule_json = json.dumps(schedule_dict, default=date_handler)
-        
-        return JsonResponse(schedule_json, safe=False)
+        # TODO: Case where invalid HTTP Request handling
+        pass
         
      
 @login_required     

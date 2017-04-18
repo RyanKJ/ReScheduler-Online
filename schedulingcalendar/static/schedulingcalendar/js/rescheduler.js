@@ -487,7 +487,7 @@ $(document).ready(function() {
  * assigned. All schedules should also have its start time before its end time.
  */    
 function validateAddScheduleForm() {
-  var date = document.forms["addingScheduleForm"]["date"].value;
+  var date = document.forms["addingScheduleForm"]["add_date"].value;
   if (date == "") {
     alert("Day must be selected to add schedule");
     return false;

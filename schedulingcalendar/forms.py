@@ -13,25 +13,18 @@ class CalendarForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         super(CalendarForm, self).__init__(*args, **kwargs)
         
-        dep_choices = self.get_department_choices(user)
+        # TODO: Add edge case where user has 0 departments
+        dep_choices = get_department_tuple(user)
         year_choices = self.get_year_choices()
         
         self.fields['department'].widget.choices = dep_choices
         self.fields['year'].widget.choices = year_choices
         
-     
-    def get_department_choices(self, logged_user):
-        # TODO: Add edge case where user has 0 departments
-        departments = Department.objects.filter(user=logged_user).only('id', 'name')
-        dep_choices = [(dep.id, dep.name) for dep in departments]
-        
-        return tuple(dep_choices)
-        
         
     def get_year_choices(self):
         now = datetime.now()
         current_year = now.year
-        year_choices = get_year_choices(current_year, 5, 2)
+        year_choices = get_years_tuple(current_year, 5, 2)
         
         return year_choices
         
@@ -48,21 +41,43 @@ class CalendarForm(forms.Form):
                      
                    
 class AddScheduleForm(forms.Form):
-    # TODO Use SeperateDateTimeField?
-    department = forms.IntegerField(label='Department', widget=forms.Select(),
+    # TODO Use SeperateDateTimeField?                        
+    date_attrs = {'id': 'add-date', 'value': '', 'name': 'date'}
+    add_date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    
+    dep_attrs = {'id': 'new-schedule-dep', 'value': '', 'name': 'department'}
+    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
                                     min_value=0, max_value=1000)
-    date = forms.DateField(label='Date')
     
+    start_time_attrs = {'id': 'start-timepicker', 'name': 'start-timepicker'}
     start_time =  forms.TimeField(label='Start Time',
-                                        input_formats=TIME_FORMATS)
+                                  widget=forms.TextInput(attrs=start_time_attrs),
+                                  input_formats=TIME_FORMATS)
+                                  
+    hide_start_attrs = {'id': 'start-checkbox', 'name': 'hide-start', 'value': False}
+    hide_start = forms.BooleanField(label="", 
+                                    required=False,
+                                    widget=forms.CheckboxInput(attrs=hide_start_attrs))
+                                  
+    end_time_attrs = {'id': 'end-timepicker', 'name': 'end-timepicker'}                      
     end_time = forms.TimeField(label='End Time',
-                                       input_formats=TIME_FORMATS)
-                                                              
-    hide_start = forms.BooleanField(label="Hide Start")
-    hide_end = forms.BooleanField(label="Hide End")
+                               widget=forms.TextInput(attrs=end_time_attrs),
+                               input_formats=TIME_FORMATS)
+                                                
+    hide_end_attrs = {'id': 'end-checkbox', 'name': 'hide-end', 'value': False}
+    hide_end = forms.BooleanField(label="", 
+                                  required=False,
+                                  widget=forms.CheckboxInput(attrs=hide_end_attrs))
     
     
-def get_year_choices(curr_year, n, m):
+def get_department_tuple(logged_user):
+    departments = Department.objects.filter(user=logged_user).only('id', 'name')
+    dep_choices = [(dep.id, dep.name) for dep in departments]
+        
+    return tuple(dep_choices)
+    
+    
+def get_years_tuple(curr_year, n, m):
     """Return a tuple of strings representing years.
     
     Args:
