@@ -106,7 +106,6 @@ def add_schedule(request):
             
             return JsonResponse(schedule_json, safe=False)
             
-        print form.errors
     else:
         # TODO: Case where invalid HTTP Request handling
         pass
