@@ -9,7 +9,8 @@ MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
 
 
 class CalendarForm(forms.Form):
-
+    """Form for user to select a calendar given year, month, & department."""
+    
     def __init__(self, user, *args, **kwargs):
         super(CalendarForm, self).__init__(*args, **kwargs)
         
@@ -41,6 +42,8 @@ class CalendarForm(forms.Form):
                      
                    
 class AddScheduleForm(forms.Form):
+    """Form for user to create a new schedule."""
+
     # TODO Use SeperateDateTimeField?                        
     date_attrs = {'id': 'add-date', 'value': '', 'name': 'date'}
     add_date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
@@ -71,6 +74,8 @@ class AddScheduleForm(forms.Form):
                                   
                                   
 class EmployeeForm(forms.ModelForm):
+    """Form for user to edit an employee's information."""
+    
     class Meta:
         model = Employee
         fields = ['first_name', 'last_name', 'employee_id', 'email',
@@ -79,6 +84,15 @@ class EmployeeForm(forms.ModelForm):
     
     
 def get_department_tuple(logged_user):
+    """Return a tuple of strings departments
+    
+    Args:
+        logged_user: current logged in user via django authentication system.
+    Returns:
+        A tuple containing all departments of user where each element is a 
+        tuple containing department id and name.
+    """
+    
     departments = Department.objects.filter(user=logged_user).only('id', 'name')
     dep_choices = [(dep.id, dep.name) for dep in departments]
         

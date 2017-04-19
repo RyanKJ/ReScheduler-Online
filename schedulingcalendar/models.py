@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Employee(models.Model):
-
+    """Representation of an employee."""
     user = models.ForeignKey(User)
 
     first_name = models.CharField(max_length=80)
@@ -24,7 +24,7 @@ class Employee(models.Model):
            
         
 class Department(models.Model):
-
+    """Representation of business department."""
     user = models.ForeignKey(User)
 
     name = models.CharField(max_length=100)
@@ -35,7 +35,7 @@ class Department(models.Model):
         
         
 class DepartmentMembership(models.Model):
-
+    """Representation of relationship between an employee and department."""
     user = models.ForeignKey(User)
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
@@ -47,7 +47,7 @@ class DepartmentMembership(models.Model):
     
 
 class Schedule(models.Model):
-
+    """Representation of a work schedule for a business."""
     user = models.ForeignKey(User)
 
     start_datetime = models.DateTimeField('start datetime')
@@ -68,7 +68,7 @@ class Schedule(models.Model):
         
         
 class Vacation(models.Model):
-
+    """Representation of a vacation block of time for employee absentee."""
     user = models.ForeignKey(User)
     
     start_datetime = models.DateTimeField('start datetime')
@@ -78,7 +78,7 @@ class Vacation(models.Model):
     
     
 class RepeatUnavailability(models.Model):
-
+    """Representation of repeating unavailability for employee absentee."""
     user = models.ForeignKey(User)
     
     start_time = models.TimeField('start time')
@@ -90,7 +90,7 @@ class RepeatUnavailability(models.Model):
     
     
 class MonthlyRevenue(models.Model):
-
+    """Representation of total revenue for a business for given month & year."""
     user = models.ForeignKey(User)
 
     monthly_total = models.IntegerField('monthly total revenue')

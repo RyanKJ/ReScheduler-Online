@@ -253,6 +253,15 @@ def calculate_weekly_hours(employee, schedule):
     
     
 def eligable_list_to_dict(eligable_list):
+    """Convert eligable_list into a dict ready for json serialization.
+    
+    Args:
+        eligable_list: list of sorted eligables with an availability dict and
+        a sorting score.
+    Returns:
+        The eligable list formatted into dicts to be serialized by json.
+    """
+    
     eligable_serialized_list = []
     
     for e in eligable_list['eligables']:
@@ -276,6 +285,15 @@ def eligable_list_to_dict(eligable_list):
     
     
 def _availability_to_dict(availability):
+    """Convert availability into a dict ready for json serialization.
+    
+    Args:
+        availability: list containing django querysets and other information
+        compiled by the get_availability function.
+    Returns:
+        Availability formatted into dicts to be serialized by json.
+    """
+    
     MODEL_CONFLICTS = ('(S)', '(V)', '(U)')
     avail_serialized = {}
     
