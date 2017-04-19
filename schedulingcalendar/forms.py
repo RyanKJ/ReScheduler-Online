@@ -1,6 +1,6 @@
 from django import forms
 from datetime import datetime
-from .models import Department
+from .models import Employee, Department
 
 TIME_FORMATS = ['%I:%M %p']
 MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
@@ -68,6 +68,14 @@ class AddScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", 
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
+                                  
+                                  
+class EmployeeForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = ['first_name', 'last_name', 'employee_id', 'email',
+                  'wage', 'desired_hours', 'monthly_medical',
+                  'workmans_comp', 'social_security']
     
     
 def get_department_tuple(logged_user):

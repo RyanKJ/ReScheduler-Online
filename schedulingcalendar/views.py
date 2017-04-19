@@ -7,20 +7,31 @@ from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 from .models import Schedule, Department, Employee
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
-from .forms import CalendarForm, AddScheduleForm
+from .forms import CalendarForm, AddScheduleForm, EmployeeForm
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
 
 
 @login_required
-def index(request):
+def calendar_page(request):
     logged_in_user = request.user
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
-    template = loader.get_template('schedulingcalendar/index.html')
+    template = loader.get_template('schedulingcalendar/calendar.html')
     context = {'calendar_form': calendar_form, 'add_sch_form': add_schedule_form}
+
+    return HttpResponse(template.render(context, request))
+    
+    
+@login_required
+def employee_page(request):
+    logged_in_user = request.user
+    
+    employee_form = EmployeeForm()
+    template = loader.get_template('schedulingcalendar/employees.html')
+    context = {'employee_form': employee_form}
 
     return HttpResponse(template.render(context, request))
 
