@@ -12,32 +12,33 @@
   <div class="container">
     <div class="row">
       <!-- Employee List -->
-      <div class="col-md-2">
-        <p>Hello, Employees!</p>
-        <ul class="list-group">
-          <li class="list-group-item">Employee 1</li>
-          <li class="list-group-item">Employee 2</li>
-          <li class="list-group-item">Employee 3</li>
-          <li class="list-group-item">Employee 4</li>
-          <li class="list-group-item">Employee 5</li>
-        </ul>
+      <div class="col-md-3">
+        <div class="employee-list-scrollbar">
+          <h2>Employee List</h2>
+          <ul class="list-group">
+            {% for employee in employee_list %}
+            <li class="list-group-item employee-li" 
+                data-employee-id="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
       <!-- Employee Info -->
-      <div class="col-md-5">
-        <p>Employee Info</p>
+      <div class="col-md-4">
+        <h2>Employee Info</h2>
         {% for field in employee_form %}
-        <div class="form-group">
+          <div class="form-group">
             {{ field.errors }}
             {{ field.label_tag }} {{ field }}
             {% if field.help_text %}
             <p class="help">{{ field.help_text|safe }}</p>
             {% endif %}
-        </div>
-{% endfor %}
+          </div>
+        {% endfor %}
       </div>
       <!-- Employee Availability Editor -->
       <div class="col-md-5">
-        <p>Employee Availability</p>
+        <h2>Employee Unavailability</h2>
         <ul class="nav nav-tabs">
           <li class="active"><a href="#">Vacations</a></li>
           <li><a href="#">Repeat Unavailability</a></li>
@@ -51,4 +52,5 @@
   {{ block.super }}     
   <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
+  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
 {% endblock javascript %}    

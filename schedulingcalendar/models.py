@@ -4,7 +4,12 @@ from django.contrib.auth.models import User
 
 
 class Employee(models.Model):
-    """Representation of an employee."""
+    """Representation of an employee.
+    
+    Attributes:
+        user: django user object for which this row is associated with.
+    """
+    
     user = models.ForeignKey(User)
 
     first_name = models.CharField(max_length=80)

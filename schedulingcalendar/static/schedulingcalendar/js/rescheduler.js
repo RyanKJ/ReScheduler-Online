@@ -245,7 +245,8 @@ $(document).ready(function() {
     // Create li corresponding to eligable employees for selected schedule
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
-      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name;
+      var warningFlag = _compileConflictFlags(eligableList[i]['availability']);
+      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;
       var $li = $("<li>", {
         "id": eligableList[i]['employee']['id'], 
         "text": name,
@@ -260,6 +261,30 @@ $(document).ready(function() {
     
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(currAssignedEmployeeID);
+  }
+  
+  
+  /** Given availability object, compile all conflict flags */
+  function _compileConflictFlags(availability) {
+    var warningFlag = "";
+    
+    if (availability['(S)'].length > 0) {
+      warningFlag += "(S"
+    }
+    if (availability['(V)'].length > 0) {
+      warningFlag += " V"
+    }
+    if (availability['(U)'].length > 0) {
+      warningFlag += " U"
+    }
+    if (availability['(O)']) {
+      warningFlag += " O"
+    }
+    if (warningFlag) {
+      warningFlag += ")"
+    }
+    
+    return warningFlag;
   }
   
   
@@ -432,7 +457,7 @@ $(document).ready(function() {
     
    
 
-  /** Tell server to remove schedule given its primary key */
+  /** Tell server to remove schedule given its primary key. */
   function remove_schedule() {
     var delete_schedule = confirm("Delete Schedule?");
       
@@ -506,7 +531,7 @@ function validateAddScheduleForm() {
 }
     
     
-/** Validate request get a calendar and associated data. */
+/** Validate request get a calendar and associated data */
 function validateGetCalendarForm() {
   //TODO: Check valid years, etc.
 }

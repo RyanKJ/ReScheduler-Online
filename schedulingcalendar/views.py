@@ -13,6 +13,15 @@ from itertools import chain
 import json
 
 
+
+def front_page(request):
+    
+    template = loader.get_template('schedulingcalendar/front.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
+
+
 @login_required
 def calendar_page(request):
     logged_in_user = request.user
@@ -29,9 +38,12 @@ def calendar_page(request):
 def employee_page(request):
     logged_in_user = request.user
     
+    # TODO: Get all employees for user and load into page?
     employee_form = EmployeeForm()
+    employee_list = Employee.objects.filter(user=logged_in_user)
+    
     template = loader.get_template('schedulingcalendar/employees.html')
-    context = {'employee_form': employee_form}
+    context = {'employee_form': employee_form, 'employee_list': employee_list}
 
     return HttpResponse(template.render(context, request))
 
@@ -164,6 +176,25 @@ def remove_schedule(request):
     
     json_info = json.dumps({'schedule_pk': schedule_pk}, default=date_handler)
     return JsonResponse(json_info, safe=False)
+    
+    
+@login_required 
+def get_employee(request):
+    if request.method == 'GET':
+        # create a form instance and populate it with data from the request:
+        form = EmployeeSelectForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect('/thanks/')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = NameForm()
+
+    return render(request, 'name.html', {'form': form})
     
     
     
