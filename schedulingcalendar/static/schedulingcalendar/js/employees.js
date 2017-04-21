@@ -11,7 +11,7 @@ $(function(){
     
     /** Display HTTP response of all employees for user */
     function displayEmployees() {
-      
+      // Given a serialized object of employee, put stuff into fields
     }
     
     
@@ -23,4 +23,7 @@ $(function(){
         $employee_li.parent().find('li').removeClass('active');
         $employee_li.addClass('active');
     }
+    
+    
+    
 })

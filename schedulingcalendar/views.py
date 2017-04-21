@@ -15,7 +15,7 @@ import json
 
 
 def front_page(request):
-    
+    """Display the front page for the website."""
     template = loader.get_template('schedulingcalendar/front.html')
     context = {}
 
@@ -24,6 +24,7 @@ def front_page(request):
 
 @login_required
 def calendar_page(request):
+    """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
     
     calendar_form = CalendarForm(logged_in_user)
@@ -36,6 +37,7 @@ def calendar_page(request):
     
 @login_required
 def employee_page(request):
+    """Display the employee editing page for a managing user."""
     logged_in_user = request.user
     
     # TODO: Get all employees for user and load into page?
@@ -50,6 +52,7 @@ def employee_page(request):
 
 @login_required
 def get_schedules(request):
+    """Display schedules for a given user, month, year, and department."""
     logged_in_user = request.user
     if request.method == 'GET':
         form = CalendarForm(logged_in_user, request.GET)
@@ -150,6 +153,7 @@ def get_schedule_info(request):
 
 @login_required
 def add_employee_to_schedule(request):
+    """Assign employee to schedule."""
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     employee_pk = request.POST['employee_pk']
@@ -169,6 +173,7 @@ def add_employee_to_schedule(request):
 
 @login_required
 def remove_schedule(request):
+    """Remove schedule from the database."""
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
@@ -180,6 +185,7 @@ def remove_schedule(request):
     
 @login_required 
 def get_employee(request):
+    """Fetch employee information to display via an html form."""
     if request.method == 'GET':
         # create a form instance and populate it with data from the request:
         form = EmployeeSelectForm(request.POST)
