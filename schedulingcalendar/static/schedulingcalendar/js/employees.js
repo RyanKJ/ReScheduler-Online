@@ -5,12 +5,14 @@ $(function(){
     
     /** Load selected employee's information into appropriate forms */
     function loadEmployeeInfo(event) {
-      $.get("get_employees", displayEmployees);
+      var empPk = $(this).data("employee-id");
+      $.get("get_employee_info", {employee_pk: empPk}, displayEmployees);
     }
     
     
     /** Display HTTP response of all employees for user */
-    function displayEmployees() {
+    function displayEmployees(data) {
+      console.log(data);
       // Given a serialized object of employee, put stuff into fields
     }
     

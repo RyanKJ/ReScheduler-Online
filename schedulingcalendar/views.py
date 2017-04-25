@@ -5,9 +5,11 @@ from django.urls import reverse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
-from .models import Schedule, Department, Employee
+from django.views.generic import ListView, UpdateView
+from .models import Schedule, Department, Employee, Vacation
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
-from .forms import CalendarForm, AddScheduleForm, EmployeeForm
+from .forms import CalendarForm, AddScheduleForm, EmployeeForm, UpdateEmployeeForm
+from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
@@ -36,7 +38,7 @@ def calendar_page(request):
     
     
 @login_required
-def employee_page(request):
+def employee_list(request):
     """Display the employee editing page for a managing user."""
     logged_in_user = request.user
     
@@ -44,7 +46,7 @@ def employee_page(request):
     employee_form = EmployeeForm()
     employee_list = Employee.objects.filter(user=logged_in_user)
     
-    template = loader.get_template('schedulingcalendar/employees.html')
+    template = loader.get_template('schedulingcalendar/employeeList.html')
     context = {'employee_form': employee_form, 'employee_list': employee_list}
 
     return HttpResponse(template.render(context, request))
@@ -54,6 +56,7 @@ def employee_page(request):
 def get_schedules(request):
     """Display schedules for a given user, month, year, and department."""
     logged_in_user = request.user
+    print "******** get_schedules is ajax request?: ", request.is_ajax()
     if request.method == 'GET':
         form = CalendarForm(logged_in_user, request.GET)
         if form.is_valid():
@@ -141,6 +144,7 @@ def add_schedule(request):
 def get_schedule_info(request):
     """Returns information for schedule such as eligable employees."""
     logged_in_user = request.user
+    print "******** get_schedule_info is ajax request?: ", request.is_ajax()
     schedule_pk = request.GET['pk']
     schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
     
@@ -184,23 +188,46 @@ def remove_schedule(request):
     
     
 @login_required 
-def get_employee(request):
+def get_employee_info(request):
     """Fetch employee information to display via an html form."""
+    logged_in_user = request.user
     if request.method == 'GET':
-        # create a form instance and populate it with data from the request:
-        form = EmployeeSelectForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect('/thanks/')
-
-    # if a GET (or any other method) we'll create a blank form
+        employee_pk = request.GET['employee_pk']
+        employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
+        employee_form = EmployeeForm(instance=employee)
+        print "************** Employee form looks like", employee_form
+        
+        
+        employee_vacations = Vacation.objects.filter(user=logged_in_user, employee=employee_pk)
+        
+        # Convert info for json dump
+        employee_as_dict = model_to_dict(employee)
+        vacations_as_dicts = []
+        for v in employee_vacations:
+            vacation_dict = model_to_dict(v)
+            vacations_as_dicts.append(vacation_dict)
+                
+        # Combine all appropriate data into dict for serialization
+        combined_dict = {'employee': employee_as_dict,
+                         'vacations': vacations_as_dicts}
+        combined_json = json.dumps(combined_dict, default=date_handler)
+        
+        return JsonResponse(combined_json, safe=False)
+        
     else:
-        form = NameForm()
-
-    return render(request, 'name.html', {'form': form})
+        # TODO: Case where invalid HTTP Request handling
+        pass
+        
+        
+class EmployeeListView(ListView):
+    model = Employee
+    template_name = 'schedulingcalendar/employeeList.html'
+    context_object_name = 'employee_list'
+        
+        
+        
+        
+        
     
     
     
