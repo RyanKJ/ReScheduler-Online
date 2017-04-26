@@ -13,15 +13,22 @@
     <div class="row">
       <div class="col-md">
         <h2>Employee Info</h2>
-        {% for field in employee_form %}
-          <div class="form-group">
-            {{ field.errors }}
-            {{ field.label_tag }} {{ field }}
-            {% if field.help_text %}
-            <p class="help">{{ field.help_text|safe }}</p>
-            {% endif %}
-          </div>
-        {% endfor %}
+        <form id="schedule-add-form"
+              name= "addingScheduleForm"
+              action="{% url 'schedulingcalendar:employee_info' employee.id %}"
+              method="post">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="form-group">
+              {{ field.errors }}
+              {{ field.label_tag }} {{ field }}
+              {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <input type="submit" value="Save Changes">
+        </form>
       </div>
     </div>
   </div>

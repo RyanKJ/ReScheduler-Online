@@ -19,8 +19,6 @@ $(function(){
     
     /** Highlight employee li if successfully loaded. */ 
     function highlightEmployeeLi(event) {
-        event.preventDefault();
-        
         $employee_li = $(this);
         $employee_li.parent().find('li').removeClass('active');
         $employee_li.addClass('active');

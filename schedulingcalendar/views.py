@@ -1,14 +1,15 @@
 from django.core import serializers
-from django.shortcuts import render
+from django.shortcuts import render, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, FormView, UpdateView
 from .models import Schedule, Department, Employee, Vacation
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
-from .forms import CalendarForm, AddScheduleForm, EmployeeForm, UpdateEmployeeForm
+from .forms import CalendarForm, AddScheduleForm
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -186,48 +187,38 @@ def remove_schedule(request):
     json_info = json.dumps({'schedule_pk': schedule_pk}, default=date_handler)
     return JsonResponse(json_info, safe=False)
     
-    
-@login_required 
-def get_employee_info(request):
-    """Fetch employee information to display via an html form."""
-    logged_in_user = request.user
-    if request.method == 'GET':
-        employee_pk = request.GET['employee_pk']
-        employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
-        employee_form = EmployeeForm(instance=employee)
-        print "************** Employee form looks like", employee_form
         
-        
-        employee_vacations = Vacation.objects.filter(user=logged_in_user, employee=employee_pk)
-        
-        # Convert info for json dump
-        employee_as_dict = model_to_dict(employee)
-        vacations_as_dicts = []
-        for v in employee_vacations:
-            vacation_dict = model_to_dict(v)
-            vacations_as_dicts.append(vacation_dict)
-                
-        # Combine all appropriate data into dict for serialization
-        combined_dict = {'employee': employee_as_dict,
-                         'vacations': vacations_as_dicts}
-        combined_json = json.dumps(combined_dict, default=date_handler)
-        
-        return JsonResponse(combined_json, safe=False)
-        
-    else:
-        # TODO: Case where invalid HTTP Request handling
-        pass
-        
-        
+@method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):
     model = Employee
     template_name = 'schedulingcalendar/employeeList.html'
     context_object_name = 'employee_list'
         
+    def get_queryset(self):
+        return Employee.objects.filter(user=self.request.user)
         
+ 
+@method_decorator(login_required, name='dispatch') 
+class EmployeeUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/employeeInfo.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    fields = ['first_name', 'last_name', 'employee_id', 'email',
+              'wage', 'desired_hours', 'monthly_medical',
+              'workmans_comp', 'social_security']
+    
+    def get(self, request, **kwargs):
+        self.object = Employee.objects.get(pk=self.kwargs['employee_pk'], user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
         
-        
-        
+    def get_object(self, queryset=None):
+        obj = Employee.objects.get(pk=self.kwargs['employee_pk'], user=self.request.user)
+        return obj
+    
+  
     
     
     

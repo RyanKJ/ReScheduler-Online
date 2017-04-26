@@ -72,26 +72,6 @@ class AddScheduleForm(forms.Form):
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
                                   
-                                  
-class EmployeeForm(forms.ModelForm):
-    """Form for user to edit an employee's information."""
-    
-    class Meta:
-        model = Employee
-        fields = ['first_name', 'last_name', 'employee_id', 'email',
-                  'wage', 'desired_hours', 'monthly_medical',
-                  'workmans_comp', 'social_security']
-    
-    
-class UpdateEmployeeForm(forms.ModelForm):
-    """Form for user to edit an employee's information."""
-    
-    class Meta:
-        model = Employee
-        fields = ['first_name', 'last_name', 'employee_id', 'email',
-                  'wage', 'desired_hours', 'monthly_medical',
-                  'workmans_comp', 'social_security']
-    
     
 def get_department_tuple(logged_user):
     """Return a tuple of strings departments

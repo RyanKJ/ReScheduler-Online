@@ -20,7 +20,7 @@
               <li class="list-group-item">
                 <ul class="list-inline" data-employee-id="{{ employee.id }}">
                   <li>{{ employee.first_name }} {{ employee.last_name }}</li>
-                  <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Information</a></li>
+                  <li><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Information</a></li>
                   <li>Vacations</li>
                   <li>Repeat Unavailabilities</li>
                   <li>Desired Work Times</li>
