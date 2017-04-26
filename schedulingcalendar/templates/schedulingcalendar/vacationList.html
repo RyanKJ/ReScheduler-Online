@@ -13,19 +13,15 @@
     <div class="row">
       <!-- Employee List -->
       <div class="col-md">
-        <div class="employee-list-scrollbar">
-          <h2>Employee List</h2>
-          <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
+        <div class="vacation-list-scrollbar">
+          <h2>Vacation List For {{ employee.first_name }} {{ employee.last_name }}</h2>
+          <a href="{% url 'schedulingcalendar:employee_create' %}">New Vacation</a>
           <ul class="list-group">
-            {% for employee in employee_list %}
+            {% for vacation in vacation_list %}
               <li class="list-group-item">
-                <ul class="list-inline" data-employee-id="{{ employee.id }}">
-                  <li>{{ employee.first_name }} {{ employee.last_name }}</li>
-                  <li><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Information</a></li>
-                  <li><a href="{% url 'schedulingcalendar:employee_vacations' employee.id %}">Vacations</a></li>
-                  <li>Repeat Unavailabilities</li>
-                  <li>Desired Work Times</li>
-                  <li><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete Employee</a></li>
+                <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
+                  <li>{{ vacation.start_datetime }} - {{ vacation.end_datetime }}</li>
+                  <li><a href="{% url 'schedulingcalendar:employee_delete' vacation.id %}">Delete Vacation</a></li>
                 </ul>
               </li>
             {% endfor %}

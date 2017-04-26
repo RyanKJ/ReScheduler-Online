@@ -207,7 +207,8 @@ class EmployeeUpdateView(UpdateView):
               'workmans_comp', 'social_security']
     
     def get(self, request, **kwargs):
-        self.object = Employee.objects.get(pk=self.kwargs['employee_pk'], user=self.request.user)
+        self.object = Employee.objects.get(pk=self.kwargs['employee_pk'], 
+                                           user=self.request.user)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         context = self.get_context_data(object=self.object, form=form)
@@ -215,7 +216,8 @@ class EmployeeUpdateView(UpdateView):
 
         
     def get_object(self, queryset=None):
-        obj = Employee.objects.get(pk=self.kwargs['employee_pk'], user=self.request.user)
+        obj = Employee.objects.get(pk=self.kwargs['employee_pk'], 
+                                   user=self.request.user)
         return obj
         
         
@@ -239,6 +241,25 @@ class EmployeeDeleteView(DeleteView):
     template_name = 'schedulingcalendar/employeeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
+    
+    
+@method_decorator(login_required, name='dispatch')
+class VacationListView(ListView):
+    model = Vacation
+    template_name = 'schedulingcalendar/vacationList.html'
+    context_object_name = 'vacation_list'
+        
+    def get_queryset(self):
+        return Vacation.objects.filter(user=self.request.user,
+                                       employee=self.kwargs['employee_pk'])
+                                       
+                                       
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(VacationListView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+        return context
     
     
     
