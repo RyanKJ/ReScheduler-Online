@@ -15,6 +15,7 @@
       <div class="col-md">
         <div class="employee-list-scrollbar">
           <h2>Employee List</h2>
+          <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
           <ul class="list-group">
             {% for employee in employee_list %}
               <li class="list-group-item">
@@ -24,6 +25,7 @@
                   <li>Vacations</li>
                   <li>Repeat Unavailabilities</li>
                   <li>Desired Work Times</li>
+                  <li><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete Employee</a></li>
                 </ul>
               </li>
             {% endfor %}

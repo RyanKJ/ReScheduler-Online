@@ -13,9 +13,9 @@
     <div class="row">
       <div class="col-md">
         <h2>Employee Info</h2>
-        <form id="update-employee-form"
-              name= "UpdateEmployeeForm"
-              action="{% url 'schedulingcalendar:employee_info' employee.id %}"
+        <form id="create-employee-form"
+              name= "DeleteEmployeeForm"
+              action="{% url 'schedulingcalendar:employee_create' %}"
               method="post">
           {% csrf_token %}
           {% for field in form %}
@@ -27,7 +27,7 @@
               {% endif %}
             </div>
           {% endfor %}
-          <input type="submit" value="Save Changes">
+          <input type="submit" value="Create Employee">
         </form>
       </div>
     </div>

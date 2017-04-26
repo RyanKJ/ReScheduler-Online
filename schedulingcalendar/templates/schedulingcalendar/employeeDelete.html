@@ -12,22 +12,13 @@
   <div class="container">
     <div class="row">
       <div class="col-md">
-        <h2>Employee Info</h2>
-        <form id="update-employee-form"
-              name= "UpdateEmployeeForm"
-              action="{% url 'schedulingcalendar:employee_info' employee.id %}"
+        <p>Are You Sure You Want To Delete This Employee?</p>
+        <form id="delete-employee-form"
+              name= "DeleteEmployeeForm"
+              action="{% url 'schedulingcalendar:employee_delete' employee.id %}"
               method="post">
           {% csrf_token %}
-          {% for field in form %}
-            <div class="form-group">
-              {{ field.errors }}
-              {{ field.label_tag }} {{ field }}
-              {% if field.help_text %}
-              <p class="help">{{ field.help_text|safe }}</p>
-              {% endif %}
-            </div>
-          {% endfor %}
-          <input type="submit" value="Save Changes">
+          <input type="submit" value="Delete Employee">
         </form>
       </div>
     </div>

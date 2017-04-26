@@ -6,7 +6,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.views.generic import ListView, FormView, UpdateView
+from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
 from .models import Schedule, Department, Employee, Vacation
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
 from .forms import CalendarForm, AddScheduleForm
@@ -217,8 +217,28 @@ class EmployeeUpdateView(UpdateView):
     def get_object(self, queryset=None):
         obj = Employee.objects.get(pk=self.kwargs['employee_pk'], user=self.request.user)
         return obj
-    
-  
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class EmployeeCreateView(CreateView):
+    template_name = 'schedulingcalendar/employeeCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = Employee
+    fields = ['first_name', 'last_name', 'employee_id', 'email',
+              'wage', 'desired_hours', 'monthly_medical',
+              'workmans_comp', 'social_security']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super(EmployeeCreateView, self).form_valid(form)
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class EmployeeDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/employeeDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = Employee
     
     
     
