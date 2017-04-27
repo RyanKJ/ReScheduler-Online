@@ -221,6 +221,15 @@ class EmployeeUpdateView(UpdateView):
         return obj
         
         
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
+        context['vacation_list'] = Vacation.objects.filter(employee=self.kwargs['employee_pk'],
+                                                           user=self.request.user)
+                                                        
+        return context
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class EmployeeCreateView(CreateView):
     template_name = 'schedulingcalendar/employeeCreate.html'
@@ -244,22 +253,77 @@ class EmployeeDeleteView(DeleteView):
     
     
 @method_decorator(login_required, name='dispatch')
-class VacationListView(ListView):
-    model = Vacation
-    template_name = 'schedulingcalendar/vacationList.html'
-    context_object_name = 'vacation_list'
+class VacationUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/vacationUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    fields = ['start_datetime', 'end_datetime']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = Vacation.objects.get(pk=self.kwargs['vacation_pk'], 
+                                           user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
         
-    def get_queryset(self):
-        return Vacation.objects.filter(user=self.request.user,
-                                       employee=self.kwargs['employee_pk'])
-                                       
-                                       
+    def get_object(self, queryset=None):
+        obj = Vacation.objects.get(pk=self.kwargs['vacation_pk'], 
+                                   user=self.request.user)
+        return obj
+        
+        
     def get_context_data(self, **kwargs):
         """Add employee owner of vacations to context."""
-        context = super(VacationListView, self).get_context_data(**kwargs)
+        context = super(VacationUpdateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
+                                                        
         return context
     
+   
+@method_decorator(login_required, name='dispatch')
+class VacationCreateView(CreateView):
+    template_name = 'schedulingcalendar/vacationCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = Vacation
+    fields = ['start_datetime', 'end_datetime']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(VacationCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(VacationCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class VacationDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/vacationDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = Vacation
     
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(VacationDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+        print "**************************** Context is: ", context
+                                                        
+        return context
+        
+        
+        
     

@@ -266,25 +266,31 @@ $(document).ready(function() {
   
   /** Given availability object, compile all conflict flags */
   function _compileConflictFlags(availability) {
-    var warningFlag = "";
+    var warningFlagList = [];
     
     if (availability['(S)'].length > 0) {
-      warningFlag += "(S"
+      warningFlagList.push("S")
     }
     if (availability['(V)'].length > 0) {
-      warningFlag += " V"
+      warningFlagList.push("V")
     }
     if (availability['(U)'].length > 0) {
-      warningFlag += " U"
+      warningFlagList.push("U")
     }
     if (availability['(O)']) {
-      warningFlag += " O"
+      warningFlagList.push("O")
     }
-    if (warningFlag) {
-      warningFlag += ")"
+    if (warningFlagList.length > 0) {
+      var warningFlag = "("
+      
+      for (i = 0; i < warningFlagList.length - 1; i++) {
+        warningFlag += warningFlagList[i] + ", ";
+      }
+      warningFlag = warningFlag + warningFlagList[warningFlagList.length-1] + ")"
+      return warningFlag;
+    } else {
+      return "";
     }
-    
-    return warningFlag;
   }
   
   

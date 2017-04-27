@@ -11,7 +11,8 @@
 {% block content %}
   <div class="container">
     <div class="row">
-      <div class="col-md">
+      <!-- Employee Info -->
+      <div class="col-md-4">
         <h2>Employee Info</h2>
         <form id="update-employee-form"
               name= "UpdateEmployeeForm"
@@ -29,6 +30,43 @@
           {% endfor %}
           <input type="submit" value="Save Changes">
         </form>
+      </div>
+      <!-- Employee Availabilities -->
+      <div class="col-md-8">
+        <h2>Employee Unavailability</h2>
+          <ul class="nav nav-tabs">
+            <!-- Tabs -->
+            <li class="active"><a href="#vacation-tab" data-toggle="tab">Vacations</a></li>
+            <li><a href="#repeat-unavailability-tab" data-toggle="tab">Repeat Unavailability</a></li>
+            <li><a href="#desired-times-tab" data-toggle="tab">Desired Times</a></li>
+          </ul>
+        
+          <div class="tab-content ">
+            <!-- Vacations -->
+            <div class="tab-pane active" id="vacation-tab">
+              <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
+              <ul class="list-group">
+                {% for vacation in vacation_list %}
+                  <li class="list-group-item">
+                    <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
+                      <li>{{ vacation.start_datetime }} - {{ vacation.end_datetime }}</li>
+                      <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}">Edit Vacation</a></li>
+                      <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id vacation.id %}">Delete Vacation</a></li>
+                    </ul>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+            
+            <div class="tab-pane" id="repeat-unavailability-tab">
+            </div>
+            
+            <div class="tab-pane" id="desired-times-tab">
+            </div>
+            
+            
+          </div>
+        
       </div>
     </div>
   </div>
