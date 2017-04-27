@@ -94,6 +94,18 @@ class RepeatUnavailability(models.Model):
     employee = models.ForeignKey(Employee)
     
     
+class DesiredTime(models.Model):
+    """Representation of repeating desired work time for employee absentee."""
+    user = models.ForeignKey(User)
+    
+    start_time = models.TimeField('start time')
+    end_time = models.TimeField('end time')
+    # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
+    weekday = models.IntegerField('weekday')
+    
+    employee = models.ForeignKey(Employee)
+    
+    
 class MonthlyRevenue(models.Model):
     """Representation of total revenue for a business for given month & year."""
     user = models.ForeignKey(User)
