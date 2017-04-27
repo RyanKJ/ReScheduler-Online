@@ -33,7 +33,7 @@
       </div>
       <!-- Employee Availabilities -->
       <div class="col-md-8">
-        <h2>Employee Unavailability</h2>
+        <h2>Employee Departments And Availability</h2>
           <ul class="nav nav-tabs">
             <!-- Tabs -->
             <li class="active"><a href="#vacation-tab" data-toggle="tab">Vacations</a></li>
@@ -59,6 +59,18 @@
             </div>
             
             <div class="tab-pane" id="repeat-unavailability-tab">
+              <a href="{% url 'schedulingcalendar:repeat_unav_create' employee.id %}">New Repeat Unavailability</a>
+              <ul class="list-group">
+                {% for repeat_unav in repeating_unavailable_list %}
+                  <li class="list-group-item">
+                    <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
+                      <li>{{ repeat_unav.start_time }} - {{ repeat_unav.end_time }}</li>
+                      <li><a href="{% url 'schedulingcalendar:repeat_unav_update' employee.id repeat_unav.id %}">Edit Repeat Unavailability</a></li>
+                      <li><a href="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeat_unav.id %}">Delete Repeat Unavailability</a></li>
+                    </ul>
+                  </li>
+                {% endfor %}
+              </ul>
             </div>
             
             <div class="tab-pane" id="desired-times-tab">

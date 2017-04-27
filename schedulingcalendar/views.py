@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
-from .models import Schedule, Department, Employee, Vacation
+from .models import Schedule, Department, Employee, Vacation, RepeatUnavailability
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
 from .forms import CalendarForm, AddScheduleForm
 from .custom_mixins import AjaxFormResponseMixin
@@ -226,7 +226,9 @@ class EmployeeUpdateView(UpdateView):
         context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
         context['vacation_list'] = Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                            user=self.request.user)
-                                                        
+        context['repeating_unavailable_list'] = RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                                    user=self.request.user)
+
         return context
         
         
@@ -319,9 +321,78 @@ class VacationDeleteView(DeleteView):
         """Add employee owner of vacations to context."""
         context = super(VacationDeleteView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch')
+class RepeatUnavailableUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    fields = ['start_time', 'end_time', 'weekday']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = RepeatUnavailability.objects.get(pk=self.kwargs['repeat_unav_pk'], 
+                                                       user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = RepeatUnavailability.objects.get(pk=self.kwargs['repeat_unav_pk'], 
+                                               user=self.request.user)
+        return obj
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(RepeatUnavailableUpdateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
-        print "**************************** Context is: ", context
                                                         
+        return context
+    
+   
+@method_decorator(login_required, name='dispatch')
+class RepeatUnavailableCreateView(CreateView):
+    template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = RepeatUnavailability
+    fields = ['start_time', 'end_time', 'weekday']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(RepeatUnavailableCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(RepeatUnavailableCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class RepeatUnavailableDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/repeatUnavailableDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = RepeatUnavailability
+    
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(RepeatUnavailableDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
         return context
         
         
