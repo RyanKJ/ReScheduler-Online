@@ -20,7 +20,7 @@ $(document).ready(function() {
       
       
   $fullCal.fullCalendar({
-    editable: true,
+    editable: false,
     events: [],
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
