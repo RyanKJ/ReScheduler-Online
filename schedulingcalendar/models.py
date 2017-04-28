@@ -4,12 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Employee(models.Model):
-    """Representation of an employee.
-    
-    Attributes:
-        user: django user object for which this row is associated with.
-    """
-    
+    """Representation of an employee."""
     user = models.ForeignKey(User)
 
     first_name = models.CharField(max_length=80)
@@ -95,7 +90,7 @@ class RepeatUnavailability(models.Model):
     
     
 class DesiredTime(models.Model):
-    """Representation of repeating desired work time for employee absentee."""
+    """Representation of repeating desired work time for employee."""
     user = models.ForeignKey(User)
     
     start_time = models.TimeField('start time')

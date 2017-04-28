@@ -16,7 +16,6 @@ from itertools import chain
 import json
 
 
-
 def front_page(request):
     """Display the front page for the website."""
     template = loader.get_template('schedulingcalendar/front.html')
@@ -145,7 +144,7 @@ def add_schedule(request):
 def get_schedule_info(request):
     """Returns information for schedule such as eligable employees."""
     logged_in_user = request.user
-    print "******** get_schedule_info is ajax request?: ", request.is_ajax()
+
     schedule_pk = request.GET['pk']
     schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
     
@@ -190,6 +189,7 @@ def remove_schedule(request):
         
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):
+    """Display an alphabetical list of all employees for a managing user."""
     model = Employee
     template_name = 'schedulingcalendar/employeeList.html'
     context_object_name = 'employee_list'
@@ -200,6 +200,7 @@ class EmployeeListView(ListView):
  
 @method_decorator(login_required, name='dispatch') 
 class EmployeeUpdateView(UpdateView):
+    """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['first_name', 'last_name', 'employee_id', 'email',
@@ -222,7 +223,7 @@ class EmployeeUpdateView(UpdateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add departments, vacations, and other lists of employee to context."""
         context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
         context['department_mem_list'] = DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
                                                                          user=self.request.user)
@@ -238,6 +239,7 @@ class EmployeeUpdateView(UpdateView):
         
 @method_decorator(login_required, name='dispatch') 
 class EmployeeCreateView(CreateView):
+    """Display an employee form to create a new employee."""
     template_name = 'schedulingcalendar/employeeCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
@@ -253,6 +255,7 @@ class EmployeeCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class EmployeeDeleteView(DeleteView):
+    """Display a delete form to delete employee object."""
     template_name = 'schedulingcalendar/employeeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
@@ -260,6 +263,7 @@ class EmployeeDeleteView(DeleteView):
     
 @method_decorator(login_required, name='dispatch')
 class VacationUpdateView(UpdateView):
+    """Display vacation form to edit vacation object."""
     template_name = 'schedulingcalendar/vacationUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['start_datetime', 'end_datetime']
@@ -291,6 +295,7 @@ class VacationUpdateView(UpdateView):
    
 @method_decorator(login_required, name='dispatch')
 class VacationCreateView(CreateView):
+    """Display vacation form to create vacation object."""
     template_name = 'schedulingcalendar/vacationCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Vacation
@@ -316,6 +321,7 @@ class VacationCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class VacationDeleteView(DeleteView):
+    """Display a delete form to delete vacation object."""
     template_name = 'schedulingcalendar/vacationDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Vacation
@@ -331,6 +337,7 @@ class VacationDeleteView(DeleteView):
         
 @method_decorator(login_required, name='dispatch')
 class RepeatUnavailableUpdateView(UpdateView):
+    """Display repeat unavailable form to edit unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['start_time', 'end_time', 'weekday']
@@ -352,7 +359,7 @@ class RepeatUnavailableUpdateView(UpdateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of unavailable repeat to context."""
         context = super(RepeatUnavailableUpdateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -362,6 +369,7 @@ class RepeatUnavailableUpdateView(UpdateView):
    
 @method_decorator(login_required, name='dispatch')
 class RepeatUnavailableCreateView(CreateView):
+    """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = RepeatUnavailability
@@ -377,7 +385,7 @@ class RepeatUnavailableCreateView(CreateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of unavailable repeat to context."""
         context = super(RepeatUnavailableCreateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -387,13 +395,14 @@ class RepeatUnavailableCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class RepeatUnavailableDeleteView(DeleteView):
+    """Display a delete form to delete unavailable repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = RepeatUnavailability
     
     
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of unavailable repeat to context."""
         context = super(RepeatUnavailableDeleteView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
@@ -402,6 +411,7 @@ class RepeatUnavailableDeleteView(DeleteView):
         
 @method_decorator(login_required, name='dispatch')
 class DesiredTimeUpdateView(UpdateView):
+    """Display desired time form to edit object."""
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['start_time', 'end_time', 'weekday']
@@ -423,7 +433,7 @@ class DesiredTimeUpdateView(UpdateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of desired time to context."""
         context = super(DesiredTimeUpdateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -433,6 +443,7 @@ class DesiredTimeUpdateView(UpdateView):
    
 @method_decorator(login_required, name='dispatch')
 class DesiredTimeCreateView(CreateView):
+    """Display desired time form to create object."""
     template_name = 'schedulingcalendar/desiredTimeCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DesiredTime
@@ -448,7 +459,7 @@ class DesiredTimeCreateView(CreateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of desired time to context."""
         context = super(DesiredTimeCreateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -458,13 +469,14 @@ class DesiredTimeCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class DesiredTimeDeleteView(DeleteView):
+    """Display a delete form to delete desired time object."""
     template_name = 'schedulingcalendar/desiredTimeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DesiredTime
     
     
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of desired time to context."""
         context = super(DesiredTimeDeleteView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
@@ -473,6 +485,7 @@ class DesiredTimeDeleteView(DeleteView):
         
 @method_decorator(login_required, name='dispatch')
 class DepartmentMembershipUpdateView(UpdateView):
+    """Display department membership form to edit existing object."""
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['department', 'priority', 'seniority']
@@ -494,7 +507,7 @@ class DepartmentMembershipUpdateView(UpdateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of department membership to context."""
         context = super(DepartmentMembershipUpdateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -504,6 +517,7 @@ class DepartmentMembershipUpdateView(UpdateView):
    
 @method_decorator(login_required, name='dispatch')
 class DepartmentMembershipCreateView(CreateView):
+    """Display department membership form to create object."""
     template_name = 'schedulingcalendar/departmentMembershipCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DepartmentMembership
@@ -519,7 +533,7 @@ class DepartmentMembershipCreateView(CreateView):
         
         
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of department membership to context."""
         context = super(DepartmentMembershipCreateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
@@ -529,13 +543,14 @@ class DepartmentMembershipCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class DepartmentMembershipDeleteView(DeleteView):
+    """Display a delete form to delete department membership object."""
     template_name = 'schedulingcalendar/departmentMembershipDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DepartmentMembership
     
     
     def get_context_data(self, **kwargs):
-        """Add employee owner of vacations to context."""
+        """Add employee owner of department membership to context."""
         context = super(DepartmentMembershipDeleteView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
@@ -544,6 +559,7 @@ class DepartmentMembershipDeleteView(DeleteView):
         
 @method_decorator(login_required, name='dispatch')
 class DepartmentListView(ListView):
+    """Display an alphabetical list of all departments for a managing user."""
     model = Department
     template_name = 'schedulingcalendar/departmentList.html'
     context_object_name = 'department_list'
@@ -554,6 +570,7 @@ class DepartmentListView(ListView):
         
 @method_decorator(login_required, name='dispatch')
 class DepartmentUpdateView(UpdateView):
+    """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/departmentUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     fields = ['name']
@@ -576,6 +593,7 @@ class DepartmentUpdateView(UpdateView):
    
 @method_decorator(login_required, name='dispatch')
 class DepartmentCreateView(CreateView):
+    """Display department form to create object."""
     template_name = 'schedulingcalendar/departmentCreate.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
@@ -589,6 +607,7 @@ class DepartmentCreateView(CreateView):
         
 @method_decorator(login_required, name='dispatch') 
 class DepartmentDeleteView(DeleteView):
+    """Display a delete form to delete department object."""
     template_name = 'schedulingcalendar/departmentDelete.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
