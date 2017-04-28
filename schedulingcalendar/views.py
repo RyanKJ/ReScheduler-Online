@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
-from .models import Schedule, Department, Employee, Vacation, RepeatUnavailability
+from .models import Schedule, Department, DepartmentMembership, Employee, Vacation, RepeatUnavailability, DesiredTime
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
 from .forms import CalendarForm, AddScheduleForm
 from .custom_mixins import AjaxFormResponseMixin
@@ -224,10 +224,14 @@ class EmployeeUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         """Add employee owner of vacations to context."""
         context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
+        context['department_mem_list'] = DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                         user=self.request.user)
         context['vacation_list'] = Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                            user=self.request.user)
         context['repeating_unavailable_list'] = RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
                                                                                     user=self.request.user)
+        context['desired_time_list'] = DesiredTime.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                  user=self.request.user)                                                                            
 
         return context
         
@@ -396,5 +400,200 @@ class RepeatUnavailableDeleteView(DeleteView):
         return context
         
         
+@method_decorator(login_required, name='dispatch')
+class DesiredTimeUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/desiredTimeUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    fields = ['start_time', 'end_time', 'weekday']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = DesiredTime.objects.get(pk=self.kwargs['desired_time_pk'], 
+                                              user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = DesiredTime.objects.get(pk=self.kwargs['desired_time_pk'], 
+                                      user=self.request.user)
+        return obj
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DesiredTimeUpdateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+    
+   
+@method_decorator(login_required, name='dispatch')
+class DesiredTimeCreateView(CreateView):
+    template_name = 'schedulingcalendar/desiredTimeCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = DesiredTime
+    fields = ['start_time', 'end_time', 'weekday']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(DesiredTimeCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DesiredTimeCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class DesiredTimeDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/desiredTimeDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = DesiredTime
+    
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DesiredTimeDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch')
+class DepartmentMembershipUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    fields = ['department', 'priority', 'seniority']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = DepartmentMembership.objects.get(pk=self.kwargs['dep_mem_pk'], 
+                                                       user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = DepartmentMembership.objects.get(pk=self.kwargs['dep_mem_pk'], 
+                                               user=self.request.user)
+        return obj
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DepartmentMembershipUpdateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+    
+   
+@method_decorator(login_required, name='dispatch')
+class DepartmentMembershipCreateView(CreateView):
+    template_name = 'schedulingcalendar/departmentMembershipCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = DepartmentMembership
+    fields = ['department', 'priority', 'seniority']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(DepartmentMembershipCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DepartmentMembershipCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class DepartmentMembershipDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/departmentMembershipDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
+    model = DepartmentMembership
+    
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(DepartmentMembershipDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
+        return context
+        
+        
+@method_decorator(login_required, name='dispatch')
+class DepartmentListView(ListView):
+    model = Department
+    template_name = 'schedulingcalendar/departmentList.html'
+    context_object_name = 'department_list'
+        
+    def get_queryset(self):
+        return Department.objects.filter(user=self.request.user)
+        
+        
+@method_decorator(login_required, name='dispatch')
+class DepartmentUpdateView(UpdateView):
+    template_name = 'schedulingcalendar/departmentUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:department_list')
+    fields = ['name']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = Department.objects.get(pk=self.kwargs['department_pk'], 
+                                             user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = Department.objects.get(pk=self.kwargs['department_pk'], 
+                                     user=self.request.user)
+        return obj
+        
+   
+@method_decorator(login_required, name='dispatch')
+class DepartmentCreateView(CreateView):
+    template_name = 'schedulingcalendar/departmentCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:department_list')
+    model = Department
+    fields = ['name']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super(DepartmentCreateView, self).form_valid(form)
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class DepartmentDeleteView(DeleteView):
+    template_name = 'schedulingcalendar/departmentDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:department_list')
+    model = Department
+        
+        
+
         
     

@@ -222,8 +222,8 @@ $(document).ready(function() {
   var m = nowDate.getMonth();
   var y = nowDate.getFullYear();
   
-  $("#cal-month-selector").val(m + 1);
-  $("#cal-year-selector").val(y);
+  $("#id_month").val(m + 1);
+  $("#id_year").val(y);
   $("#get-calendar-button").trigger("click"); 
       
       

@@ -13,12 +13,12 @@
 			<ul class="nav navbar-nav navbar-right">
         {% if user.is_authenticated %}
           <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Editors<span class="caret"></span></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Schedules</a></li>
               <li><a href="{% url 'schedulingcalendar:employee_list' %}">Employees</a></li>
-              <li><a href="#">Departments</a></li>
-              <li><a href="#">Templates</a></li>
+              <li><a href="{% url 'schedulingcalendar:department_list' %}">Departments</a></li>
+              <li><a href="{% url 'schedulingcalendar:department_list' %}">Sales</a></li>
             </ul>
           </li>
         {% else %}
