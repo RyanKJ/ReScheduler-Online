@@ -312,8 +312,7 @@ def _availability_to_dict(availability):
       
     
 def date_handler(obj):
-    """
-    Add converting instructions to JSON parser for datetime objects. 
+    """Add converting instructions to JSON parser for datetime objects. 
     
     Written by Anthony Hatchkins: 
     http://stackoverflow.com/questions/23285558/datetime-date2014-4-25-is-not-json-serializable-in-django
@@ -323,3 +322,103 @@ def date_handler(obj):
         return obj.isoformat()
     else:
         raise TypeError
+        
+        
+def schedule_cost(schedule):
+    """Calculate cost of schedule.
+    
+    Args:
+        schedule: django schedule object.
+    Returns:
+        Float number representing wage cost of schedule. (Note: this does not
+        factor in the total cost of benefits of assigned employee.)
+    """
+    
+    if schedule.employee == None:
+        return 0
+            
+    time_delta = schedule.end_datetime - schedule.start_datetime
+    hours = time_delta.seconds / 3600
+    return hours * schedule.employee.wage
+    
+    
+def schedules_collection_cost(schedules):
+    """Calculate wage cost of a collection of schedules
+    
+    Args:
+        schedules: django queryset containing schedules object.
+        duration: 
+    Returns:
+        Float number representing sum of all schedules wage costs. (Note: this
+        does not factor in the total cost of benefits of assigned employee.)
+    """
+    
+    sum = 0
+    
+    for schedule in schedules:
+        sum += schedule_cost(schedule)
+    
+    return sum
+    
+    
+def non_wage_monthly_benefits_costs(user, start_dt, department):
+    return 0
+    
+    
+def calendar_cost(user, start_dt, end_dt, department):
+    """Calculate cost of given calendar of schedules, including benefits.
+    
+    Args:
+    Returns:
+    """
+
+    schedules = (Schedule.objects.select_related('employee')
+                                 .filter(user=user,
+                                         start_datetime__gte=start_dt,
+                                         end_datetime__lte=end_dt,
+                                         department=department))
+                                         
+    wage_cost = schedules_collection_cost(schedules)
+    non_wage_benefits_cost = non_wage_monthly_benefits_costs(user, start_dt, department)
+    
+    return wage_cost + non_wage_benefits_cost
+    
+
+def all_calendar_costs(user, month, year):
+    """Calculate cost of given calendar of schedules, including benefits.
+    
+    Args:
+    Returns:
+    """
+    
+    departments = Department.objects.filter(user=self.request.user)
+    start_dt = datetime(year, month, 1)
+    end_dt = datetime(year, month, 30) # TODO: Best way to get last day?
+    # TODO: Maybe we don't need a time frame, just query schedules with that
+    #       month and year?
+    
+    calendar_costs = {}
+    
+    for dep in departments:
+        cost = calendar_cost(user, start_dt, end_dt, dep)
+        calendar_costs[dep] = cost
+        
+    return calendar_costs
+    
+    
+def get_avg_monthly_revenue(user, month):
+    """Calculate average revenue of a given month.
+    
+    Args:
+    Returns:
+    """
+    return 1
+    
+    
+    
+    
+                                         
+    
+    
+ 
+ 

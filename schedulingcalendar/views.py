@@ -7,7 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
-from .models import Schedule, Department, DepartmentMembership, Employee, Vacation, RepeatUnavailability, DesiredTime
+from .models import (Schedule, Department, DepartmentMembership, Employee, 
+                     Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue)
 from .business_logic import get_eligables, eligable_list_to_dict, date_handler
 from .forms import CalendarForm, AddScheduleForm
 from .custom_mixins import AjaxFormResponseMixin
