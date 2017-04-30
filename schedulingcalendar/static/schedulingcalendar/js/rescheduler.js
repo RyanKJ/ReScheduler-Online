@@ -11,6 +11,7 @@ $(document).ready(function() {
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
+  var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
@@ -171,13 +172,45 @@ $(document).ready(function() {
     }
     
     //Calculate and display calendar costs
-    
+    displayCalendarCosts(info["all_calendar_costs"], info["avg_monthly_revenue"])
         
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
       
+  
+  /** display calendar cost li elements. */
+  function displayCalendarCosts(calendarCosts, avgTotalRevenue) {
+    if (avgTotalRevenue == -1) { // -1 means no sales data currently exists
+        var $li = $("<li>", {
+        "id": "no-calendar-cost-data"
+        "text": "There is no sales data"
+        "class": "cost-list",
+        }
+      ).appendTo("#cost-list");
+    } else {
+        for (var i=0;i<calendarCosts.length;i++) { 
+          var percentage = calendarCosts[i]['cost'] / avgTotalRevenue;
+          var $li = $("<li>", {
+            "id": "calendar-cost-" + calendarCosts[i]['id'],
+            "text": calendarCosts[i]['name'] + ": " + percentage + "%",
+            "class": "cost-list",
+            "data-department-id": calendarCosts[i]['id'],
+            "data-department-name": calendarCosts[i]['name'],
+            "data-department-cost": calendarCosts[i]['cost'],
+            }
+          ).appendTo("#cost-list");
+        }
+    // Save data on avg total revenue to ul cost-list element
+    $costList.data("avg-total-revenue", avgTotalRevenue);
+  }
+  
+  /** Calculate the change of cost to a calendar via data attr. */
+  function addCostChange() {
       
+  }
+      
+  
   /**
    * Given an HTTP response of employee objects, create a mapping from employee
    * pk to employee name for quick access for employee names.

@@ -169,7 +169,8 @@ def add_employee_to_schedule(request):
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     employee_pk = request.POST['employee_pk']
-    schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
+    schedule = (Schedule.objects.select_related('department')
+                                .get(user=logged_in_user, pk=schedule_pk))
     employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
 
     old_cost = schedule_cost(schedule)
@@ -178,7 +179,7 @@ def add_employee_to_schedule(request):
     schedule.save(update_fields=['employee'])
     
     new_cost = schedule_cost(schedule)
-    cost_delta = new_cost - old_cost
+    cost_delta = {schedule.department.id: new_cost - old_cost}
     
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(employee)

@@ -392,11 +392,18 @@ def all_calendar_costs(user, month, year):
     """
     
     departments = Department.objects.filter(user=user)
-    calendar_costs = {}
+    calendar_costs = []
+    total_sum = 0
     
     for department in departments:
         cost = calendar_cost(user, month, year, department)
-        calendar_costs[department.name] = cost
+        total_sum += cost
+        dep_cost = {'id': department.id, 'name': department.name, 'cost': cost}
+        calendar_costs.append(dep_cost)
+        
+    # We also keep track of the total sum of all calendars for the user
+    total = {'id': 'all', 'name': 'Total', 'cost': total_sum}
+    calendar_costs.append(total)
         
     return calendar_costs
     
@@ -420,6 +427,7 @@ def get_avg_monthly_revenue(user, month):
         return sum / num_of_data_points
     else:
         return -1
+        
     
     
     
