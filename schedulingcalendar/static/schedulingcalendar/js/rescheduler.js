@@ -124,7 +124,6 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
-    console.log(info);
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
@@ -177,20 +176,31 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
+  
+  
+  // Load schedule upon loading page relative to current date
+  var nowDate = new Date();
+  var m = nowDate.getMonth();
+  var y = nowDate.getFullYear();
+  
+  $("#id_month").val(m + 1);
+  $("#id_year").val(y);
+  $("#get-calendar-button").trigger("click"); 
       
   
   /** display calendar cost li elements. */
   function displayCalendarCosts(calendarCosts, avgTotalRevenue) {
+    $costList.empty();
     if (avgTotalRevenue == -1) { // -1 means no sales data currently exists
         var $li = $("<li>", {
-        "id": "no-calendar-cost-data"
-        "text": "There is no sales data"
+        "id": "no-calendar-cost-data",
+        "text": "There is no sales data",
         "class": "cost-list",
         }
       ).appendTo("#cost-list");
     } else {
         for (var i=0;i<calendarCosts.length;i++) { 
-          var percentage = calendarCosts[i]['cost'] / avgTotalRevenue;
+          var percentage = _getPercentage(calendarCosts[i]['cost'], avgTotalRevenue);
           var $li = $("<li>", {
             "id": "calendar-cost-" + calendarCosts[i]['id'],
             "text": calendarCosts[i]['name'] + ": " + percentage + "%",
@@ -201,15 +211,39 @@ $(document).ready(function() {
             }
           ).appendTo("#cost-list");
         }
+    }
     // Save data on avg total revenue to ul cost-list element
     $costList.data("avg-total-revenue", avgTotalRevenue);
   }
   
+  
   /** Calculate the change of cost to a calendar via data attr. */
-  function addCostChange() {
-      
+  function addCostChange(costChange) {
+    var avgMonthlyRev = $costList.data("avg-total-revenue");
+    if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
+      // Set new cost and text for department of changed schedule
+      var $departmentCostLi = $("#calendar-cost-" + costChange["id"]);
+      var oldDepCost = $departmentCostLi.data("department-cost");
+      var newDepCost = oldDepCost + costChange["cost"];
+      $departmentCostLi.data("department-cost", newDepCost);
+      percentage = _getPercentage(newDepCost, avgMonthlyRev);
+      $departmentCostLi.text($departmentCostLi.data("department-name") + ": " + percentage + "%");
+      // Set new cost and text for total cost of all departments
+      var $totalCostLi = $("#calendar-cost-" + "all");
+      var oldTotalCost = $totalCostLi.data("department-cost");
+      var newTotalCost = oldTotalCost + costChange["cost"];
+      $totalCostLi.data("department-cost", newTotalCost);
+      percentage = _getPercentage(newTotalCost, avgMonthlyRev);
+      $totalCostLi.text($totalCostLi.data("department-name") + ": " + percentage + "%");
+    }
   }
       
+  
+  /** Compute percentage of two numbers and convert to integer format. */ 
+  function _getPercentage(numerator, denominator) {
+    return Math.round((numerator / denominator) * 100);
+  }
+  
   
   /**
    * Given an HTTP response of employee objects, create a mapping from employee
@@ -252,16 +286,6 @@ $(document).ready(function() {
     var str = startStr + " - " + endStr + employeeStr;
     return str;
   }
-      
-      
-  // Load schedule upon loading page relative to current date
-  var nowDate = new Date();
-  var m = nowDate.getMonth();
-  var y = nowDate.getFullYear();
-  
-  $("#id_month").val(m + 1);
-  $("#id_year").val(y);
-  $("#get-calendar-button").trigger("click"); 
       
       
   /** 
@@ -435,7 +459,6 @@ $(document).ready(function() {
    * assigned employee.
    */
   function updateScheduleView(data) {
-    console.log(data);
     var info = JSON.parse(data);
     var schedulePk = info["schedule"]["id"];
     var startDateTime = info["schedule"]["start_datetime"]; 
@@ -451,9 +474,10 @@ $(document).ready(function() {
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
+    // Update cost display to reflect any cost changes
+    addCostChange(info["cost_delta"]);
     // Update then rehighlight edited schedule
     $fullCal.fullCalendar("updateEvent", $event[0]);
-    // Rehighlight edited schedule
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
   }
@@ -528,6 +552,8 @@ $(document).ready(function() {
     $scheduleInfo.css("visibility", "hidden");
     // Disable remove button since no schedule will be selected after delete
     $(".fc-removeSchedule-button").addClass("fc-state-disabled");
+    // Update cost display to reflect any cost changes
+    addCostChange(info["cost_delta"]);
   }
     
   

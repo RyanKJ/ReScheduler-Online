@@ -169,7 +169,7 @@ def add_employee_to_schedule(request):
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     employee_pk = request.POST['employee_pk']
-    schedule = (Schedule.objects.select_related('department')
+    schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
     employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
 
@@ -179,7 +179,7 @@ def add_employee_to_schedule(request):
     schedule.save(update_fields=['employee'])
     
     new_cost = schedule_cost(schedule)
-    cost_delta = {schedule.department.id: new_cost - old_cost}
+    cost_delta = {'id': schedule.department.id, 'cost': new_cost - old_cost}
     
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(employee)
@@ -195,10 +195,15 @@ def remove_schedule(request):
     """Remove schedule from the database."""
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
-    schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
+    schedule = (Schedule.objects.select_related('department', 'employee')
+                                .get(user=logged_in_user, pk=schedule_pk))
+    
+    sch_cost = 0 - schedule_cost(schedule)
+    cost_delta = {'id': schedule.department.id, 'cost': sch_cost}
     schedule.delete()
     
-    json_info = json.dumps({'schedule_pk': schedule_pk}, default=date_handler)
+    json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},
+                            default=date_handler)
     return JsonResponse(json_info, safe=False)
     
         
