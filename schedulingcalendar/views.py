@@ -9,7 +9,9 @@ from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue)
-from .business_logic import get_eligables, eligable_list_to_dict, date_handler
+from .business_logic import (get_eligables, eligable_list_to_dict,  
+                             date_handler, schedule_cost, all_calendar_costs, 
+                             get_avg_monthly_revenue)
 from .forms import CalendarForm, AddScheduleForm
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
@@ -91,11 +93,16 @@ def get_schedules(request):
                 employee_dict = model_to_dict(e)
                 employees_as_dicts.append(employee_dict)
                 
+            calendar_costs = all_calendar_costs(logged_in_user, month, year)
+            avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
+                
             # Combine all appropriate data into dict for serialization
             combined_dict = {'date': cal_date.isoformat(), 
                              'department': department_id,
                              'schedules': schedules_as_dicts,
-                             'employees': employees_as_dicts}
+                             'employees': employees_as_dicts,
+                             'all_calendar_costs': calendar_costs,
+                             'avg_monthly_revenue': avg_monthly_revenue}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)
@@ -165,12 +172,18 @@ def add_employee_to_schedule(request):
     schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
     employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
 
+    old_cost = schedule_cost(schedule)
+    
     schedule.employee = employee
     schedule.save(update_fields=['employee'])
     
+    new_cost = schedule_cost(schedule)
+    cost_delta = new_cost - old_cost
+    
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(employee)
-    data = {'schedule': schedule_dict, 'employee': employee_dict}
+    data = {'schedule': schedule_dict, 'employee': employee_dict, 
+            'cost_delta': cost_delta}
     json_data = json.dumps(data, default=date_handler)
     
     return JsonResponse(json_data, safe=False)

@@ -123,6 +123,7 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
+    console.log(info);
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
@@ -168,6 +169,9 @@ $(document).ready(function() {
         }       
       $fullCal.fullCalendar("renderEvent", event);
     }
+    
+    //Calculate and display calendar costs
+    
         
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -233,7 +237,6 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
-    console.log(data);
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
 
@@ -399,6 +402,7 @@ $(document).ready(function() {
    * assigned employee.
    */
   function updateScheduleView(data) {
+    console.log(data);
     var info = JSON.parse(data);
     var schedulePk = info["schedule"]["id"];
     var startDateTime = info["schedule"]["start_datetime"]; 

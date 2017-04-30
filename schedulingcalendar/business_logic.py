@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
-from .models import (Schedule, Department, DepartmentMembership, 
+from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability)
 import json
 
@@ -361,11 +361,11 @@ def schedules_collection_cost(schedules):
     return sum
     
     
-def non_wage_monthly_benefits_costs(user, start_dt, department):
+def non_wage_monthly_benefits_costs(user, month, year, department):
     return 0
     
     
-def calendar_cost(user, start_dt, end_dt, department):
+def calendar_cost(user, month, year, department):
     """Calculate cost of given calendar of schedules, including benefits.
     
     Args:
@@ -374,12 +374,12 @@ def calendar_cost(user, start_dt, end_dt, department):
 
     schedules = (Schedule.objects.select_related('employee')
                                  .filter(user=user,
-                                         start_datetime__gte=start_dt,
-                                         end_datetime__lte=end_dt,
+                                         start_datetime__month=month,
+                                         start_datetime__year=year,
                                          department=department))
                                          
     wage_cost = schedules_collection_cost(schedules)
-    non_wage_benefits_cost = non_wage_monthly_benefits_costs(user, start_dt, department)
+    non_wage_benefits_cost = non_wage_monthly_benefits_costs(user, month, year, department)
     
     return wage_cost + non_wage_benefits_cost
     
@@ -391,17 +391,12 @@ def all_calendar_costs(user, month, year):
     Returns:
     """
     
-    departments = Department.objects.filter(user=self.request.user)
-    start_dt = datetime(year, month, 1)
-    end_dt = datetime(year, month, 30) # TODO: Best way to get last day?
-    # TODO: Maybe we don't need a time frame, just query schedules with that
-    #       month and year?
-    
+    departments = Department.objects.filter(user=user)
     calendar_costs = {}
     
-    for dep in departments:
-        cost = calendar_cost(user, start_dt, end_dt, dep)
-        calendar_costs[dep] = cost
+    for department in departments:
+        cost = calendar_cost(user, month, year, department)
+        calendar_costs[department.name] = cost
         
     return calendar_costs
     
@@ -412,7 +407,21 @@ def get_avg_monthly_revenue(user, month):
     Args:
     Returns:
     """
-    return 1
+    monthly_revenues = MonthlyRevenue.objects.filter(user=user,
+                                                     month_year__month=month)
+    num_of_data_points = len(monthly_revenues)
+    
+    if num_of_data_points > 0:
+        sum = 0 
+        
+        for month_rev in monthly_revenues:
+            sum += month_rev.monthly_total
+        
+        return sum / num_of_data_points
+    else:
+        return -1
+    
+    
     
     
     
