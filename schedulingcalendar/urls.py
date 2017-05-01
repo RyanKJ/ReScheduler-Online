@@ -31,4 +31,8 @@ urlpatterns = [
     url(r'^departments/department_create$', views.DepartmentCreateView.as_view(), name='department_create'),
     url(r'^departments/(?P<department_pk>[0-9]+)/department_update$', views.DepartmentUpdateView.as_view(), name='department_update'),
     url(r'^departments/(?P<pk>[0-9]+)/department_delete$', views.DepartmentDeleteView.as_view(), name='department_delete'),
+    url(r'^monthly_revenue/$', views.MonthlyRevenueListView.as_view(), name='monthly_revenue_list'),
+    url(r'^monthly_revenue/monthly_revenue_create$', views.MonthlyRevenueCreateView.as_view(), name='monthly_revenue_create'),
+    url(r'^monthly_revenue/(?P<monthly_rev_pk>[0-9]+)/monthly_revenue_update$', views.MonthlyRevenueUpdateView.as_view(), name='monthly_revenue_update'),
+    url(r'^monthly_revenue/(?P<pk>[0-9]+)/monthly_revenue_delete$', views.MonthlyRevenueDeleteView.as_view(), name='monthly_revenue_delete'),
 ]

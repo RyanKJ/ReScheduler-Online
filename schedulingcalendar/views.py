@@ -633,6 +633,62 @@ class DepartmentDeleteView(DeleteView):
     template_name = 'schedulingcalendar/departmentDelete.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
+    
+    
+@method_decorator(login_required, name='dispatch')
+class MonthlyRevenueListView(ListView):
+    """Display an alphabetical list of all departments for a managing user."""
+    model = MonthlyRevenue
+    template_name = 'schedulingcalendar/monthlyRevenueList.html'
+    context_object_name = 'monthly_revenue_list'
+        
+    def get_queryset(self):
+        return MonthlyRevenue.objects.filter(user=self.request.user)
+        
+        
+@method_decorator(login_required, name='dispatch')
+class MonthlyRevenueUpdateView(UpdateView):
+    """Display department form to edit existing department object."""
+    template_name = 'schedulingcalendar/monthlyRevenueUpdate.html'
+    success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
+    fields = ['monthly_total', 'month_year']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = MonthlyRevenue.objects.get(pk=self.kwargs['monthly_rev_pk'], 
+                                                 user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = MonthlyRevenue.objects.get(pk=self.kwargs['monthly_rev_pk'], 
+                                         user=self.request.user)
+        return obj
+        
+   
+@method_decorator(login_required, name='dispatch')
+class MonthlyRevenueCreateView(CreateView):
+    """Display department form to create object."""
+    template_name = 'schedulingcalendar/monthlyRevenueCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
+    model = MonthlyRevenue
+    fields = ['monthly_total', 'month_year']
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super(MonthlyRevenueCreateView, self).form_valid(form)
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class MonthlyRevenueDeleteView(DeleteView):
+    """Display a delete form to delete department object."""
+    template_name = 'schedulingcalendar/monthlyRevenueDelete.html'
+    success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
+    model = MonthlyRevenue
         
         
 

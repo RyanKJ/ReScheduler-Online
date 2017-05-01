@@ -210,14 +210,16 @@ input[type=checkbox] {
   text-decoration: none;
 }
 
-
-/* Scheduler Editor Styling (Adding schedules, selecting employees)
+/* Schedule Editor styling
 --------------------------------------------------------------------------------------------------*/
 
 .schedule-editor {
   margin-top: 62px;
   margin-left: 4px;
 }
+
+/* Eligable list styling
+--------------------------------------------------------------------------------------------------*/
 
 .schedule-adder h1{
   background: #ffc34d;
@@ -266,6 +268,51 @@ li:last-child.eligable-list {
 
 li:hover.eligable-list:not(.curr-assigned-employee) {
   background: #d1ecff;
+}
+
+/* Calendar costs styling
+--------------------------------------------------------------------------------------------------*/
+
+ul#cost-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#cost-header {
+    background: #0079D7;
+    padding: 4px 0;
+    margin-bottom: 0px;
+    font-size: 140%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+}
+
+li.cost-list {
+  font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+  text-decoration: none;
+  color: #000;
+}
+
+li:last-child.cost-list {
+  border: none;
+  font-weight: bold;
+}
+
+/* Scheduler adder styling
+--------------------------------------------------------------------------------------------------*/
+
+.schedule-adder h1{
+  background: #ffc34d;
+  padding: 12px 0;
+  font-size: 180%;
+  font-weight: 300;
+  text-align: center;
+  color: #fff;
+  margin: -16px -16px 16px -16px;
 }
 
 .schedule-adder{
