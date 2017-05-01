@@ -93,6 +93,7 @@ def get_schedules(request):
                 employee_dict = model_to_dict(e)
                 employees_as_dicts.append(employee_dict)
                 
+            # Get calendar costs to display to user
             calendar_costs = all_calendar_costs(logged_in_user, month, year)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
                 
@@ -169,20 +170,21 @@ def add_employee_to_schedule(request):
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     employee_pk = request.POST['employee_pk']
+    # Get schedule and its cost with old employee
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
-    employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
-
     old_cost = schedule_cost(schedule)
     
-    schedule.employee = employee
+    # Get new employee, assign to schedule, then get new cost of schedule
+    new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
+    schedule.employee = new_employee
     schedule.save(update_fields=['employee'])
-    
     new_cost = schedule_cost(schedule)
-    cost_delta = {'id': schedule.department.id, 'cost': new_cost - old_cost}
     
+    # Process information for json dump
+    cost_delta = {'id': schedule.department.id, 'cost': new_cost - old_cost}
     schedule_dict = model_to_dict(schedule)
-    employee_dict = model_to_dict(employee)
+    employee_dict = model_to_dict(new_employee)
     data = {'schedule': schedule_dict, 'employee': employee_dict, 
             'cost_delta': cost_delta}
     json_data = json.dumps(data, default=date_handler)

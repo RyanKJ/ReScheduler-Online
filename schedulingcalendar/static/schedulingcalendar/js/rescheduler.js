@@ -221,20 +221,16 @@ $(document).ready(function() {
   function addCostChange(costChange) {
     var avgMonthlyRev = $costList.data("avg-total-revenue");
     if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
-      // Set new cost and text for department of changed schedule
-      var $departmentCostLi = $("#calendar-cost-" + costChange["id"]);
-      var oldDepCost = $departmentCostLi.data("department-cost");
-      var newDepCost = oldDepCost + costChange["cost"];
-      $departmentCostLi.data("department-cost", newDepCost);
-      percentage = _getPercentage(newDepCost, avgMonthlyRev);
-      $departmentCostLi.text($departmentCostLi.data("department-name") + ": " + percentage + "%");
-      // Set new cost and text for total cost of all departments
-      var $totalCostLi = $("#calendar-cost-" + "all");
-      var oldTotalCost = $totalCostLi.data("department-cost");
-      var newTotalCost = oldTotalCost + costChange["cost"];
-      $totalCostLi.data("department-cost", newTotalCost);
-      percentage = _getPercentage(newTotalCost, avgMonthlyRev);
-      $totalCostLi.text($totalCostLi.data("department-name") + ": " + percentage + "%");
+      var updateList = [costChange["id"], 'all']; // List of cost-li we will update
+      // Set new cost and text for appropriate cost-li
+      for (var i=0;i<updateList.length;i++) { 
+        var $departmentCostLi = $("#calendar-cost-" + updateList[i]);
+        var oldCost = $departmentCostLi.data("department-cost");
+        var newCost = oldCost + costChange["cost"];
+        $departmentCostLi.data("department-cost", newCost);
+        percentage = _getPercentage(newCost, avgMonthlyRev);
+        $departmentCostLi.text($departmentCostLi.data("department-name") + ": " + percentage + "%");
+      }
     }
   }
       

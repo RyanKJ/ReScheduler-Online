@@ -362,6 +362,7 @@ def schedules_collection_cost(schedules):
     
     
 def non_wage_monthly_benefits_costs(user, month, year, department):
+    """Calculate the cost of benefits for a given calendar."""
     return 0
     
     
@@ -369,7 +370,14 @@ def calendar_cost(user, month, year, department):
     """Calculate cost of given calendar of schedules, including benefits.
     
     Args:
+        user: django authenticated user
+        month: integer value of month
+        year: integer value of year
+        department: django department model object
     Returns:
+        float value of the total cost of a given month for a given department,
+        including cost of wages and all benefits such as medical and social
+        security.
     """
 
     schedules = (Schedule.objects.select_related('employee')
@@ -388,7 +396,13 @@ def all_calendar_costs(user, month, year):
     """Calculate cost of given calendar of schedules, including benefits.
     
     Args:
+        user: django authenticated user
+        month: integer value of month
+        year: integer value of year
     Returns:
+        calendar_costs: a list of dictionaries, the dictionaries contain the
+        department's id, name, and the float value of the absolute cost for
+        that month (including benefits).
     """
     
     departments = Department.objects.filter(user=user)
@@ -412,7 +426,12 @@ def get_avg_monthly_revenue(user, month):
     """Calculate average revenue of a given month.
     
     Args:
+        user: django authenticated user
+        month: integer value of month
     Returns:
+        A floating number that is the average of all the monthly revenue's 
+        entered by a user, or -1 if the user has no monthly revenue data points
+        for the given month.
     """
     monthly_revenues = MonthlyRevenue.objects.filter(user=user,
                                                      month_year__month=month)
@@ -420,7 +439,6 @@ def get_avg_monthly_revenue(user, month):
     
     if num_of_data_points > 0:
         sum = 0 
-        
         for month_rev in monthly_revenues:
             sum += month_rev.monthly_total
         
