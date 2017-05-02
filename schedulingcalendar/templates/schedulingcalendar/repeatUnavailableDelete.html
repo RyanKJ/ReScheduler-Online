@@ -1,33 +1,14 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
 
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
-
-{% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="col-md">
-        <p>Are You Sure You Want To Delete This Repeating Unavailability?</p>
-        <form id="delete-repeat-unavailable-form"
-              name= "DeleteRepeatUnavailableForm"
-              action="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeatunavailability.id %}"
-              method="post">
-          {% csrf_token %}
-          <input type="submit" value="Delete Repeat Unavailability">
-        </form>
-      </div>
-    </div>
+{% block form_content %}
+  <div class="text-center">
+    <h4 class="card-title text-center">Are You Sure You Want To Delete This Repeating Unavailability?</h4>
+    <form id="delete-repeat-unavailable-form"
+          name= "DeleteRepeatUnavailableForm"
+          action="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeatunavailability.id %}"
+          method="post">
+      {% csrf_token %}
+      <input type="submit" class="btn btn-danger" value="Delete Repeat Unavailability">
+    </form>
   </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+{% endblock form_content %} 

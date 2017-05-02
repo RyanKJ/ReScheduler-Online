@@ -1,14 +1,8 @@
-{% extends "site/__base.html" %}
-
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
+{% extends "schedulingcalendar/__baseForm.html" %}
+{% load widget_tweaks %}
 
 {% block content %}
+  {{ block.super }}  
   <div class="container">
     <div class="row">
       <!-- Employee Info -->
@@ -31,18 +25,20 @@
               {% for field in form %}
                 <div class="form-group">
                   {{ field.errors }}
-                  {{ field.label_tag }} {{ field }}
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field|add_class:'form-control' }}
                   {% if field.help_text %}
                     <p class="help">{{ field.help_text|safe }}</p>
                   {% endif %}
                 </div>
               {% endfor %}
-              <input type="submit" value="Save Changes">
+              <input type="submit" class="btn btn-primary" value="Save Changes">
             </form>
           </div>
           <!-- Departments -->
           <div class="tab-pane" id="department-tab">
-            <a href="{% url 'schedulingcalendar:dep_mem_create' employee.id %}">New Department Membership</a>
+            <a class="btn btn-secondary"
+                href="{% url 'schedulingcalendar:dep_mem_create' employee.id %}">New Department Membership</a>
             <ul class="list-group">
             {% for department_mem in department_mem_list %}
               <li class="list-group-item">
@@ -78,8 +74,8 @@
                 <li class="list-group-item">
                   <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
                     <li>{{ vacation.start_datetime }} - {{ vacation.end_datetime }}</li>
-                    <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}">Edit Vacation</a></li>
-                    <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id vacation.id %}">Delete Vacation</a></li>
+                    <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}">Edit</a></li>
+                    <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id vacation.id %}">Delete</a></li>
                   </ul>
                 </li>
               {% endfor %}
@@ -93,8 +89,8 @@
                 <li class="list-group-item">
                   <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
                     <li>{{ repeat_unav.start_time }} - {{ repeat_unav.end_time }}</li>
-                    <li><a href="{% url 'schedulingcalendar:repeat_unav_update' employee.id repeat_unav.id %}">Edit Repeat Unavailability</a></li>
-                    <li><a href="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeat_unav.id %}">Delete Repeat Unavailability</a></li>
+                    <li><a href="{% url 'schedulingcalendar:repeat_unav_update' employee.id repeat_unav.id %}">Edit</a></li>
+                    <li><a href="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeat_unav.id %}">Delete</a></li>
                   </ul>
                 </li>
               {% endfor %}
@@ -108,8 +104,8 @@
                   <li class="list-group-item">
                     <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
                       <li>{{ desired_time.start_time }} - {{ desired_time.end_time }}</li>
-                      <li><a href="{% url 'schedulingcalendar:desired_time_update' employee.id desired_time.id %}">Edit Desired Time</a></li>
-                      <li><a href="{% url 'schedulingcalendar:desired_time_delete' employee.id desired_time.id %}">Delete Desired Time</a></li>
+                      <li><a href="{% url 'schedulingcalendar:desired_time_update' employee.id desired_time.id %}">Edit</a></li>
+                      <li><a href="{% url 'schedulingcalendar:desired_time_delete' employee.id desired_time.id %}">Delete</a></li>
                     </ul>
                   </li>
                 {% endfor %}
@@ -120,11 +116,4 @@
       </div>
     </div>
   </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+{% endblock content %}  

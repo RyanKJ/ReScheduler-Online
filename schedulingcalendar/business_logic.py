@@ -16,9 +16,9 @@ import json
 
 
 def get_eligables(schedule):
-    """Return a sorted list of eligable employee pk's along with info.
+    """Return a sorted list of eligable employee's along with info.
     
-    The eligable list is a sorted list of employee primary keys, a dictionary
+    The eligable list is a sorted list of employees, a dictionary
     containing any potential conflicts the eligable employee has relative to
     the schedule, and a tuple of integers that represents multiple criterion 
     for sorting their 'eligability'.
@@ -445,15 +445,4 @@ def get_avg_monthly_revenue(user, month):
         return sum / num_of_data_points
     else:
         return -1
-        
-    
-    
-    
-    
-    
-    
-                                         
-    
-    
- 
  

@@ -71,7 +71,7 @@ class AddScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", 
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
-                                  
+                                                         
     
 def get_department_tuple(logged_user):
     """Return a tuple of strings departments

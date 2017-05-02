@@ -1,40 +1,17 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
 
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
-
-{% block content %}
-  <div class="container">
-    <div class="row">
-      <!-- Department List -->
-      <div class="col-md">
-        <div class="monthly-revenue-list-scrollbar">
-          <h2>Monthly Revenue List</h2>
-          <a href="{% url 'schedulingcalendar:monthly_revenue_create' %}">New Monthly Revenue</a>
-          <ul class="list-group">
-            {% for monthly_rev in monthly_revenue_list %}
-              <li class="list-group-item">
-                <ul class="list-inline" data-monthly-rev-id="{{ monthly_rev.id }}">
-                  <li>{{ monthly_rev.month_year }}</li>
-                  <li><a href="{% url 'schedulingcalendar:monthly_revenue_update' monthly_rev.id %}">Edit</a></li>
-                  <li><a href="{% url 'schedulingcalendar:monthly_revenue_delete' monthly_rev.id %}">Delete</a></li>
-                </ul>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+{% block form_content %}
+  <h4 class="card-title text-center">Monthly Revenue List</h4>
+  <a href="{% url 'schedulingcalendar:monthly_revenue_create' %}">New Monthly Revenue</a>
+  <ul class="list-group">
+    {% for monthly_rev in monthly_revenue_list %}
+      <li class="list-group-item">
+        <ul class="list-inline" data-monthly-rev-id="{{ monthly_rev.id }}">
+          <li>{{ monthly_rev.month_year }}</li>
+          <li><a href="{% url 'schedulingcalendar:monthly_revenue_update' monthly_rev.id %}">Edit</a></li>
+          <li><a href="{% url 'schedulingcalendar:monthly_revenue_delete' monthly_rev.id %}">Delete</a></li>
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock form_content %}

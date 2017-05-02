@@ -1,40 +1,17 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
 
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
-
-{% block content %}
-  <div class="container">
-    <div class="row">
-      <!-- Employee List -->
-      <div class="col-md">
-        <div class="employee-list-scrollbar">
-          <h2>Employee List</h2>
-          <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
-          <ul class="list-group">
-            {% for employee in employee_list %}
-              <li class="list-group-item">
-                <ul class="list-inline" data-employee-id="{{ employee.id }}">
-                  <li>{{ employee.first_name }} {{ employee.last_name }}</li>
-                  <li><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Edit</a></li>
-                  <li><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete Employee</a></li>
-                </ul>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+{% block form_content %}
+  <h4 class="card-title text-center">Employee List</h4>
+  <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
+  <ul class="list-group">
+    {% for employee in employee_list %}
+      <li class="list-group-item">
+        <ul class="list-inline" data-employee-id="{{ employee.id }}">
+          <li>{{ employee.first_name }} {{ employee.last_name }}</li>
+          <li><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Edit</a></li>
+          <li><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete</a></li>
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock form_content %}  

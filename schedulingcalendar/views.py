@@ -217,7 +217,8 @@ class EmployeeListView(ListView):
     context_object_name = 'employee_list'
         
     def get_queryset(self):
-        return Employee.objects.filter(user=self.request.user)
+        return (Employee.objects.filter(user=self.request.user)
+                                .order_by('first_name', 'last_name'))
         
  
 @method_decorator(login_required, name='dispatch') 
@@ -234,7 +235,6 @@ class EmployeeUpdateView(UpdateView):
                                            user=self.request.user)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        print "****************** Form is: ", form
         context = self.get_context_data(object=self.object, form=form)
         return self.render_to_response(context)
 
@@ -248,14 +248,18 @@ class EmployeeUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         """Add departments, vacations, and other lists of employee to context."""
         context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
-        context['department_mem_list'] = DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
-                                                                         user=self.request.user)
-        context['vacation_list'] = Vacation.objects.filter(employee=self.kwargs['employee_pk'],
+        context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                              user=self.request.user)
+                                                                      .order_by('priority', 'seniority'))        
+        context['vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                            user=self.request.user)
-        context['repeating_unavailable_list'] = RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
+                                                    .order_by('start_datetime', 'end_datetime'))
+        context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
                                                                                     user=self.request.user)
-        context['desired_time_list'] = DesiredTime.objects.filter(employee=self.kwargs['employee_pk'],
-                                                                  user=self.request.user)                                                                            
+                                                                     .order_by('weekday', 'start_time', 'end_time'))
+        context['desired_time_list'] = (DesiredTime.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                  user=self.request.user)       
+                                                           .order_by('weekday', 'start_time', 'end_time'))                                                                  
 
         return context
         
@@ -588,7 +592,7 @@ class DepartmentListView(ListView):
     context_object_name = 'department_list'
         
     def get_queryset(self):
-        return Department.objects.filter(user=self.request.user)
+        return Department.objects.filter(user=self.request.user).order_by('name')
         
         
 @method_decorator(login_required, name='dispatch')
@@ -644,7 +648,8 @@ class MonthlyRevenueListView(ListView):
     context_object_name = 'monthly_revenue_list'
         
     def get_queryset(self):
-        return MonthlyRevenue.objects.filter(user=self.request.user)
+        return (MonthlyRevenue.objects.filter(user=self.request.user)
+                                      .order_by('month_year'))
         
         
 @method_decorator(login_required, name='dispatch')

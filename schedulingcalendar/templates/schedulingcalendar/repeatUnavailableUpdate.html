@@ -1,14 +1,8 @@
-{% extends "site/__base.html" %}
-
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
+{% extends "schedulingcalendar/__baseForm.html" %}
+{% load widget_tweaks %}
 
 {% block content %}
+  {{ block.super }}
   <div class="container">
     <div class="row">
       <!-- Employee Info -->
@@ -22,7 +16,8 @@
           {% for field in form %}
             <div class="form-group">
               {{ field.errors }}
-              {{ field.label_tag }} {{ field }}
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field|add_class:'form-control' }}
               {% if field.help_text %}
               <p class="help">{{ field.help_text|safe }}</p>
               {% endif %}
@@ -33,11 +28,4 @@
       </div>
     </div>
   </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+{% endblock content %}  

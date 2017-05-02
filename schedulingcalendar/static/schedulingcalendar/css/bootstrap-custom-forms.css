@@ -1,0 +1,17 @@
+/* Custom style settings for the CRUD pages: employees, departments, sales */
+
+.card {
+  margin: 0 auto; /* Added */
+  float: none; /* Added */
+  margin-bottom: 10px; /* Added */
+}
+
+/* Used to hide and display date and time pickers to create a datetime picker */
+#hidden-datetime {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

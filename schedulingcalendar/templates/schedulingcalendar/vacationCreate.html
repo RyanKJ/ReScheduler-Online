@@ -1,42 +1,31 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load widget_tweaks %}
 
-{% block stylesheets %}
-  {{ block.super }}
-  {% load static %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-{% endblock stylesheets %}
-
-{% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="col-md">
-        <h2>Vacation Info For {{ employee.first_name }} {{ employee.last_name }}</h2>
-        <form id="create-vacation-form"
-              name= "DeleteVacationForm"
-              action="{% url 'schedulingcalendar:vacation_create' employee.id %}"
-              method="post">
-          {% csrf_token %}
-          {% for field in form %}
-            <div class="form-group">
-              {{ field.errors }}
-              {{ field.label_tag }} {{ field }}
-              {% if field.help_text %}
-              <p class="help">{{ field.help_text|safe }}</p>
-              {% endif %}
-            </div>
-          {% endfor %}
-          <input type="submit" value="Create Vacation">
-        </form>
+{% block form_content %}
+    <h4 class="card-title text-center">Create Vacation For {{ employee.first_name }} {{ employee.last_name }}</h4>
+    <form id="create-vacation-form"
+          name= "DeleteVacationForm"
+          action="{% url 'schedulingcalendar:vacation_create' employee.id %}"
+          method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          {{ field.errors }}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field|add_class:'form-control' }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <!-- Custom datetime pickadate elements -->
+      <div id="hidden-datetime">
+        <input type="text" id="hidden-start-date"/>
+        <input type="text" id="hidden-start-time"/>
+        <input type="text" id="hidden-end-date"/>
+        <input type="text" id="hidden-end-time"/>
       </div>
-    </div>
-  </div>
-{% endblock content %}
-
-{% block javascript %}
-  {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/employees.js' %}" ></script>
-{% endblock javascript %}    
+      <div id="outlet"></div>
+      <input type="submit" class="btn btn-primary" value="Create Vacation">
+    </form>
+{% endblock form_content %}   
