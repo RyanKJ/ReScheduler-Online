@@ -234,6 +234,7 @@ class EmployeeUpdateView(UpdateView):
                                            user=self.request.user)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        print "****************** Form is: ", form
         context = self.get_context_data(object=self.object, form=form)
         return self.render_to_response(context)
 
