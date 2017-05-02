@@ -37,8 +37,7 @@
           </div>
           <!-- Departments -->
           <div class="tab-pane" id="department-tab">
-            <a class="btn btn-secondary"
-                href="{% url 'schedulingcalendar:dep_mem_create' employee.id %}">New Department Membership</a>
+            <a href="{% url 'schedulingcalendar:dep_mem_create' employee.id %}">New Department Membership</a>
             <ul class="list-group">
             {% for department_mem in department_mem_list %}
               <li class="list-group-item">

@@ -1,31 +1,23 @@
-{% extends "schedulingcalendar/__baseForm.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
 {% load widget_tweaks %}
 
-{% block content %}
-  {{ block.super }}
-  <div class="container">
-    <div class="row">
-      <!-- Employee Info -->
-      <div class="col-md">
-        <h2>Vacation List For {{ employee.first_name }} {{ employee.last_name }}</h2>
-        <form id="update-vacation-form"
-              name= "UpdateVacationForm"
-              action="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}"
-              method="post">
-          {% csrf_token %}
-          {% for field in form %}
-            <div class="form-group">
-              {{ field.errors }}
-              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {{ field|add_class:'form-control' }}
-              {% if field.help_text %}
-              <p class="help">{{ field.help_text|safe }}</p>
-              {% endif %}
-            </div>
-          {% endfor %}
-          <input type="submit" value="Save Changes">
-        </form>
+{% block form_content %}
+  <h4 class="card-title text-center">Edit Vacation For {{ employee.first_name }} {{ employee.last_name }}</h4>
+  <form id="update-vacation-form"
+        name= "UpdateVacationForm"
+        action="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}"
+        method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        {{ field.errors }}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field|add_class:'form-control' }}
+        {% if field.help_text %}
+          <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
       </div>
-    </div>
-  </div>
-{% endblock content %} 
+    {% endfor %}
+    <input type="submit" class="btn btn-primary" value="Save Changes">
+  </form>
+{% endblock form_content %} 
