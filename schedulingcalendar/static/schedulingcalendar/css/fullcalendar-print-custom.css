@@ -1,3 +1,4 @@
 @media print {
    .no-print, .no-print * { display: none !important; }
+   .no-print-override { display: inline !important; }
 }

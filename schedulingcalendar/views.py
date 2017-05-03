@@ -17,6 +17,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm,
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
+import string
 import json
 
 
@@ -35,8 +36,11 @@ def calendar_page(request):
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
+    versions = list(string.ascii_uppercase)
     template = loader.get_template('schedulingcalendar/calendar.html')
-    context = {'calendar_form': calendar_form, 'add_sch_form': add_schedule_form}
+    context = {'calendar_form': calendar_form, 
+               'add_sch_form': add_schedule_form,
+               'versions': versions}
 
     return HttpResponse(template.render(context, request))
     

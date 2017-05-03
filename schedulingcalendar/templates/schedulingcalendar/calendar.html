@@ -41,6 +41,17 @@
               <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
             </form>
           </section>
+          
+          <section class="print-version">
+            <label for="print-version-select">Print Version:</label>
+            <div class="select-cal-loader no-print-override">
+              <select id="print-version-select">
+                {% for ver in versions %}
+                  <option value={{ ver }}>{{ ver }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </section>
         </aside>
       </div>
     </div>
