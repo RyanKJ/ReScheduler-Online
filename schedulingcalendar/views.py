@@ -258,6 +258,7 @@ class EmployeeUpdateView(UpdateView):
         context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
                                                                                     user=self.request.user)
                                                                      .order_by('weekday', 'start_time', 'end_time'))
+        print "***************** context['repeating_unavailable_list'] is: ", context['repeating_unavailable_list']
         context['desired_time_list'] = (DesiredTime.objects.filter(employee=self.kwargs['employee_pk'],
                                                                   user=self.request.user)       
                                                            .order_by('weekday', 'start_time', 'end_time'))                                                                  

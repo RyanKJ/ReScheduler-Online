@@ -96,8 +96,8 @@ class VacationForm(forms.ModelForm):
 class RepeatUnavailabilityForm(forms.ModelForm):
     """Form for creating and editing repeating unavailabilities."""   
     weekday = forms.IntegerField(label='Weekday', 
-                               widget=forms.Select(choices=WEEKDAY_CHOICES), 
-                               min_value=0, max_value=6)
+                                 widget=forms.Select(choices=WEEKDAY_CHOICES), 
+                                 min_value=0, max_value=6)
     start_time =  forms.TimeField(label='Start Time', 
                                   input_formats=TIME_FORMATS)                           
     end_time =  forms.TimeField(label='Start Time', 
