@@ -12,7 +12,7 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, schedule_cost, all_calendar_costs, 
                              get_avg_monthly_revenue)
-from .forms import CalendarForm, AddScheduleForm
+from .forms import CalendarForm, AddScheduleForm, VacationForm
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -293,7 +293,7 @@ class VacationUpdateView(UpdateView):
     """Display vacation form to edit vacation object."""
     template_name = 'schedulingcalendar/vacationUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    fields = ['start_datetime', 'end_datetime']
+    form_class = VacationForm
     
     
     def get(self, request, **kwargs):
@@ -325,8 +325,7 @@ class VacationCreateView(CreateView):
     """Display vacation form to create vacation object."""
     template_name = 'schedulingcalendar/vacationCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    model = Vacation
-    fields = ['start_datetime', 'end_datetime']
+    form_class = VacationForm
               
               
     def form_valid(self, form):

@@ -1,11 +1,13 @@
 from django import forms
 from datetime import datetime
-from .models import Employee, Department
+from .models import Employee, Department, Vacation
 
 TIME_FORMATS = ['%I:%M %p']
 MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
                  (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
                  (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December'))
+DATETIME_FORMAT = "%B %d, %Y at %I:%M %p"
+DATETIME_FORMATS = ["%B %d, %Y at %I:%M %p"]
 
 
 class CalendarForm(forms.Form):
@@ -71,7 +73,19 @@ class AddScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", 
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
-                                                         
+                                  
+                                  
+class VacationForm(forms.ModelForm):
+    """Form for creating and editing vacations. """
+    start_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                     input_formats=DATETIME_FORMATS)
+    end_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                   input_formats=DATETIME_FORMATS)
+
+    class Meta:
+        model = Vacation
+        fields = ['start_datetime', 'end_datetime']
+                                                     
     
 def get_department_tuple(logged_user):
     """Return a tuple of strings departments

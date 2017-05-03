@@ -18,6 +18,14 @@
         {% endif %}
       </div>
     {% endfor %}
+    <!-- Custom datetime pickadate elements -->
+      <div id="hidden-datetime">
+        <input type="text" id="hidden-start-date"/>
+        <input type="text" id="hidden-start-time"/>
+        <input type="text" id="hidden-end-date"/>
+        <input type="text" id="hidden-end-time"/>
+      </div>
+      <div id="outlet"></div>
     <input type="submit" class="btn btn-primary" value="Save Changes">
   </form>
 {% endblock form_content %} 

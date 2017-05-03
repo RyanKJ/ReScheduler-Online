@@ -29,6 +29,7 @@ $(function(){
   //Code found from: https://github.com/amsul/pickadate.js/issues/267
     
   var startDatepicker = $('#hidden-start-date').pickadate({
+    format: 'mmmm dd, yyyy',
     container: '#outlet',
     onSet: function(item) {
             if ( 'select' in item ) setTimeout( startTimepicker.open, 0 )
@@ -36,6 +37,7 @@ $(function(){
     }).pickadate('picker')
 
   var startTimepicker = $('#hidden-start-time').pickatime({
+    format: 'hh:i A',
     container: '#outlet',
     onRender: function() {
       $('<button>back to date</button>').
@@ -57,6 +59,7 @@ $(function(){
   
   
   var endDatepicker = $('#hidden-end-date').pickadate({
+    format: 'mmmm dd, yyyy',
     container: '#outlet',
     onSet: function(item) {
             if ( 'select' in item ) setTimeout( endTimepicker.open, 0 )
@@ -64,6 +67,7 @@ $(function(){
     }).pickadate('picker')
 
   var endTimepicker = $('#hidden-end-time').pickatime({
+    format: 'hh:i A',
     container: '#outlet',
     onRender: function() {
       $('<button>back to date</button>').

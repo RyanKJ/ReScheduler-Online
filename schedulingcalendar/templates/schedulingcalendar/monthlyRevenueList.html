@@ -7,7 +7,7 @@
     {% for monthly_rev in monthly_revenue_list %}
       <li class="list-group-item">
         <ul class="list-inline" data-monthly-rev-id="{{ monthly_rev.id }}">
-          <li>{{ monthly_rev.month_year }}</li>
+          <li>{{ monthly_rev.month_year|date:"Y, F" }}</li>
           <li><a href="{% url 'schedulingcalendar:monthly_revenue_update' monthly_rev.id %}">Edit</a></li>
           <li><a href="{% url 'schedulingcalendar:monthly_revenue_delete' monthly_rev.id %}">Delete</a></li>
         </ul>
