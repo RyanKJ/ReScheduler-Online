@@ -12,7 +12,8 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, schedule_cost, all_calendar_costs, 
                              get_avg_monthly_revenue)
-from .forms import CalendarForm, AddScheduleForm, VacationForm
+from .forms import (CalendarForm, AddScheduleForm, VacationForm, 
+                    RepeatUnavailabilityForm, DesiredTimeForm)
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -366,7 +367,7 @@ class RepeatUnavailableUpdateView(UpdateView):
     """Display repeat unavailable form to edit unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    fields = ['start_time', 'end_time', 'weekday']
+    form_class = RepeatUnavailabilityForm
     
     
     def get(self, request, **kwargs):
@@ -398,8 +399,7 @@ class RepeatUnavailableCreateView(CreateView):
     """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    model = RepeatUnavailability
-    fields = ['start_time', 'end_time', 'weekday']
+    form_class = RepeatUnavailabilityForm
               
               
     def form_valid(self, form):
@@ -440,7 +440,7 @@ class DesiredTimeUpdateView(UpdateView):
     """Display desired time form to edit object."""
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    fields = ['start_time', 'end_time', 'weekday']
+    form_class = DesiredTimeForm
     
     
     def get(self, request, **kwargs):
@@ -472,8 +472,7 @@ class DesiredTimeCreateView(CreateView):
     """Display desired time form to create object."""
     template_name = 'schedulingcalendar/desiredTimeCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
-    model = DesiredTime
-    fields = ['start_time', 'end_time', 'weekday']
+    form_class = DesiredTimeForm
               
               
     def form_valid(self, form):

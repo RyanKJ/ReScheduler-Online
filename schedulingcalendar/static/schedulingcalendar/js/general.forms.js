@@ -1,26 +1,11 @@
 $(function(){
-    // Connect each employee-li to javascript callback
-    //$('.list-group li').click(highlightEmployeeLi);
 
-    
-    /** Highlight employee li if successfully loaded. */ 
-    //function highlightEmployeeLi(event) {
-    //    $employee_li = $(this);
-    //    $employee_li.parent().find('li').removeClass('active');
-    //    $employee_li.addClass('active');
-    //}
-    
-    
-    // Create start and end time-pickers for adding schedules
-    //var $startTimePicker = $("#id_start_datetime").pickadate();
-    //var $endTimePicker = $("#id_end_datetime").pickadate();
-      
-    // Set default start and end time for time-pickers
-    //var st_picker = $startTimePicker.pickatime("picker");
-    //st_picker.set("select", [8,0]);
-    //var et_picker = $endTimePicker.pickatime("picker");
-    //et_picker.set("select", [17,0]);
-    
+  // Create start and end time-pickers
+  var $startTPicker = $("#id_start_time").pickatime();
+  var $endTPicker = $("#id_end_time").pickatime();
+
+  
+  
     
   //Pickadate does not support single datetime picker, so customized 
   //date and time pickers are created so that a time picker is focused
@@ -34,7 +19,7 @@ $(function(){
     onSet: function(item) {
             if ( 'select' in item ) setTimeout( startTimepicker.open, 0 )
            }
-    }).pickadate('picker')
+    }).pickadate('picker');
 
   var startTimepicker = $('#hidden-start-time').pickatime({
     format: 'hh:i A',
@@ -55,7 +40,7 @@ $(function(){
             on('focus', startDatepicker.open)
       }, 0 )
     }
-  }).pickatime('picker')
+  }).pickatime('picker');
   
   
   var endDatepicker = $('#hidden-end-date').pickadate({
@@ -64,7 +49,7 @@ $(function(){
     onSet: function(item) {
             if ( 'select' in item ) setTimeout( endTimepicker.open, 0 )
            }
-    }).pickadate('picker')
+    }).pickadate('picker');
 
   var endTimepicker = $('#hidden-end-time').pickatime({
     format: 'hh:i A',
@@ -85,14 +70,14 @@ $(function(){
             on('focus', endDatepicker.open)
       }, 0 )
     }
-  }).pickatime('picker')
+  }).pickatime('picker');
   
 
   var $start_datetime = $('#id_start_datetime').
       on('focus', startDatepicker.open).
-      on('click', function(event) { event.stopPropagation(); startDatepicker.open() })
+      on('click', function(event) { event.stopPropagation(); startDatepicker.open() });
       
   var $end_datetime = $('#id_end_datetime').
       on('focus', endDatepicker.open).
-      on('click', function(event) { event.stopPropagation(); endDatepicker.open() })
+      on('click', function(event) { event.stopPropagation(); endDatepicker.open() });
 })

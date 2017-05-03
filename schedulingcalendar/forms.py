@@ -1,11 +1,17 @@
 from django import forms
 from datetime import datetime
-from .models import Employee, Department, Vacation
+from .models import (Employee, Department, Vacation, RepeatUnavailability,
+                     DesiredTime)
 
 TIME_FORMATS = ['%I:%M %p']
 MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
                  (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
                  (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December'))
+WEEKDAY_CHOICES = ((0, 'Monday'), (1, 'Tuesday'), (2, 'Wednesday'),
+                   (3, 'Thursday'), (4, 'Friday'), (5, 'Saturday'), 
+                   (6, 'Sunday'))                 
+                 
+                 
 DATETIME_FORMAT = "%B %d, %Y at %I:%M %p"
 DATETIME_FORMATS = ["%B %d, %Y at %I:%M %p"]
 
@@ -76,7 +82,7 @@ class AddScheduleForm(forms.Form):
                                   
                                   
 class VacationForm(forms.ModelForm):
-    """Form for creating and editing vacations. """
+    """Form for creating and editing vacations."""
     start_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                      input_formats=DATETIME_FORMATS)
     end_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
@@ -85,7 +91,39 @@ class VacationForm(forms.ModelForm):
     class Meta:
         model = Vacation
         fields = ['start_datetime', 'end_datetime']
-                                                     
+        
+        
+class RepeatUnavailabilityForm(forms.ModelForm):
+    """Form for creating and editing repeating unavailabilities."""   
+    weekday = forms.IntegerField(label='Weekday', 
+                               widget=forms.Select(choices=WEEKDAY_CHOICES), 
+                               min_value=0, max_value=6)
+    start_time =  forms.TimeField(label='Start Time', 
+                                  input_formats=TIME_FORMATS)                           
+    end_time =  forms.TimeField(label='Start Time', 
+                                input_formats=TIME_FORMATS)                            
+
+                                
+    class Meta:
+        model = RepeatUnavailability
+        fields = ['start_time', 'end_time', 'weekday']
+        
+        
+class DesiredTimeForm(forms.ModelForm):
+    """Form for creating and editing desired times."""   
+    weekday = forms.IntegerField(label='Weekday', 
+                               widget=forms.Select(choices=WEEKDAY_CHOICES), 
+                               min_value=0, max_value=6)
+    start_time =  forms.TimeField(label='Start Time', 
+                                  input_formats=TIME_FORMATS)                           
+    end_time =  forms.TimeField(label='Start Time', 
+                                input_formats=TIME_FORMATS)                            
+
+                                
+    class Meta:
+        model = DesiredTime
+        fields = ['start_time', 'end_time', 'weekday']
+    
     
 def get_department_tuple(logged_user):
     """Return a tuple of strings departments
