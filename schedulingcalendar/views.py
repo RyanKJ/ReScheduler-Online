@@ -60,7 +60,6 @@ def employee_list(request):
 def get_schedules(request):
     """Display schedules for a given user, month, year, and department."""
     logged_in_user = request.user
-    print "******** get_schedules is ajax request?: ", request.is_ajax()
     if request.method == 'GET':
         form = CalendarForm(logged_in_user, request.GET)
         if form.is_valid():
@@ -248,17 +247,27 @@ class EmployeeUpdateView(UpdateView):
         
     def get_context_data(self, **kwargs):
         """Add departments, vacations, and other lists of employee to context."""
+        now = datetime.now()
         context = super(EmployeeUpdateView, self).get_context_data(**kwargs)
+        
         context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
                                                                               user=self.request.user)
-                                                                      .order_by('priority', 'seniority'))        
-        context['vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
-                                                           user=self.request.user)
-                                                    .order_by('start_datetime', 'end_datetime'))
+                                                                      .order_by('priority', 'seniority'))     
+                                                                      
+        context['future_vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                   user=self.request.user,
+                                                                   end_datetime__gte=now)
+                                                           .order_by('start_datetime', 'end_datetime'))
+                                                           
+        context['past_vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                 user=self.request.user,
+                                                                 end_datetime__lt=now)
+                                                         .order_by('start_datetime', 'end_datetime'))     
+                                                         
         context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
-                                                                                    user=self.request.user)
+                                                                                     user=self.request.user)
                                                                      .order_by('weekday', 'start_time', 'end_time'))
-        print "***************** context['repeating_unavailable_list'] is: ", context['repeating_unavailable_list']
+                                                                     
         context['desired_time_list'] = (DesiredTime.objects.filter(employee=self.kwargs['employee_pk'],
                                                                   user=self.request.user)       
                                                            .order_by('weekday', 'start_time', 'end_time'))                                                                  

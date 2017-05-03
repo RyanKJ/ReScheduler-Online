@@ -7,7 +7,7 @@
     <div class="row">
       <!-- Employee Info -->
       <div class="col-md-4">
-        <h2>General Information</h2>
+        <h3>General Information</h3>
         <ul class="nav nav-tabs">
           <!-- Tabs -->
           <li class="active"><a href="#info-tab" data-toggle="tab">Information</a></li>
@@ -56,29 +56,54 @@
       </div>
       <!-- Employee Availabilities -->
       <div class="col-md-8">
-        <h2>Availability</h2>
+        <h3>Availability</h3>
         <ul class="nav nav-tabs">
-          <!-- Tabs -->
+          <!-- Availability Tabs -->
           <li class="active"><a href="#vacation-tab" data-toggle="tab">Vacations</a></li>
           <li><a href="#repeat-unavailability-tab" data-toggle="tab">Repeat Unavailability</a></li>
           <li><a href="#desired-times-tab" data-toggle="tab">Desired Times</a></li>
         </ul>
         
-        <div class="tab-content ">
-          <!-- Vacations -->
+        <div class="tab-content">
           <div class="tab-pane active" id="vacation-tab">
-            <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
-            <ul class="list-group">
-              {% for vacation in vacation_list %}
-                <li class="list-group-item">
-                  <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
-                    <li>{{ vacation.start_datetime }} - {{ vacation.end_datetime }}</li>
-                    <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id vacation.id %}">Edit</a></li>
-                    <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id vacation.id %}">Delete</a></li>
-                  </ul>
-                </li>
-              {% endfor %}
+            <!-- Vacation Tabs -->
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#curr-future-vacation-tab" data-toggle="tab">Current & Future Vacations</a></li>
+              <li><a href="#past-vacation-tab" data-toggle="tab">Past Vacations</a></li>
             </ul>
+            
+            <!-- Current and future vacations -->
+            <div class="tab-content">
+              <div class="tab-pane active" id="curr-future-vacation-tab">
+                <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
+                <ul class="list-group">
+                  {% for future_vacation in future_vacation_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ future_vacation.id }}">
+                        <li>{{ future_vacation.start_datetime }} - {{ future_vacation.end_datetime }}</li>
+                        <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id future_vacation.id %}">Edit</a></li>
+                        <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id future_vacation.id %}">Delete</a></li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              
+              <!-- Past vacations -->
+              <div class="tab-pane" id="past-vacation-tab">
+                <ul class="list-group">
+                  {% for past_vacation in past_vacation_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ past_vacation.id }}">
+                        <li>{{ past_vacation.start_datetime }} - {{ past_vacation.end_datetime }}</li>
+                        <li><a href="{% url 'schedulingcalendar:vacation_update' employee.id past_vacation.id %}">Edit</a></li>
+                        <li><a href="{% url 'schedulingcalendar:vacation_delete' employee.id past_vacation.id %}">Delete</a></li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
           </div>
             
           <div class="tab-pane" id="repeat-unavailability-tab">

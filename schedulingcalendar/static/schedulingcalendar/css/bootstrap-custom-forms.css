@@ -15,3 +15,16 @@
     height: 1px;
     overflow: hidden;
 }
+
+.menu li { 
+    float: right;
+    margin-left: 20px;
+}
+
+.list-inline li:last-child {
+  float: right;
+}
+
+.tab-pane {
+  padding-top: 2px;
+}
