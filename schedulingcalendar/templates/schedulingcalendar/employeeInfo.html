@@ -5,11 +5,10 @@
   {{ block.super }}  
   <div class="container">
     <div class="row">
-      <!-- Employee Info -->
       <div class="col-md-4">
         <h3>General Information</h3>
         <ul class="nav nav-tabs">
-          <!-- Tabs -->
+          <!-- General Tabs -->
           <li class="active"><a href="#info-tab" data-toggle="tab">Information</a></li>
           <li><a href="#department-tab" data-toggle="tab">Departments</a></li>
         </ul>
@@ -35,6 +34,7 @@
               <input type="submit" class="btn btn-primary" value="Save Changes">
             </form>
           </div>
+          
           <!-- Departments -->
           <div class="tab-pane" id="department-tab">
             <a href="{% url 'schedulingcalendar:dep_mem_create' employee.id %}">New Department Membership</a>
@@ -54,6 +54,7 @@
           </div>
         </div>
       </div>
+      
       <!-- Employee Availabilities -->
       <div class="col-md-8">
         <h3>Availability</h3>
@@ -64,9 +65,11 @@
           <li><a href="#desired-times-tab" data-toggle="tab">Desired Times</a></li>
         </ul>
         
+        <!-- Vacation Tab -->
         <div class="tab-content">
           <div class="tab-pane active" id="vacation-tab">
-            <!-- Vacation Tabs -->
+            <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
+            <!-- Vacation Sub-Tabs -->
             <ul class="nav nav-tabs">
               <li class="active"><a href="#curr-future-vacation-tab" data-toggle="tab">Future</a></li>
               <li><a href="#past-vacation-tab" data-toggle="tab">Past</a></li>
@@ -75,7 +78,6 @@
             <!-- Current and future vacations -->
             <div class="tab-content">
               <div class="tab-pane active" id="curr-future-vacation-tab">
-                <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
                 <ul class="list-group">
                   {% for future_vacation in future_vacation_list %}
                     <li class="list-group-item">
@@ -106,6 +108,7 @@
             </div>
           </div>
             
+          <!-- Repeat Unavailability Tab -->
           <div class="tab-pane" id="repeat-unavailability-tab">
             <a href="{% url 'schedulingcalendar:repeat_unav_create' employee.id %}">New Repeat Unavailability</a>
             <ul class="list-group">
@@ -121,6 +124,7 @@
             </ul>
           </div>
             
+          <!-- Desired Time Tab -->
           <div class="tab-pane" id="desired-times-tab">
             <a href="{% url 'schedulingcalendar:desired_time_create' employee.id %}">New Desired Time</a>
               <ul class="list-group">

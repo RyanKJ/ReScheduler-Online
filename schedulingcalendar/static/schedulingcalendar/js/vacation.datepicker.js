@@ -1,12 +1,5 @@
 $(function(){
 
-  // Create start and end time-pickers
-  var $startTPicker = $("#id_start_time").pickatime();
-  var $endTPicker = $("#id_end_time").pickatime();
-
-  
-  
-    
   //Pickadate does not support single datetime picker, so customized 
   //date and time pickers are created so that a time picker is focused
   //after a date is picked, which is then combined and added into the input

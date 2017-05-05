@@ -13,7 +13,8 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
                              date_handler, schedule_cost, all_calendar_costs, 
                              get_avg_monthly_revenue)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, 
-                    RepeatUnavailabilityForm, DesiredTimeForm)
+                    RepeatUnavailabilityForm, DesiredTimeForm, 
+                    MonthlyRevenueForm)
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -669,7 +670,7 @@ class MonthlyRevenueUpdateView(UpdateView):
     """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/monthlyRevenueUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
-    fields = ['monthly_total', 'month_year']
+    form_class = MonthlyRevenueForm
     
     
     def get(self, request, **kwargs):
@@ -692,8 +693,7 @@ class MonthlyRevenueCreateView(CreateView):
     """Display department form to create object."""
     template_name = 'schedulingcalendar/monthlyRevenueCreate.html'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
-    model = MonthlyRevenue
-    fields = ['monthly_total', 'month_year']
+    form_class = MonthlyRevenueForm
               
               
     def form_valid(self, form):

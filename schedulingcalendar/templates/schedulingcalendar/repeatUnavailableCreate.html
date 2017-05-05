@@ -1,4 +1,5 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load static %}
 {% load widget_tweaks %}
 
 {% block form_content %}
@@ -21,3 +22,8 @@
     <input type="submit" class="btn btn-primary" value="Create Repeating Unavailability">
   </form>
 {% endblock form_content %} 
+
+{% block javascript %}
+  {{ block.super }}  
+  <script src="{% static 'schedulingcalendar/js/repeat.timepicker.js' %}" ></script>
+{% endblock javascript %}  

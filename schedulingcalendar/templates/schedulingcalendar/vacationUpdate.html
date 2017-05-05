@@ -1,4 +1,5 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load static %}
 {% load widget_tweaks %}
 
 {% block form_content %}
@@ -28,4 +29,9 @@
       <div id="outlet"></div>
     <input type="submit" class="btn btn-primary" value="Save Changes">
   </form>
-{% endblock form_content %} 
+{% endblock form_content %}
+
+{% block javascript %}
+  {{ block.super }}  
+  <script src="{% static 'schedulingcalendar/js/vacation.datepicker.js' %}" ></script>
+{% endblock javascript %}  

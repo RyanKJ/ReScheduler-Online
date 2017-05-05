@@ -1,5 +1,11 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load static %}
 {% load widget_tweaks %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css">
+{% endblock stylesheets %}
 
 {% block form_content %}
   <h4 class="card-title text-center">Edit Monthly Revenue</h4>
@@ -21,3 +27,9 @@
     <input type="submit" class="btn btn-primary" value="Save Changes">
   </form>
 {% endblock form_content %} 
+
+{% block javascript %}
+  {{ block.super }}  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js" ></script>
+  <script src="{% static 'schedulingcalendar/js/sales.monthpicker.js' %}" ></script>
+{% endblock javascript %}  

@@ -1,8 +1,10 @@
 from django import forms
 from datetime import datetime
 from .models import (Employee, Department, Vacation, RepeatUnavailability,
-                     DesiredTime)
+                     DesiredTime, MonthlyRevenue)
 
+DATE_FORMAT = '%Y, %B'
+DATE_FORMATS = [DATE_FORMAT]
 TIME_FORMATS = ['%I:%M %p']
 MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
                  (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
@@ -13,7 +15,7 @@ WEEKDAY_CHOICES = ((0, 'Monday'), (1, 'Tuesday'), (2, 'Wednesday'),
                  
                  
 DATETIME_FORMAT = "%B %d, %Y at %I:%M %p"
-DATETIME_FORMATS = ["%B %d, %Y at %I:%M %p"]
+DATETIME_FORMATS = [DATETIME_FORMAT]
 
 
 class CalendarForm(forms.Form):
@@ -123,6 +125,18 @@ class DesiredTimeForm(forms.ModelForm):
     class Meta:
         model = DesiredTime
         fields = ['start_time', 'end_time', 'weekday']
+        
+        
+class MonthlyRevenueForm(forms.ModelForm):
+    """Form for creating and editing monthly revenues."""                                                     
+    month_year_attrs = {}
+    month_year =  forms.DateField(label='Year And Month',
+                                  widget=forms.DateInput(format=DATE_FORMAT),
+                                  input_formats=DATE_FORMATS)
+                                
+    class Meta:
+        model = MonthlyRevenue
+        fields = ['monthly_total', 'month_year']
     
     
 def get_department_tuple(logged_user):
