@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css">
 {% endblock stylesheets %}
 
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Return To Monthly Revenue List</a>
+  </div>
+{% endblock sub_navbar %}  
+
 {% block form_content %}
   <h4 class="card-title text-center">Create Monthly Revenue</h4>
   <form id="create-monthly-revenue-form"

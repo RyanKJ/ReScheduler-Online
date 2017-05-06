@@ -1,0 +1,32 @@
+/* Custom styling for any of the basic CRUD pages such as employees, sales, etc.*/
+
+
+.back-navbar {
+  background-color: #0079D7;
+  margin-bottom: 15px;
+  height: 40px;
+  z-index: 100;
+} 
+
+.go-back-link {
+  position: relative;
+  color: white;
+  font-size: 16px;
+  vertical-align: center;
+  top: 6px;
+  margin-left: 8px;
+  padding: 3px;
+  border: 3px solid white;
+  
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+	transition: all .3s ease;
+}
+
+.go-back-link:hover {
+  color: white;
+  text-decoration: none;
+  background: #00BFFF;
+}

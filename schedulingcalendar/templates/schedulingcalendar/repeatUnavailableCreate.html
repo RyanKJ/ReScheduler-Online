@@ -2,6 +2,13 @@
 {% load static %}
 {% load widget_tweaks %}
 
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:employee_info' employee.id %}">Return To {{ employee.first_name }} {{ employee.last_name }}'s Page</a>
+  </div>
+{% endblock sub_navbar %}  
+
 {% block form_content %}
   <h4 class="card-title text-center">Create Repeat Unavailability For {{ employee.first_name }} {{ employee.last_name }}</h4>
   <form id="create-repeat-unavailable-form"

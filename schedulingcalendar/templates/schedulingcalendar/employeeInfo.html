@@ -1,5 +1,13 @@
-{% extends "schedulingcalendar/__baseForm.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load schedule_calendar_extras %}
 {% load widget_tweaks %}
+
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:employee_list' %}">Return To Employee List</a>
+  </div>
+{% endblock sub_navbar %}  
 
 {% block content %}
   {{ block.super }}  
@@ -115,7 +123,7 @@
               {% for repeat_unav in repeating_unavailable_list %}
                 <li class="list-group-item">
                   <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
-                    <li>{{ repeat_unav.start_time }} - {{ repeat_unav.end_time }}</li>
+                    <li>{{ repeat_unav.weekday|int_to_weekday }}: {{ repeat_unav.start_time }} - {{ repeat_unav.end_time }}</li>
                     <li><a href="{% url 'schedulingcalendar:repeat_unav_update' employee.id repeat_unav.id %}">Edit</a></li>
                     <li><a href="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeat_unav.id %}">Delete</a></li>
                   </ul>
@@ -131,7 +139,7 @@
                 {% for desired_time in desired_time_list %}
                   <li class="list-group-item">
                     <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
-                      <li>{{ desired_time.start_time }} - {{ desired_time.end_time }}</li>
+                      <li>{{ desired_time.weekday|int_to_weekday }}: {{ desired_time.start_time }} - {{ desired_time.end_time }}</li>
                       <li><a href="{% url 'schedulingcalendar:desired_time_update' employee.id desired_time.id %}">Edit</a></li>
                       <li><a href="{% url 'schedulingcalendar:desired_time_delete' employee.id desired_time.id %}">Delete</a></li>
                     </ul>

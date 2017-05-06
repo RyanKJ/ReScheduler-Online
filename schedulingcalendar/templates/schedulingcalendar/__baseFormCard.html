@@ -12,6 +12,17 @@
 
 {% block content %}
   {{ block.super }}
+  <!-- Customizable sub-navigational bar -->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md">
+        {% block sub_navbar %}
+        {% endblock sub_navbar %}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main content of CRUD pages -->
   <div class="container">
     <div class="row">
       <div class="col-md">

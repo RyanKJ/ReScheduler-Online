@@ -1,5 +1,12 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
 
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:employee_info' employee.id %}">Return To {{ employee.first_name }} {{ employee.last_name }}'s Page</a>
+  </div>
+{% endblock sub_navbar %}  
+
 {% block form_content %}
   <div class="text-center">
     <h4 class="card-title text-center">Are You Sure You Want To Delete This Department Membership?</h4>

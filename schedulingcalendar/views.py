@@ -45,21 +45,6 @@ def calendar_page(request):
 
     return HttpResponse(template.render(context, request))
     
-    
-@login_required
-def employee_list(request):
-    """Display the employee editing page for a managing user."""
-    logged_in_user = request.user
-    
-    # TODO: Get all employees for user and load into page?
-    employee_form = EmployeeForm()
-    employee_list = Employee.objects.filter(user=logged_in_user)
-    
-    template = loader.get_template('schedulingcalendar/employeeList.html')
-    context = {'employee_form': employee_form, 'employee_list': employee_list}
-
-    return HttpResponse(template.render(context, request))
-
 
 @login_required
 def get_schedules(request):
@@ -280,6 +265,12 @@ class EmployeeUpdateView(UpdateView):
         return context
         
         
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class EmployeeCreateView(CreateView):
     """Display an employee form to create a new employee."""
@@ -334,6 +325,12 @@ class VacationUpdateView(UpdateView):
                                                    user=self.request.user)
                                                         
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
     
    
 @method_decorator(login_required, name='dispatch')
@@ -361,6 +358,13 @@ class VacationCreateView(CreateView):
         return context
         
         
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class VacationDeleteView(DeleteView):
     """Display a delete form to delete vacation object."""
@@ -375,6 +379,12 @@ class VacationDeleteView(DeleteView):
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
         
         
 @method_decorator(login_required, name='dispatch')
@@ -407,6 +417,12 @@ class RepeatUnavailableUpdateView(UpdateView):
                                                    user=self.request.user)
                                                         
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
     
    
 @method_decorator(login_required, name='dispatch')
@@ -434,6 +450,12 @@ class RepeatUnavailableCreateView(CreateView):
         return context
         
         
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class RepeatUnavailableDeleteView(DeleteView):
     """Display a delete form to delete unavailable repeat object."""
@@ -448,6 +470,12 @@ class RepeatUnavailableDeleteView(DeleteView):
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
         
         
 @method_decorator(login_required, name='dispatch')
@@ -480,6 +508,12 @@ class DesiredTimeUpdateView(UpdateView):
                                                    user=self.request.user)
                                                         
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
     
    
 @method_decorator(login_required, name='dispatch')
@@ -507,6 +541,12 @@ class DesiredTimeCreateView(CreateView):
         return context
         
         
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class DesiredTimeDeleteView(DeleteView):
     """Display a delete form to delete desired time object."""
@@ -521,6 +561,12 @@ class DesiredTimeDeleteView(DeleteView):
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
         
         
 @method_decorator(login_required, name='dispatch')
@@ -553,6 +599,12 @@ class DepartmentMembershipUpdateView(UpdateView):
                                                    user=self.request.user)
                                                         
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
     
    
 @method_decorator(login_required, name='dispatch')
@@ -581,6 +633,12 @@ class DepartmentMembershipCreateView(CreateView):
         return context
         
         
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
 @method_decorator(login_required, name='dispatch') 
 class DepartmentMembershipDeleteView(DeleteView):
     """Display a delete form to delete department membership object."""
@@ -595,6 +653,12 @@ class DepartmentMembershipDeleteView(DeleteView):
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)                                               
         return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
         
         
 @method_decorator(login_required, name='dispatch')
