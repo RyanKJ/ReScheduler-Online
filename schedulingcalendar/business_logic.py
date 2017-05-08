@@ -11,7 +11,7 @@ from operator import itemgetter
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
-                     Employee, Vacation, RepeatUnavailability)
+                     Employee, Vacation, RepeatUnavailability, BusinessData)
 import json
 
 
@@ -226,14 +226,24 @@ def get_availability(employee, schedule):
     availability['(U)'] = unav_repeat         
 
     # Check current hours worked for later evaluation of overtime       
-    hours_curr_worked = calculate_weekly_hours(employee, schedule)
-    availability['Hours Scheduled'] = hours_curr_worked
-    availability['(O)'] = False
+    total_workweek_hours = calculate_weekly_hours_with_sch(employee, schedule)
+    availability['Hours Scheduled'] = total_workweek_hours
+    availability['(O)'] = check_for_overtime(total_workweek_hours, schedule.user)
             
     return availability
     
     
-def calculate_weekly_hours(employee, schedule):
+def check_for_overtime(hours, user):
+    """Calculate if number of hours is in overtime or not."""
+    business_data = BusinessData.objects.get(user=user, pk=1)
+    
+    if hours > business_data.overtime:
+        return True
+    else:
+        return False
+    
+    
+def calculate_weekly_hours_with_sch(employee, schedule):
     """Calculate # of hours employee will be working if assigned to schedule.
     
     Given the employer's stated start of the week, say Friday, sum up the total
@@ -249,7 +259,65 @@ def calculate_weekly_hours(employee, schedule):
         that with, including the hours of the schedule they may be assigned to.
     """
     
-    return 0
+    curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, schedule.user)
+    return curr_hours + schedule_length(schedule)
+    
+    
+def calculate_weekly_hours(employee, dt, user):
+    """Calculate # of hours employee works for workweek containing datetime."""
+    #TODO: Not count time of schedules that overlap with 2 different workweeks
+    #TODO: Not double count schedules that overlap in time
+    workweek_datetimes = get_start_end_of_weekday(dt, user)
+    schedules = (Schedule.objects.filter(user=user,
+                                         employee=employee,
+                                         start_datetime__gte=workweek_datetimes['start'],
+                                         start_datetime__lt=workweek_datetimes['end']))
+                                         
+    hours = 0
+    
+    for schedule in schedules:
+        hours += schedule_length(schedule)
+    
+    return hours
+    
+    
+def get_start_end_of_weekday(dt, user):
+    """Return start and end datetimes of workweek that contain datetime inside
+    
+    Because users are allowed to pick a specific day and time for the start
+    of the workweek, one cannot assume the workweek will start on a monday at
+    12:00 am. In order to calculate the start datetime of a workweek, we first
+    find the start date relative to some date that must be contained within 
+    the workweek
+    """
+    
+    # TODO: we should get business data by user, not pk
+    business_data = BusinessData.objects.get(user=user, pk=1)
+    start_day_of_week = business_data.workweek_weekday_start
+    start_time_of_week = business_data.workweek_time_start
+    dt_weekday = dt.weekday()
+    
+    if start_day_of_week < dt_weekday:
+        day_difference = dt_weekday - start_day_of_week
+    elif start_day_of_week > dt_weekday:
+        day_difference = dt_weekday + (7 - start_day_of_week)
+    # Case where start of workweek weekday is equal to datetime weekday
+    else:
+        # Case where start time of workweek is before datetime's time
+        if start_time_of_week < dt.time():
+            day_difference = 0
+        # Case where datetime comes before start of work week start time
+        # So we subtract 7 days since it belongs to 'last week'
+        else:
+            day_difference = 7
+        
+    start_date_of_week = dt.date() - timedelta(day_difference)
+    
+    start_datetime_of_week = datetime.combine(start_date_of_week, start_time_of_week)
+    end_datetime_of_week = start_datetime_of_week + timedelta(7)
+    
+    return {'start': start_datetime_of_week, 'end': end_datetime_of_week}
+    
     
     
 def eligable_list_to_dict(eligable_list):
@@ -324,6 +392,19 @@ def date_handler(obj):
         raise TypeError
         
         
+def schedule_length(schedule):
+    """Calculate length of a schedule
+    
+    Args:
+        schedule: django schedule object.
+    Returns:
+        A float representing number of hours of schedule length.
+    """
+    time_delta = schedule.end_datetime - schedule.start_datetime
+    hours = time_delta.seconds / 3600
+    return hours
+    
+        
 def schedule_cost(schedule):
     """Calculate cost of schedule.
     
@@ -337,8 +418,7 @@ def schedule_cost(schedule):
     if schedule.employee == None:
         return 0
             
-    time_delta = schedule.end_datetime - schedule.start_datetime
-    hours = time_delta.seconds / 3600
+    hours = schedule_length(schedule)
     return hours * schedule.employee.wage
     
     

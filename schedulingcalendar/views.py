@@ -145,7 +145,8 @@ def get_schedule_info(request):
     logged_in_user = request.user
 
     schedule_pk = request.GET['pk']
-    schedule = Schedule.objects.get(user=logged_in_user, pk=schedule_pk)
+    schedule = (Schedule.objects.select_related('department', 'employee', 'user')
+                                .get(user=logged_in_user, pk=schedule_pk))
     
     eligable_list = get_eligables(schedule)
     eligable_dict_list = eligable_list_to_dict(eligable_list)

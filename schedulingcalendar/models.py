@@ -115,6 +115,7 @@ class BusinessData(models.Model):
     
     overtime = models.IntegerField('overtime')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
+    workweek_time_start = models.TimeField('start time')
     
     
     def check_for_overtime(self, hours):
