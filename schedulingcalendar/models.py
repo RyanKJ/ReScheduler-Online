@@ -77,6 +77,16 @@ class Vacation(models.Model):
     employee = models.ForeignKey(Employee)
     
     
+class Absence(models.Model):
+    """Representation of an absent block of time for employee."""
+    user = models.ForeignKey(User)
+    
+    start_datetime = models.DateTimeField('start datetime')
+    end_datetime = models.DateTimeField('end datetime')
+    
+    employee = models.ForeignKey(Employee)    
+    
+    
 class RepeatUnavailability(models.Model):
     """Representation of repeating unavailability for employee absentee."""
     user = models.ForeignKey(User)

@@ -11,7 +11,8 @@ from operator import itemgetter
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
-                     Employee, Vacation, RepeatUnavailability, BusinessData)
+                     Employee, Vacation, RepeatUnavailability, BusinessData,
+                     Absence)
 import json
 
 
@@ -79,7 +80,7 @@ def get_eligables(schedule):
 def _calculate_availability_score(availability):
     """Calculate availability of employee given conflicts.
         
-    S = 8, V = 4, U = 2, O = 1
+    S = 16, V = 8, A = 4, U = 2, O = 1
         
     The score for each availability tier is greater than the sum of all
     lesser conflicts combined. This ensures that a combination of lesser
@@ -91,13 +92,14 @@ def _calculate_availability_score(availability):
     Args:
       availability: The availability dict containing conflict information.
     Returns:
-      score: aAn integer value of conflict. Higher score means more conflicts.
+      score: An integer value of conflict. Higher score means more conflicts.
     """
     
     score = 0
     
-    if availability['(S)']: score += 8
-    if availability['(V)']: score += 4
+    if availability['(S)']: score += 16
+    if availability['(V)']: score += 8
+    if availability['(A)']: score += 4
     if availability['(U)']: score += 2
     if availability['(O)']: score += 1
     
@@ -182,6 +184,8 @@ def get_availability(employee, schedule):
              with the schedule employee may be assigned to.
       '(V)': A collection of vacation model objects that have any time overlap
              with the schedule employee may be assigned to.
+      '(A)': A collection of absence model objects that have any time overlap
+             with the schedule employee may be assigned to.
       '(U)': A collection of repeating unavailability model objects that have 
              any time overlap with the schedule employee may be assigned to.   
       'Hours Scheduled': A numerical representation of how many hour the 
@@ -214,6 +218,12 @@ def get_availability(employee, schedule):
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)) 
     availability['(V)'] = vacations
+    
+    # Get absences employee is assigned to that overlap with schedule
+    absences = (Absence.objects.filter(employee=employee.id,
+                                       start_datetime__lt=schedule.end_datetime,
+                                       end_datetime__gt=schedule.start_datetime)) 
+    availability['(A)'] = absences
            
     # Get unavailabilities employee is assigned to that overlap with schedule
     sch_weekday = schedule.start_datetime.weekday()
@@ -362,7 +372,7 @@ def _availability_to_dict(availability):
         Availability formatted into dicts to be serialized by json.
     """
     
-    MODEL_CONFLICTS = ('(S)', '(V)', '(U)')
+    MODEL_CONFLICTS = ('(S)', '(V)', '(A)', '(U)')
     avail_serialized = {}
     
     for key in MODEL_CONFLICTS:

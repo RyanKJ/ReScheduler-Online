@@ -69,12 +69,13 @@
         <ul class="nav nav-tabs">
           <!-- Availability Tabs -->
           <li class="active"><a href="#vacation-tab" data-toggle="tab">Vacations</a></li>
-          <li><a href="#repeat-unavailability-tab" data-toggle="tab">Repeat Unavailability</a></li>
+          <li><a href="#absence-tab" data-toggle="tab">Absences</a></li>
+          <li><a href="#repeat-unavailability-tab" data-toggle="tab">Repeat Unavailabilities</a></li>
           <li><a href="#desired-times-tab" data-toggle="tab">Desired Times</a></li>
         </ul>
         
-        <!-- Vacation Tab -->
         <div class="tab-content">
+          <!-- Vacation Tab -->
           <div class="tab-pane active" id="vacation-tab">
             <a href="{% url 'schedulingcalendar:vacation_create' employee.id %}">New Vacation</a>
             <!-- Vacation Sub-Tabs -->
@@ -115,7 +116,49 @@
               </div>
             </div>
           </div>
+          
+          <!-- Absence Tab -->
+          <div class="tab-pane" id="absence-tab">
+            <a href="{% url 'schedulingcalendar:absent_create' employee.id %}">New Absence</a>
+            <!-- Absence Sub-Tabs -->
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#curr-future-absence-tab" data-toggle="tab">Future</a></li>
+              <li><a href="#past-absence-tab" data-toggle="tab">Past</a></li>
+            </ul>
             
+            <!-- Current and future Absences -->
+            <div class="tab-content">
+              <div class="tab-pane active" id="curr-future-absence-tab">
+                <ul class="list-group">
+                  {% for future_absence in future_absence_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ future_absence.id }}">
+                        <li>{{ future_absence.start_datetime }} - {{ future_absence.end_datetime }}</li>
+                        <li><a href="{% url 'schedulingcalendar:absent_update' employee.id future_absence.id %}">Edit</a></li>
+                        <li><a href="{% url 'schedulingcalendar:absent_delete' employee.id future_absence.id %}">Delete</a></li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              
+              <!-- Past Absences -->
+              <div class="tab-pane" id="past-absence-tab">
+                <ul class="list-group">
+                  {% for past_absence in past_absence_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ past_absence.id }}">
+                        <li>{{ past_absence.start_datetime }} - {{ past_absence.end_datetime }}</li>
+                        <li><a href="{% url 'schedulingcalendar:absent_update' employee.id past_absence.id %}">Edit</a></li>
+                        <li><a href="{% url 'schedulingcalendar:absent_delete' employee.id past_absence.id %}">Delete</a></li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          
           <!-- Repeat Unavailability Tab -->
           <div class="tab-pane" id="repeat-unavailability-tab">
             <a href="{% url 'schedulingcalendar:repeat_unav_create' employee.id %}">New Repeat Unavailability</a>

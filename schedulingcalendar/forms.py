@@ -1,7 +1,7 @@
 from django import forms
 from datetime import datetime
-from .models import (Employee, Department, Vacation, RepeatUnavailability,
-                     DesiredTime, MonthlyRevenue)
+from .models import (Employee, Department, Vacation, Absence,
+                     RepeatUnavailability, DesiredTime, MonthlyRevenue)
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -92,6 +92,18 @@ class VacationForm(forms.ModelForm):
 
     class Meta:
         model = Vacation
+        fields = ['start_datetime', 'end_datetime']
+        
+        
+class AbsentForm(forms.ModelForm):
+    """Form for creating and editing vacations."""
+    start_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                     input_formats=DATETIME_FORMATS)
+    end_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                   input_formats=DATETIME_FORMATS)
+
+    class Meta:
+        model = Absence
         fields = ['start_datetime', 'end_datetime']
         
         

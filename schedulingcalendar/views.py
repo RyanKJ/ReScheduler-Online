@@ -8,11 +8,12 @@ from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
-                     Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue)
+                     Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
+                     Absence)
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, schedule_cost, all_calendar_costs, 
                              get_avg_monthly_revenue)
-from .forms import (CalendarForm, AddScheduleForm, VacationForm, 
+from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm)
 from .custom_mixins import AjaxFormResponseMixin
@@ -253,7 +254,17 @@ class EmployeeUpdateView(UpdateView):
         context['past_vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                                  user=self.request.user,
                                                                  end_datetime__lt=now)
-                                                         .order_by('start_datetime', 'end_datetime'))     
+                                                         .order_by('start_datetime', 'end_datetime'))    
+                                                         
+        context['future_absence_list'] = (Absence.objects.filter(employee=self.kwargs['employee_pk'],
+                                                                user=self.request.user,
+                                                                end_datetime__gte=now)
+                                                        .order_by('start_datetime', 'end_datetime'))
+                                                           
+        context['past_absence_list'] = (Absence.objects.filter(employee=self.kwargs['employee_pk'],
+                                                              user=self.request.user,
+                                                              end_datetime__lt=now)
+                                                      .order_by('start_datetime', 'end_datetime'))                         
                                                          
         context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=self.kwargs['employee_pk'],
                                                                                      user=self.request.user)
@@ -300,7 +311,6 @@ class EmployeeDeleteView(DeleteView):
 class VacationUpdateView(UpdateView):
     """Display vacation form to edit vacation object."""
     template_name = 'schedulingcalendar/vacationUpdate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = VacationForm
     
     
@@ -338,7 +348,6 @@ class VacationUpdateView(UpdateView):
 class VacationCreateView(CreateView):
     """Display vacation form to create vacation object."""
     template_name = 'schedulingcalendar/vacationCreate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = VacationForm
               
               
@@ -370,7 +379,6 @@ class VacationCreateView(CreateView):
 class VacationDeleteView(DeleteView):
     """Display a delete form to delete vacation object."""
     template_name = 'schedulingcalendar/vacationDelete.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Vacation
     
     
@@ -386,7 +394,96 @@ class VacationDeleteView(DeleteView):
         """Return to employee's page after editing associated employee info."""
         return reverse_lazy('schedulingcalendar:employee_info', 
                             kwargs={'employee_pk': self.kwargs['employee_pk']})
+                            
+                            
+@method_decorator(login_required, name='dispatch')
+class AbsentUpdateView(UpdateView):
+    """Display absent form to edit absence object."""
+    template_name = 'schedulingcalendar/absenceUpdate.html'
+    form_class = AbsentForm
+    
+    
+    def get(self, request, **kwargs):
+        self.object = Absence.objects.get(pk=self.kwargs['absent_pk'], 
+                                           user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
         
+    def get_object(self, queryset=None):
+        obj = Absence.objects.get(pk=self.kwargs['absent_pk'], 
+                                  user=self.request.user)
+        return obj
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(AbsentUpdateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+    
+   
+@method_decorator(login_required, name='dispatch')
+class AbsentCreateView(CreateView):
+    """Display absence form to create absence object."""
+    template_name = 'schedulingcalendar/absenceCreate.html'
+    form_class = AbsentForm
+              
+              
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(AbsentCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(AbsentCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class AbsentDeleteView(DeleteView):
+    """Display a delete form to delete absence object."""
+    template_name = 'schedulingcalendar/absenceDelete.html'
+    model = Absence
+    
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(AbsentDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+                            
         
 @method_decorator(login_required, name='dispatch')
 class RepeatUnavailableUpdateView(UpdateView):

@@ -331,6 +331,9 @@ $(document).ready(function() {
     if (availability['(V)'].length > 0) {
       warningFlagList.push("V")
     }
+    if (availability['(A)'].length > 0) {
+      warningFlagList.push("A")
+    }
     if (availability['(U)'].length > 0) {
       warningFlagList.push("U")
     }
