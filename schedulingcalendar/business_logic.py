@@ -8,11 +8,12 @@ contained here.
 
 from datetime import datetime, timedelta
 from operator import itemgetter
+from django.utils import timezone
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
-                     Absence)
+                     Absence, DesiredTime)
 import json
 
 
@@ -63,7 +64,7 @@ def get_eligables(schedule):
         # Get the multiple-criterion tuple for sorting an employee
         availability_score = _calculate_availability_score(availability)
         dep_priority_score = _calculate_dep_priority_score(dep_mem)
-        desired_times_score = _calculate_desired_times_score(employee)
+        desired_times_score = _calculate_desired_times_score(employee, schedule)
         desired_hours_score = _calculate_desired_hours_score(availability,
                                                              employee)
         sorting_score = (availability_score, dep_priority_score, 
@@ -123,8 +124,8 @@ def _calculate_dep_priority_score(dep_member):
     return dep_member.priority
     
     
-def _calculate_desired_times_score(employee):
-    """Calculate if schedule has overlap with employee desired working time.
+def _calculate_desired_times_score(employee, schedule):
+    """Calculate if schedule has overlap with employee's desired working times.
     
     Employee's are able to set days and hours that they would prefer to work.
     If a schedule overlaps with these desired times, the employee is more
@@ -135,12 +136,29 @@ def _calculate_desired_times_score(employee):
     
     Args:
         employee: Employee model object.
+        schedule: Schedule model object. 
     Returns:
-        Integer score of overlap of desired time with schedule's interval of 
-        time. A lower score means more overlap.
+        Float number representing time in seconds of overlap of desired time
+        employee wishes to work during and the schedule's time. The number is 
+        made negative due to python's built in sorting method sorting from
+        smallest to largest.
     """
     
-    return 2
+    sch_weekday = schedule.start_datetime.weekday()
+    start_time = schedule.start_datetime.time()
+    end_time = schedule.end_datetime.time()
+    desired_times = (DesiredTime.objects.filter(employee=employee.id,
+                                                weekday=sch_weekday,
+                                                start_time__lt=end_time,
+                                                end_time__gt=start_time))
+                                                
+    total_overlapping_time = 0
+    
+    for desired_time in desired_times:
+        #TODO: Calculate total amount of overlapping time
+        continue
+    
+    return -1 * total_overlapping_time
     
     
 def _calculate_desired_hours_score(availability, employee):
@@ -269,24 +287,71 @@ def calculate_weekly_hours_with_sch(employee, schedule):
         that with, including the hours of the schedule they may be assigned to.
     """
     
+    # TODO: Not count overlapping time of to be assigned schedule.
+    
     curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, schedule.user)
-    return curr_hours + schedule_length(schedule)
+    return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
     
     
 def calculate_weekly_hours(employee, dt, user):
-    """Calculate # of hours employee works for workweek containing datetime."""
-    #TODO: Not count time of schedules that overlap with 2 different workweeks
-    #TODO: Not double count schedules that overlap in time
+    """Calculate # of hours employee works for workweek containing datetime.
+    
+    This function does not count overlapping time. That is, if an employee is
+    assigned a 9-5 schedule on the same date in two different departments, it 
+    will be counted as one schedule. (This is because an employee can be both
+    a floral designer making flower arrangements and a staff member helping
+    customers, in a floral business example.) So, this function would count
+    that employee as working for 8 hours instead of 16 hours.
+    
+    In order to not count overlapping time the summed schedules are queried
+    in a sorted fashion and then their time duration is summed up. But since
+    schedules can potentially overlap one cannot just sum up the duration of 
+    each schedule independently. A variable, last_end_dt, is used to keep track
+    of the end of the last schedule iterated over. This is used to check if the
+    next schedule, which starts equally or later than the last schedule in the
+    queryset due to the order_by method, has any overlap. There are three cases
+    one can encounter:
+    
+    Case 1: Schedules don't overlap. Simply sum up time delta of schedule and
+            set schedule's end_dt to be last_end_dt
+    Case 2: Previous schedule's end_dt is greater than or equal to next schedule's 
+            end_dt, skip adding time since it is contained entirely in a
+            previous schedule.
+    Case 3: Partial overlap, schedule starts before previous schedule ends, but
+            ends after previous schedule ends. So count only the time that 
+            does not overlap.
+            
+    Args: 
+        employee: django employee object.
+        dt: datetime that is contained within the start, end datetimes of workweek.
+        user: authenticated user who called function.
+    Returns:
+        float number representing hours employee works for a given workweek, 
+        not counting overlapping schedule times.
+    """
+    
     workweek_datetimes = get_start_end_of_weekday(dt, user)
     schedules = (Schedule.objects.filter(user=user,
                                          employee=employee,
                                          start_datetime__gte=workweek_datetimes['start'],
-                                         start_datetime__lt=workweek_datetimes['end']))
+                                         start_datetime__lt=workweek_datetimes['end'])
+                                 .order_by('start_datetime', 'end_datetime'))
+                                         
+    #TODO: Not count time of schedules that overlap with 2 different workweeks
                                          
     hours = 0
+    # Choose a date far in past to ensure the first end_dt > last_end_dt
+    last_end_dt = timezone.now() - timedelta(31337)
     
     for schedule in schedules:
-        hours += schedule_length(schedule)
+        if last_end_dt <= schedule.end_datetime: # Case 1
+            hours += time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
+            last_end_dt = schedule.end_datetime
+        elif last_end_dt >= schedule.end_datetime: # Case 2
+            continue
+        else: # Case 3
+            hours += time_dur_in_hours(last_end_dt, schedule.end_datetime)
+            last_end_dt = schedule.end_datetime
     
     return hours
     
@@ -402,15 +467,16 @@ def date_handler(obj):
         raise TypeError
         
         
-def schedule_length(schedule):
-    """Calculate length of a schedule
+def time_dur_in_hours(start_datetime, end_datetime):
+    """Calculate length of time in hours, represented as a float number
     
     Args:
         schedule: django schedule object.
     Returns:
         A float representing number of hours of schedule length.
     """
-    time_delta = schedule.end_datetime - schedule.start_datetime
+    
+    time_delta = end_datetime - start_datetime
     hours = time_delta.seconds / 3600
     return hours
     
@@ -428,7 +494,7 @@ def schedule_cost(schedule):
     if schedule.employee == None:
         return 0
             
-    hours = schedule_length(schedule)
+    hours = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
     return hours * schedule.employee.wage
     
     
