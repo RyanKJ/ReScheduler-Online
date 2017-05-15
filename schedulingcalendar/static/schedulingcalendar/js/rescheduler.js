@@ -359,21 +359,33 @@ $(document).ready(function() {
     var warningStr = "";
     
     if (availability['(S)'].length > 0) {
-      warningStr += "<p>The employee is assigned to the following schedules that overlap:</p>";
+      warningStr += "<p>Schedules That Overlap:</p>";
       for (schedule of availability['(S)']) {
         var str = _scheduleConflictToStr(schedule);
         warningStr += "<p>" + str + "</p>";
       }
     }
-    
+    if (availability['(V)'].length > 0) {
+      warningStr += "<p>Vacations That Overlap:</p>";
+      for (vacation of availability['(V)']) {
+        var str = _vacationConflictToStr(vacation);
+        warningStr += "<p>" + str + "</p>";
+      }
+    }
+    if (availability['(O)']) {
+      warningStr += "<p>Assignment Will Put Employee In Overtime</p>";
+      warningStr += "<p>" + "Employee Will Be Working " 
+      warningStr += availability['Hours Scheduled']
+      warningStr += " Hours This Workweek If Assigned." + "</p>";
+    }
     return warningStr;
   }
   
   
   /** Helper function to translate a schedule into warning string. */ 
   function _scheduleConflictToStr(schedule) {
-    var str = "Department "
-    str += $("#cal-department-selector > option:nth-child("+schedule.department+")").text();
+    var str = $("#id_department > option:nth-child("+schedule.department+")").text();
+    str += " Department"
     
     var startDate = moment(schedule.start_datetime);
     str += startStr = startDate.format(" on MMMM Do, YYYY: ");
@@ -381,6 +393,18 @@ $(document).ready(function() {
     time_and_employee = getEventStr(schedule.start_datetime, schedule.end_datetime, 
                                     false, false, null);              
     str += time_and_employee;
+    return str
+  }
+  
+  
+  /** Helper function to translate a vacation into warning string. */ 
+  function _vacationConflictToStr(vacation) {
+    var startDate = moment(vacation.start_datetime);
+    var str = startDate.format("MMMM Do, YYYY to ");
+
+    var endDate = moment(vacation.end_datetime);
+    str += endDate.format("MMMM Do, YYYY");
+
     return str
   }
   
