@@ -89,7 +89,8 @@ def _calculate_availability_score(availability):
     conflicts does not override a larger, more serious conflict.
     
     Mathematically this means that the next level of conflict's score will be
-    the sum of all the lesser conflicts + 1
+    the sum of all the lesser conflicts + 1, or 2^n, where n is the integer
+    number representing that tier of conflict.
     
     Args:
       availability: The availability dict containing conflict information.
@@ -174,6 +175,8 @@ def _calculate_desired_times_score(desired_times, schedule):
             end = datetime.combine(date.today(), end_time)
             total_overlapping_time += end - start
 
+        print "************ total_overlapping_time is: ", total_overlapping_time.seconds
+        
     return -1 * total_overlapping_time.seconds
     
     
@@ -264,7 +267,6 @@ def get_availability(employee, schedule):
            
     # Get repeat unavailabilities employee is assigned overlapping with schedule
     sch_weekday = schedule.start_datetime.weekday()
-    print "************ sch_weekday is: ", sch_weekday
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
     unav_repeat = (RepeatUnavailability.objects.filter(employee=employee.id,
