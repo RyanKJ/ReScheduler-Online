@@ -6,7 +6,7 @@ of employees and getting employee availability for a given schedule are
 contained here.
 """
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from operator import itemgetter
 from django.utils import timezone
 from django.forms.models import model_to_dict
@@ -64,8 +64,9 @@ def get_eligables(schedule):
         # Get the multiple-criterion tuple for sorting an employee
         availability_score = _calculate_availability_score(availability)
         dep_priority_score = _calculate_dep_priority_score(dep_mem)
-        desired_times_score = _calculate_desired_times_score(employee, schedule)
-        desired_hours_score = _calculate_desired_hours_score(availability,
+        desired_times_score = _calculate_desired_times_score(availability['Desired Times'], 
+                                                             schedule)
+        desired_hours_score = _calculate_desired_hours_score(availability['Hours Scheduled'],
                                                              employee)
         sorting_score = (availability_score, dep_priority_score, 
                          desired_times_score, desired_hours_score)
@@ -124,18 +125,23 @@ def _calculate_dep_priority_score(dep_member):
     return dep_member.priority
     
     
-def _calculate_desired_times_score(employee, schedule):
+def _calculate_desired_times_score(desired_times, schedule):
     """Calculate if schedule has overlap with employee's desired working times.
     
-    Employee's are able to set days and hours that they would prefer to work.
+    Employees are able to set days and hours that they would prefer to work.
     If a schedule overlaps with these desired times, the employee is more
     eligable for the schedule than those who don't have overlapping desired
-    time. Mathematically this is represented by returnning 2 if no overlaps, 
-    returnning 1 if there are overlaps but not entirely, and return 0 if 
-    desired time is contained within schedule time duration.
+    time.
+    
+    The desired time's score is the negative value of the total number of
+    seconds that the schedule overlaps with desired times the employee wishes
+    to work. In order to do this we must convert datetime.time objects to 
+    datetime.datetime objects in order to do arithmetic on time objects. This
+    is then converted back into a timedelta object and converted into seconds.
     
     Args:
-        employee: Employee model object.
+        desired_times: Queryset containing any desired times that overlaps
+            with the schedule's weekday and times.
         schedule: Schedule model object. 
     Returns:
         Float number representing time in seconds of overlap of desired time
@@ -147,21 +153,31 @@ def _calculate_desired_times_score(employee, schedule):
     sch_weekday = schedule.start_datetime.weekday()
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
-    desired_times = (DesiredTime.objects.filter(employee=employee.id,
-                                                weekday=sch_weekday,
-                                                start_time__lt=end_time,
-                                                end_time__gt=start_time))
                                                 
-    total_overlapping_time = 0
+    total_overlapping_time = timedelta(0)
     
-    for desired_time in desired_times:
-        #TODO: Calculate total amount of overlapping time
-        continue
+    for d_t in desired_times:
+        if d_t.end_time < end_time and d_t.start_time < start_time:
+            start = datetime.combine(date.today(), start_time)
+            end = datetime.combine(date.today(), d_t.end_time)
+            total_overlapping_time += end - start
+        elif d_t.end_time > end_time and d_t.start_time < start_time:
+            start = datetime.combine(date.today(), start_time)
+            end = datetime.combine(date.today(), end_time)
+            total_overlapping_time += end - start
+        elif d_t.end_time < end_time and d_t.start_time > start_time:
+            start = datetime.combine(date.today(), d_t.start_time)
+            end = datetime.combine(date.today(), d_t.end_time)
+            total_overlapping_time += end - start
+        else:
+            start = datetime.combine(date.today(), d_t.start_time)
+            end = datetime.combine(date.today(), end_time)
+            total_overlapping_time += end - start
+
+    return -1 * total_overlapping_time.seconds
     
-    return -1 * total_overlapping_time
     
-    
-def _calculate_desired_hours_score(availability, employee):
+def _calculate_desired_hours_score(hours_scheduled, employee):
     """Calculate difference between curr # of hours worked and desired # hours.
 
     The smaller the difference between current number of hours assigned to 
@@ -176,14 +192,15 @@ def _calculate_desired_hours_score(availability, employee):
     lower on the list.
     
     Args:
-        availability: The availability dict containing conflict information.
+        hours_scheduled: float number representing current hours employee is
+            working that workweek if assigned to the schedule.
         employee: Django Employee model.
     Returns:
         Integer score of absolute difference between current scheduled hours 
         and employee's desired amount of hours per week.
     """
     
-    return availability['Hours Scheduled'] - employee.desired_hours
+    return hours_scheduled - employee.desired_hours
     
     
 def get_availability(employee, schedule):
@@ -205,7 +222,9 @@ def get_availability(employee, schedule):
       '(A)': A collection of absence model objects that have any time overlap
              with the schedule employee may be assigned to.
       '(U)': A collection of repeating unavailability model objects that have 
-             any time overlap with the schedule employee may be assigned to.   
+             any time overlap with the schedule employee may be assigned to. 
+      'Desired Times': A collection of desired time model objects that have 
+             any time overlap with the schedule employee may be assigned to. 
       'Hours Scheduled': A numerical representation of how many hour the 
              employee will be working for that work week if assigned to the
              schedule.
@@ -243,15 +262,23 @@ def get_availability(employee, schedule):
                                        end_datetime__gt=schedule.start_datetime)) 
     availability['(A)'] = absences
            
-    # Get unavailabilities employee is assigned to that overlap with schedule
+    # Get repeat unavailabilities employee is assigned overlapping with schedule
     sch_weekday = schedule.start_datetime.weekday()
+    print "************ sch_weekday is: ", sch_weekday
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
     unav_repeat = (RepeatUnavailability.objects.filter(employee=employee.id,
                                                        weekday=sch_weekday,
                                                        start_time__lt=end_time,
                                                        end_time__gt=start_time))
-    availability['(U)'] = unav_repeat         
+    availability['(U)'] = unav_repeat     
+
+    # Get desired times employee is assigned overlapping with schedule
+    desired_times = (DesiredTime.objects.filter(employee=employee.id,
+                                                weekday=sch_weekday,
+                                                start_time__lt=end_time,
+                                                end_time__gt=start_time))
+    availability['Desired Times'] = desired_times
 
     # Check current hours worked for later evaluation of overtime       
     total_workweek_hours = calculate_weekly_hours_with_sch(employee, schedule)
@@ -366,7 +393,6 @@ def get_start_end_of_weekday(dt, user):
     the workweek
     """
     
-    # TODO: we should get business data by user, not pk
     business_data = BusinessData.objects.get(user=user, pk=1)
     start_day_of_week = business_data.workweek_weekday_start
     start_time_of_week = business_data.workweek_time_start
@@ -437,10 +463,10 @@ def _availability_to_dict(availability):
         Availability formatted into dicts to be serialized by json.
     """
     
-    MODEL_CONFLICTS = ('(S)', '(V)', '(A)', '(U)')
+    MODEL_AVAILABILITIES = ('(S)', '(V)', '(A)', '(U)', 'Desired Times')
     avail_serialized = {}
     
-    for key in MODEL_CONFLICTS:
+    for key in MODEL_AVAILABILITIES:
         serialized_conflicts = []
         for conflict in availability[key]:
             serial_conf = model_to_dict(conflict)

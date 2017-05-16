@@ -290,11 +290,11 @@ $(document).ready(function() {
    * employee as clicked in the eligable list.
    */    
   function displayEligables(data) {
-    console.log(data);
     clearEligables();
     $scheduleInfo.css("visibility", "visible");
 
     var info = JSON.parse(data);
+    console.log(info);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
