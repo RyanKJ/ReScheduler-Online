@@ -1,4 +1,4 @@
 @media print {
-   .no-print, .no-print * { display: none !important; }
-   .no-print-override { display: inline !important; }
+   .no-print, .no-print * { display: none; }
+   .fc-center { font-size: 80%; }
 }

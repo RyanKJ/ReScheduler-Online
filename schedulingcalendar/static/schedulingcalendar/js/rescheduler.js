@@ -108,14 +108,13 @@ $(document).ready(function() {
     }
   });
       
-      
-  // When calendar is first loaded no schedule is slected to be removed
+  // When calendar is first loaded no schedule is selected to be removed
+  // so we disable the remove button.
   $(".fc-removeSchedule-button").addClass("fc-state-disabled");
-    
     
   // Turn loadSchedules into a callback function for the load-calendar-form
   $("#load-calendar-form").ajaxForm(loadSchedules); 
-      
+  
       
   /**
    * Callback for load-calendar-form which is a html get form that asks for a 
@@ -141,6 +140,9 @@ $(document).ready(function() {
     var schedules = info["schedules"];
     var employees = info["employees"];
     var employeeNameDict = _employeePkToName(employees);
+
+    // Collection of events to be rendered together
+    var events = [];
         
     for (var i=0;i<schedules.length;i++) {  
       var schedulePk = schedules[i]["id"];
@@ -157,9 +159,8 @@ $(document).ready(function() {
       }
       var str = getEventStr(startDateTime, endDateTime, 
                             hideStart, hideEnd,
-                            employeeName);
-          
-      // Create fullcalendar events corresponding to schedule
+                            employeeName); 
+      // Create fullcalendar event corresponding to schedule
       var event = {
         id: schedulePk,
         title: str,
@@ -167,12 +168,14 @@ $(document).ready(function() {
         end: endDateTime,
         allDay: true
         }       
-      $fullCal.fullCalendar("renderEvent", event);
+      events.push(event);
     }
+    // Render event collection
+    $fullCal.fullCalendar("renderEvents", events);
     
     //Calculate and display calendar costs
     displayCalendarCosts(info["all_calendar_costs"], info["avg_monthly_revenue"])
-        
+    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
@@ -372,6 +375,13 @@ $(document).ready(function() {
         warningStr += "<p>" + str + "</p>";
       }
     }
+    if (availability['(A)'].length > 0) {
+      warningStr += "<p>Absences That Overlap:</p>";
+      for (absences of availability['(A)']) {
+        var str = _absenceConflictToStr(absences);
+        warningStr += "<p>" + str + "</p>";
+      }
+    }
     if (availability['(O)']) {
       warningStr += "<p>Assignment Will Put Employee In Overtime</p>";
       warningStr += "<p>" + "Employee Will Be Working " 
@@ -403,6 +413,18 @@ $(document).ready(function() {
     var str = startDate.format("MMMM Do, YYYY to ");
 
     var endDate = moment(vacation.end_datetime);
+    str += endDate.format("MMMM Do, YYYY");
+
+    return str
+  }
+  
+  
+  /** Helper function to translate an absence into warning string. */ 
+  function _absenceConflictToStr(absence) {
+    var startDate = moment(absence.start_datetime);
+    var str = startDate.format("MMMM Do, YYYY to ");
+
+    var endDate = moment(absence.end_datetime);
     str += endDate.format("MMMM Do, YYYY");
 
     return str

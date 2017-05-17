@@ -6,9 +6,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar.css' %}" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.css" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar.print.css' %}" media="print" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css " media="print" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-print-custom.css' %}" media="print" />
 {% endblock stylesheets %}
 
@@ -20,8 +20,8 @@
     <div class="row">
       <div class="col-md">
         <!-- Calendar Toolbar -->
-        <aside class="calendar-page-toolbar no-print">
-          <section class="calendar-loader">
+        <aside class="calendar-page-toolbar">
+          <section class="calendar-loader no-print">
             <form id="load-calendar-form"
                   action="{% url 'schedulingcalendar:get_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
@@ -42,9 +42,9 @@
             </form>
           </section>
           
-          <section class="print-version">
-            <label for="print-version-select">Print Version:</label>
-            <div class="select-cal-loader no-print-override">
+          <section class="print-version no-print">
+            <label for="print-version-select">Version:</label>
+            <div class="select-cal-loader">
               <select id="print-version-select">
                 {% for ver in versions %}
                   <option value={{ ver }}>{{ ver }}</option>
@@ -131,7 +131,7 @@
 
 {% block javascript %}
   {{ block.super }}     
-  <script src="{% static 'schedulingcalendar/js/fullcalendar.js' %}" ></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/rescheduler.js' %}" ></script>

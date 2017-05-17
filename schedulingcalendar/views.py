@@ -69,6 +69,7 @@ def get_schedules(request):
                                                  start_datetime__gte=lower_bound_dt,
                                                  end_datetime__lte=upper_bound_dt,
                                                  department=department_id))
+                                                 
             employees = set()
             for s in schedules:
                 if s.employee:
