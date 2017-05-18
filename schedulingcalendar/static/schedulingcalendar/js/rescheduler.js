@@ -15,6 +15,8 @@ $(document).ready(function() {
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
+  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday", "Sunday"]
 
 
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
@@ -362,28 +364,35 @@ $(document).ready(function() {
     var warningStr = "";
     
     if (availability['(S)'].length > 0) {
-      warningStr += "<p>Schedules That Overlap:</p>";
+      warningStr += "<h4>Schedules That Overlap:</h4>";
       for (schedule of availability['(S)']) {
         var str = _scheduleConflictToStr(schedule);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(V)'].length > 0) {
-      warningStr += "<p>Vacations That Overlap:</p>";
+      warningStr += "<h4>Vacations That Overlap:</h4>";
       for (vacation of availability['(V)']) {
-        var str = _vacationConflictToStr(vacation);
+        var str = _timeOffConflictToStr(vacation);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(A)'].length > 0) {
-      warningStr += "<p>Absences That Overlap:</p>";
+      warningStr += "<h4>Absences That Overlap:</h4>";
       for (absences of availability['(A)']) {
-        var str = _absenceConflictToStr(absences);
+        var str = _timeOffConflictToStr(absences);
+        warningStr += "<p>" + str + "</p>";
+      }
+    }
+    if (availability['(U)'].length > 0) {
+      warningStr += "<h4>Repeating Unavailabilities That Overlap:</h4>";
+      for (repeat_unav of availability['(U)']) {
+        var str = _repeatUnavConflictToStr(repeat_unav);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(O)']) {
-      warningStr += "<p>Assignment Will Put Employee In Overtime</p>";
+      warningStr += "<h4>Assignment Will Put Employee In Overtime:</h4>";
       warningStr += "<p>" + "Employee Will Be Working " 
       warningStr += availability['Hours Scheduled']
       warningStr += " Hours This Workweek If Assigned." + "</p>";
@@ -407,25 +416,28 @@ $(document).ready(function() {
   }
   
   
-  /** Helper function to translate a vacation into warning string. */ 
-  function _vacationConflictToStr(vacation) {
-    var startDate = moment(vacation.start_datetime);
+  /** Helper function to translate a vacation or absence into warning string. */ 
+  function _timeOffConflictToStr(time_off) {
+    var startDate = moment(time_off.start_datetime);
     var str = startDate.format("MMMM Do, YYYY to ");
 
-    var endDate = moment(vacation.end_datetime);
+    var endDate = moment(time_off.end_datetime);
     str += endDate.format("MMMM Do, YYYY");
 
     return str
   }
   
   
-  /** Helper function to translate an absence into warning string. */ 
-  function _absenceConflictToStr(absence) {
-    var startDate = moment(absence.start_datetime);
-    var str = startDate.format("MMMM Do, YYYY to ");
+  /** Helper function to repeating unavailability into warning string. */ 
+  function _repeatUnavConflictToStr(repeat_unav) {
+    var str = WEEKDAYS[repeat_unav.weekday] + "s from "
+    
+    TIME_FORMAT = "HH:mm:ss"
+    var startTime = moment(repeat_unav.start_time, TIME_FORMAT);
+    str += startTime.format("h:mm to ");
 
-    var endDate = moment(absence.end_datetime);
-    str += endDate.format("MMMM Do, YYYY");
+    var endTime = moment(repeat_unav.end_time, TIME_FORMAT);
+    str += endTime.format("h:mm");
 
     return str
   }

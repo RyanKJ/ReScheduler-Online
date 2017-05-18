@@ -174,8 +174,6 @@ def _calculate_desired_times_score(desired_times, schedule):
             start = datetime.combine(date.today(), d_t.start_time)
             end = datetime.combine(date.today(), end_time)
             total_overlapping_time += end - start
-
-        print "************ total_overlapping_time is: ", total_overlapping_time.seconds
         
     return -1 * total_overlapping_time.seconds
     
@@ -395,7 +393,7 @@ def get_start_end_of_weekday(dt, user):
     the workweek
     """
     
-    business_data = BusinessData.objects.get(user=user, pk=1)
+    business_data = BusinessData.objects.get(user=user)
     start_day_of_week = business_data.workweek_weekday_start
     start_time_of_week = business_data.workweek_time_start
     dt_weekday = dt.weekday()
