@@ -128,14 +128,11 @@ class BusinessData(models.Model):
     #2) Add meridieum display boolean option
     #3) Add minute display option
     #4) Add last calendar loaded state
+    #5) Limit amount of employees displayable in eligable list
     
     overtime = models.IntegerField('overtime')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
     workweek_time_start = models.TimeField('start time')
+    display_am_pm = models.BooleanField()
+    display_minutes = models.BooleanField()
     
-    
-    def check_for_overtime(self, hours):
-        if hours > overtime:
-            return True
-        else:
-            return False

@@ -1,7 +1,8 @@
 from django import forms
 from datetime import datetime
 from .models import (Employee, Department, Vacation, Absence,
-                     RepeatUnavailability, DesiredTime, MonthlyRevenue)
+                     RepeatUnavailability, DesiredTime, MonthlyRevenue,
+                     BusinessData)
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -137,6 +138,21 @@ class DesiredTimeForm(forms.ModelForm):
     class Meta:
         model = DesiredTime
         fields = ['start_time', 'end_time', 'weekday']
+        
+        
+class BusinessDataForm(forms.ModelForm):
+    """Form for editing business data."""   
+    workweek_weekday_start = forms.IntegerField(label='Workweek Start Day', 
+                                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
+                                                min_value=0, max_value=6)
+    workweek_time_start =  forms.TimeField(label='Workweek Start Time', 
+                                           input_formats=TIME_FORMATS)                                                       
+
+                                
+    class Meta:
+        model = BusinessData
+        fields = ['overtime', 'workweek_weekday_start', 'workweek_time_start',
+        'display_am_pm', 'display_minutes']
         
         
 class MonthlyRevenueForm(forms.ModelForm):

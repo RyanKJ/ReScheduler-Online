@@ -15,7 +15,7 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
                              get_avg_monthly_revenue)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
-                    MonthlyRevenueForm)
+                    MonthlyRevenueForm, BusinessDataForm)
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -866,7 +866,7 @@ class BusinessDataUpdateView(UpdateView):
     """Display business data form to edit business settings."""
     template_name = 'schedulingcalendar/businessSettings.html'
     success_url = reverse_lazy('schedulingcalendar:business_update')
-    fields = ['overtime']
+    form_class = BusinessDataForm
     
     
     def get(self, request, **kwargs):
