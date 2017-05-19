@@ -38,4 +38,5 @@ urlpatterns = [
     url(r'^monthly_revenue/monthly_revenue_create$', views.MonthlyRevenueCreateView.as_view(), name='monthly_revenue_create'),
     url(r'^monthly_revenue/(?P<monthly_rev_pk>[0-9]+)/monthly_revenue_update$', views.MonthlyRevenueUpdateView.as_view(), name='monthly_revenue_update'),
     url(r'^monthly_revenue/(?P<pk>[0-9]+)/monthly_revenue_delete$', views.MonthlyRevenueDeleteView.as_view(), name='monthly_revenue_delete'),
+    url(r'^business_settings$', views.BusinessDataUpdateView.as_view(), name='business_update'),
 ]

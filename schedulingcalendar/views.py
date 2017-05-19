@@ -9,7 +9,7 @@ from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
-                     Absence)
+                     Absence, BusinessData)
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, schedule_cost, all_calendar_costs, 
                              get_avg_monthly_revenue)
@@ -218,7 +218,6 @@ class EmployeeListView(ListView):
 class EmployeeUpdateView(UpdateView):
     """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['first_name', 'last_name', 'employee_id', 'email',
               'wage', 'desired_hours', 'monthly_medical',
               'workmans_comp', 'social_security']
@@ -288,7 +287,6 @@ class EmployeeUpdateView(UpdateView):
 class EmployeeCreateView(CreateView):
     """Display an employee form to create a new employee."""
     template_name = 'schedulingcalendar/employeeCreate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
     fields = ['first_name', 'last_name', 'employee_id', 'email',
               'wage', 'desired_hours', 'monthly_medical',
@@ -490,7 +488,6 @@ class AbsentDeleteView(DeleteView):
 class RepeatUnavailableUpdateView(UpdateView):
     """Display repeat unavailable form to edit unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = RepeatUnavailabilityForm
     
     
@@ -528,7 +525,6 @@ class RepeatUnavailableUpdateView(UpdateView):
 class RepeatUnavailableCreateView(CreateView):
     """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = RepeatUnavailabilityForm
               
               
@@ -559,7 +555,6 @@ class RepeatUnavailableCreateView(CreateView):
 class RepeatUnavailableDeleteView(DeleteView):
     """Display a delete form to delete unavailable repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableDelete.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = RepeatUnavailability
     
     
@@ -581,7 +576,6 @@ class RepeatUnavailableDeleteView(DeleteView):
 class DesiredTimeUpdateView(UpdateView):
     """Display desired time form to edit object."""
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = DesiredTimeForm
     
     
@@ -619,7 +613,6 @@ class DesiredTimeUpdateView(UpdateView):
 class DesiredTimeCreateView(CreateView):
     """Display desired time form to create object."""
     template_name = 'schedulingcalendar/desiredTimeCreate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     form_class = DesiredTimeForm
               
               
@@ -650,7 +643,6 @@ class DesiredTimeCreateView(CreateView):
 class DesiredTimeDeleteView(DeleteView):
     """Display a delete form to delete desired time object."""
     template_name = 'schedulingcalendar/desiredTimeDelete.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DesiredTime
     
     
@@ -672,7 +664,6 @@ class DesiredTimeDeleteView(DeleteView):
 class DepartmentMembershipUpdateView(UpdateView):
     """Display department membership form to edit existing object."""
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     fields = ['department', 'priority', 'seniority']
     
     
@@ -710,7 +701,6 @@ class DepartmentMembershipUpdateView(UpdateView):
 class DepartmentMembershipCreateView(CreateView):
     """Display department membership form to create object."""
     template_name = 'schedulingcalendar/departmentMembershipCreate.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DepartmentMembership
     fields = ['department', 'priority', 'seniority']
               
@@ -742,7 +732,6 @@ class DepartmentMembershipCreateView(CreateView):
 class DepartmentMembershipDeleteView(DeleteView):
     """Display a delete form to delete department membership object."""
     template_name = 'schedulingcalendar/departmentMembershipDelete.html'
-    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = DepartmentMembership
     
     
@@ -871,6 +860,26 @@ class MonthlyRevenueDeleteView(DeleteView):
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     model = MonthlyRevenue
         
+        
+@method_decorator(login_required, name='dispatch')
+class BusinessDataUpdateView(UpdateView):
+    """Display business data form to edit business settings."""
+    template_name = 'schedulingcalendar/businessSettings.html'
+    success_url = reverse_lazy('schedulingcalendar:business_update')
+    fields = ['overtime']
+    
+    
+    def get(self, request, **kwargs):
+        self.object = BusinessData.objects.get(user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = BusinessData.objects.get(user=self.request.user)
+        return obj
         
 
         

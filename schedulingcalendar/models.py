@@ -123,6 +123,12 @@ class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
     user = models.ForeignKey(User)
     
+    #TODO:
+    #1) Add timezone of managing user
+    #2) Add meridieum display boolean option
+    #3) Add minute display option
+    #4) Add last calendar loaded state
+    
     overtime = models.IntegerField('overtime')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
     workweek_time_start = models.TimeField('start time')

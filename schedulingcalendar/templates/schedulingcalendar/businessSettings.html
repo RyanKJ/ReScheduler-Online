@@ -1,0 +1,23 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load widget_tweaks %}
+
+{% block form_content %}
+  <h4 class="card-title text-center">Business And Calendar Settings</h4>
+  <form id="update-business-settings-form"
+        name= "UpdateBusinessDataForm"
+        action="{% url 'schedulingcalendar:business_update' %}"
+        method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        {{ field.errors }}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field|add_class:'form-control' }}
+        {% if field.help_text %}
+          <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <input type="submit" class="btn btn-primary" value="Save Changes">
+  </form>
+{% endblock form_content %} 
