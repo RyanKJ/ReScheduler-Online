@@ -154,25 +154,26 @@ def _calculate_desired_times_score(desired_times, schedule):
     sch_weekday = schedule.start_datetime.weekday()
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
+    today = date.today()
                                                 
     total_overlapping_time = timedelta(0)
     
     for d_t in desired_times:
         if d_t.end_time < end_time and d_t.start_time < start_time:
-            start = datetime.combine(date.today(), start_time)
-            end = datetime.combine(date.today(), d_t.end_time)
+            start = datetime.combine(today, start_time)
+            end = datetime.combine(today, d_t.end_time)
             total_overlapping_time += end - start
         elif d_t.end_time > end_time and d_t.start_time < start_time:
-            start = datetime.combine(date.today(), start_time)
-            end = datetime.combine(date.today(), end_time)
+            start = datetime.combine(today, start_time)
+            end = datetime.combine(today, end_time)
             total_overlapping_time += end - start
         elif d_t.end_time < end_time and d_t.start_time > start_time:
-            start = datetime.combine(date.today(), d_t.start_time)
-            end = datetime.combine(date.today(), d_t.end_time)
+            start = datetime.combine(today, d_t.start_time)
+            end = datetime.combine(today, d_t.end_time)
             total_overlapping_time += end - start
         else:
-            start = datetime.combine(date.today(), d_t.start_time)
-            end = datetime.combine(date.today(), end_time)
+            start = datetime.combine(today, d_t.start_time)
+            end = datetime.combine(today, end_time)
             total_overlapping_time += end - start
         
     return -1 * total_overlapping_time.seconds
@@ -357,6 +358,7 @@ def calculate_weekly_hours(employee, dt, user):
         not counting overlapping schedule times.
     """
     
+    # TODO: Take getting workweek out of method: unnecessary queries
     workweek_datetimes = get_start_end_of_weekday(dt, user)
     schedules = (Schedule.objects.filter(user=user,
                                          employee=employee,

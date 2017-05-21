@@ -125,10 +125,12 @@ class BusinessData(models.Model):
     
     #TODO:
     #1) Add timezone of managing user
-    #2) Add meridieum display boolean option
-    #3) Add minute display option
-    #4) Add last calendar loaded state
-    #5) Limit amount of employees displayable in eligable list
+    #2) Add time interval for timepicker option for user
+    #3) Add last calendar loaded state
+    #4) Limit amount of employees displayable in eligable list option
+    #5) Add lunch subtraction length of hours per 8 hour shift?
+    #6) Display costs disable/enable option
+    #7) Add overtime multiplier option
     
     overtime = models.IntegerField('overtime')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
