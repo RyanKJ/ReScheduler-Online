@@ -630,3 +630,203 @@ def get_avg_monthly_revenue(user, month):
     else:
         return -1
  
+ 
+def workweek_hours(user, start_dt, end_dt, month=None, year=None, employee=None):
+    """Return a dict containing working hours of employees given workweek.
+    
+    A workweek is defined as the start and end datetimes of a workweek. Since
+    an employer can determine the start day and time of a workweek, workweeks
+    are arbitrary with respect to employer. This function returns a dict
+    containing employee django models as keys and dict as its value. These 
+    sub-dicts contain key/value pairs where the department pk is the key and 
+    the value is yet another dict containing the regular and overtime number
+    of hours for that deparment in general, then the regular
+    
+    The nest of dicts looks something like:
+        workweek_hours {
+            employee_object {
+                department_pk {
+                    regular_hours: float value
+                    overtime_hours: float value
+                    regular_hours_in_month: float value
+                    overtime_hours_in_month: float value
+                }
+                ... More department pks
+            }
+            ... More employee models 
+        }
+        
+    This data-structure allows for us to easily compute the total cost of each
+    department for a gien workweek and also to know the regular and overtime
+    hous that strictly fall within a given month.
+    
+    Args:
+    Returns:
+    """
+    # TODO: Remove schedules so we don't query 4 times for month? Not sure worth it.
+    
+    
+    schedules = (Schedule.objects.select_related('department', 'employee')
+                                 .filter(user=user,
+                                         start_datetime__gte=start_dt,
+                                         start_datetime__lt=end_dt)
+                                 .exclude(employee=None)
+                                 .order_by('start_datetime', 'end_datetime'))
+                                 
+    workweek_hours = {}
+                                               
+    # Sort queried schedules by employee                                                
+    for schedule in schedules:
+        if schedule.employee not in workweek_hours:
+            workweek_hours[schedule.employee] = []
+        workweek_hours[schedule.employee].append(schedule)
+    
+    # For each employee, get total hours worked that week
+    for employee in workweek_hours:
+        hours = calculate_weekly_hours(start_dt, end_dt, 
+                                       workweek_hours[employee],
+                                       month, year)
+        workweek_hours[employee] = hours
+        
+    return workweek_hours
+    
+    
+def calculate_workweek_costs(workweek_hours, month_only=False):
+
+    for employee in workweek_hours:
+        
+        
+    
+    
+        
+def calculate_weekly_hours(start_dt, end_dt, departments, overtime, schedules, 
+                           month=None, year=None):
+    """
+    hours {
+      dep_1 {
+        hours: float
+        hours_in_month: float
+      }   
+      ...
+      dep_n {
+        hours: float
+        hours_in_month: float
+      }
+      total {
+        hours: float
+        hours_in_month: float
+      }
+    }
+    
+    This function works similarly to calculate_weekly_hours in that it does
+    not count time overlapping between multiple schedules for one employee as
+    different times. So we ensure we do not count time where employee is 
+    present at work for a day in 2 different departments twice. The first
+    occuring schedule is the department whose hours are counted in the case of
+    an overlap.
+   
+    Then we count the number of hours the employee is working both in that 
+    department and overall all departments for that workweek. Furthermore, 
+    since we are interested in the ratio of employment costs to average monthly 
+    revenue, keep a running sum of the regular and overtime hours of schedules
+    that strictly belong to a given month and year. This is because workweeks 
+    at the start and end of a month contain schedules that fall outside that
+    month. This running sum allows us to calculate costs of scheduling that 
+    strictly belong to a given month, giving us an accurate ratio of employment 
+    cost to average monthly revenue.
+    
+    Args:
+    Returns:
+    """
+                                         
+    #TODO: Correctly count time for month only time, case of 1 schedule 2 months?
+                     
+    # Create hours dict to keep track of hours for each department
+    employee_hours = {}
+    
+    for dep in departments:
+        employee_hours[dep.id] = {'hours': 0, 'overtime_hours': 0, 
+                                  'hours_in_month': 0, 'ovr_t_in_month': 0}
+    employee_hours['total'] = {'hours': 0, 'overtime_hours': 0, 
+                               'hours_in_month': 0, 'ovr_t_in_month': 0}
+    
+    # Choose a date far in past to ensure the first end_dt > last_end_dt
+    last_end_dt = timezone.now() - timedelta(31337)
+    
+    for schedule in schedules:
+        if last_end_dt <= schedule.end_datetime: # Case 1
+            schedule_hours = time_dur_in_hours(schedule.start_datetime, 
+                                               schedule.end_datetime,
+                                               start_dt, end_dt)
+            last_end_dt = schedule.end_datetime
+        elif last_end_dt >= schedule.end_datetime: # Case 2
+            continue
+        else: # Case 3
+            schedule_hours = time_dur_in_hours(last_end_dt, 
+                                               schedule.end_datetime,
+                                               start_dt, end_dt)
+            last_end_dt = schedule.end_datetime
+            
+        # Calculate hours in the workweek
+        overall_hours = employee_hours['total']['hours'] + schedule_hours
+        if overall_hours > overtime:
+            overtime_hours = overall_hours - overtime
+            regular_hours = schedule_hours - overtime_hours
+            
+            # Add all regular and overtime hours in workweek
+            employee_hours['total']['hours'] += regular_hours
+            employee_hours[schedule.department]['hours'] += regular_hours
+            employee_hours['total']['overtime_hours'] += overtime_hours
+            employee_hours[schedule.department]['overtime_hours'] += overtime_hours
+            
+            # Add all hours in workweek only if schedule is strictly in month
+            sch_month = schedule.start_datetime.month
+            sch_year = schedule.start_datetime.year
+            if sch_month == month and sch_year == year:
+                employee_hours['total']['hours_in_month'] += regular_hours
+                employee_hours[schedule.department]['hours_in_month'] += regular_hours
+                employee_hours['total']['ovr_t_in_month'] += overtime_hours
+                employee_hours[schedule.department]['ovr_t_in_month'] += overtime_hours
+        else:
+            # Add all regular and overtime hours in workweek
+            employee_hours['total']['hours'] += schedule_hours
+            employee_hours[schedule.department]['hours'] += schedule_hours
+                
+            # Add all hours in workweek only if schedule is strictly in month
+            sch_month = schedule.start_datetime.month
+            sch_year = schedule.start_datetime.year
+            if sch_month == month and sch_year == year:
+                employee_hours['total']['hours_in_month'] += schedule_hours
+                employee_hours[schedule.department]['hours_in_month'] += schedule_hours
+    
+    return employee_hours       
+        
+        
+def time_dur_in_hours(start_datetime, end_datetime, 
+                      start_lowerb=None, end_upperb=None, break_time=None):
+    """Calculate length of time in hours, represented as a float number
+    
+    Args:
+        schedule: django schedule object.
+    Returns:
+        A float representing number of hours of schedule length.
+    """
+    
+    #TODO: Include subtracting hours for lunch breaks
+    
+    if not start_lowerb or not end_upperb:
+        start = start_datetime
+        end = end_datetime
+    else: # Potentially truncate times according to the time bounds
+        if start_datetime >= start_lowerb:
+            start = start_datetime
+        else:
+            start = start_lowerb
+        if end_datetime <= end_upperb:
+            end = end_datetime
+        else:
+            end = end_upperb
+    
+    time_delta = end - start
+    hours = time_delta.seconds / 3600
+    return hours
