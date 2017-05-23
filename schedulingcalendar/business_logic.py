@@ -589,6 +589,11 @@ def all_calendar_costs(user, month, year):
         that month (including benefits).
     """
     
+    # For converting to weekly cost function, getting the workweeks is simple:
+    # Using the beginning of the first day of the month, get the next 5 workweeks
+    # by using timedelta(7), and truncate the 6th workweek if it does not intersect
+    # with the month.
+    
     departments = Department.objects.filter(user=user)
     calendar_costs = []
     total_sum = 0
@@ -631,7 +636,7 @@ def get_avg_monthly_revenue(user, month):
         return -1
  
  
-def workweek_hours(user, start_dt, end_dt, month=None, year=None, employee=None):
+def workweek_hours(user, start_dt, end_dt, month=None, year=None, departments, business_data):
     """Return a dict containing working hours of employees given workweek.
     
     A workweek is defined as the start and end datetimes of a workweek. Since
@@ -646,10 +651,10 @@ def workweek_hours(user, start_dt, end_dt, month=None, year=None, employee=None)
         workweek_hours {
             employee_object {
                 department_pk {
-                    regular_hours: float value
+                    hours: float value
                     overtime_hours: float value
-                    regular_hours_in_month: float value
-                    overtime_hours_in_month: float value
+                    hours_in_month: float value
+                    ovr_t_in_month: float value
                 }
                 ... More department pks
             }
@@ -683,23 +688,52 @@ def workweek_hours(user, start_dt, end_dt, month=None, year=None, employee=None)
     
     # For each employee, get total hours worked that week
     for employee in workweek_hours:
-        hours = calculate_weekly_hours(start_dt, end_dt, 
-                                       workweek_hours[employee],
+        hours = calculate_weekly_hours(start_dt, end_dt, departments,
+                                       business_data, workweek_hours[employee],
                                        month, year)
         workweek_hours[employee] = hours
         
     return workweek_hours
     
     
-def calculate_workweek_costs(workweek_hours, month_only=False):
-
+def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
+    """
+    workweek_costs {
+      dep_1: float
+      dep_2: float
+      ...
+      dep_n: float
+      total: float
+    }
+    """
+    
+    # TODO: Add hourly associated benefits cost like social security, workmans comp
+    ovr_t_multiplier = business_data.overtime_multiplier
+    workweek_costs = {}
+    
+    for department in departments:
+        workweek_costs[department.id] = 0
+    workweek_costs['total'] = 0
+    
     for employee in workweek_hours:
+        department_hours = workweek_hours[employee]
         
+        for department in dep_hours:
+            if month_only:
+                regular_cost = dep_hours[department]['hours_in_month'] * employee.wage
+                over_t_cost =  dep_hours[department]['ovr_t_in_month'] * employee.wage * over_t_multiplier
+            else:
+                regular_cost = dep_hours[department]['hours'] * employee.wage
+                over_t_cost =  dep_hours[department]['overtime_hours'] * employee.wage * over_t_multiplier
+            
+            workweek_costs[department] += regular_cost + over_t_cost
+        
+    return workweek_costs 
         
     
     
         
-def calculate_weekly_hours(start_dt, end_dt, departments, overtime, schedules, 
+def calculate_weekly_hours(start_dt, end_dt, departments, business_data, schedules, 
                            month=None, year=None):
     """
     hours {
@@ -735,6 +769,13 @@ def calculate_weekly_hours(start_dt, end_dt, departments, overtime, schedules,
     strictly belong to a given month, giving us an accurate ratio of employment 
     cost to average monthly revenue.
     
+    Note that for monthly hours, schedules that start and end in 2 different
+    months may or may not be counted. This inaccuracy is deliberate in order
+    to keep the code both readable and response times for the user as fast as
+    possible. This potential error is considered tolerable due to the purpose
+    of scheduling cost / average revenue as a loose guideline for managers to
+    create schedules.
+    
     Args:
     Returns:
     """
@@ -742,6 +783,7 @@ def calculate_weekly_hours(start_dt, end_dt, departments, overtime, schedules,
     #TODO: Correctly count time for month only time, case of 1 schedule 2 months?
                      
     # Create hours dict to keep track of hours for each department
+    overtime = business_data.overtime
     employee_hours = {}
     
     for dep in departments:
