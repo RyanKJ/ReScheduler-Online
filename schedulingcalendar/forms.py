@@ -151,8 +151,8 @@ class BusinessDataForm(forms.ModelForm):
                                 
     class Meta:
         model = BusinessData
-        fields = ['overtime', 'workweek_weekday_start', 'workweek_time_start',
-        'display_am_pm', 'display_minutes']
+        fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
+                  'workweek_time_start', 'display_am_pm', 'display_minutes']
         
         
 class MonthlyRevenueForm(forms.ModelForm):

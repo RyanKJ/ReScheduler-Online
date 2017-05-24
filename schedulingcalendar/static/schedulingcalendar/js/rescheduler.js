@@ -17,7 +17,9 @@ $(document).ready(function() {
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
-  var workweek_costs = {};
+  var departments = {};
+  var departmentCosts = {};
+  var avgMonthlyRev = -1;
 
 
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
@@ -126,6 +128,7 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
+    console.log(info);
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
@@ -177,7 +180,9 @@ $(document).ready(function() {
     $fullCal.fullCalendar("renderEvents", events);
     
     //Calculate and display calendar costs
-    displayCalendarCosts(info["all_calendar_costs"], info["avg_monthly_revenue"])
+    departmentCosts = info["department_costs"];
+    avgMonthlyRev = info["avg_monthly_revenue"];
+    displayCalendarCosts();
     
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -194,16 +199,10 @@ $(document).ready(function() {
   $("#get-calendar-button").trigger("click"); 
       
   
-  /** display calendar cost li elements. */
-  function displayCalendarCosts(calendarCosts, avgTotalRevenue) {
-    // 1) Set workweek_costs to calendarCosts, which should be as is
-    // 1b) In order for this to be modular with respect to updating cost, this
-    //     function should call workweek_costs instead of being passed the
-    //     argument.
-    // 2) Calculate cost of each department by summing up from each workweek
-    // 3) Display li with costs
+  /** Display calendar cost li elements. */
+  function displayCalendarCosts() {
     $costList.empty();
-    if (avgTotalRevenue == -1) { // -1 means no sales data currently exists
+    if (avgMonthlyRev == -1) { // -1 means no sales data currently exists
         var $li = $("<li>", {
         "id": "no-calendar-cost-data",
         "text": "There is no sales data",
@@ -211,21 +210,35 @@ $(document).ready(function() {
         }
       ).appendTo("#cost-list");
     } else {
-        for (var i=0;i<calendarCosts.length;i++) { 
-          var percentage = _getPercentage(calendarCosts[i]['cost'], avgTotalRevenue);
+        for (department_key in departmentCosts) { 
+          var department = departmentCosts[department_key]
+          var percentage = _getPercentage(department['cost'], avgMonthlyRev);
           var $li = $("<li>", {
-            "id": "calendar-cost-" + calendarCosts[i]['id'],
-            "text": calendarCosts[i]['name'] + ": " + percentage + "%",
+            "text": department['name'] + ": " + percentage + "%",
             "class": "cost-list",
-            "data-department-id": calendarCosts[i]['id'],
-            "data-department-name": calendarCosts[i]['name'],
-            "data-department-cost": calendarCosts[i]['cost'],
             }
           ).appendTo("#cost-list");
         }
     }
-    // Save data on avg total revenue to ul cost-list element
-    $costList.data("avg-total-revenue", avgTotalRevenue);
+  }
+  
+  
+  /** Calculate calendar cost li elements. */
+  function _calculateCalendarCost() {
+    // 1) Calculate cost of each department by summing up from each workweek
+    var departmentCosts = {};
+    for (department in departmentCosts) {
+      // Do something
+      
+    }
+    
+    return departmentCosts;
+  }
+  
+    
+  /** Compute percentage of two numbers and convert to integer format. */ 
+  function _getPercentage(numerator, denominator) {
+    return Math.round((numerator / denominator) * 100);
   }
   
   
@@ -248,13 +261,7 @@ $(document).ready(function() {
       }
     }
   }
-      
-  
-  /** Compute percentage of two numbers and convert to integer format. */ 
-  function _getPercentage(numerator, denominator) {
-    return Math.round((numerator / denominator) * 100);
-  }
-  
+    
   
   /**
    * Given an HTTP response of employee objects, create a mapping from employee
@@ -309,7 +316,6 @@ $(document).ready(function() {
     $scheduleInfo.css("visibility", "visible");
 
     var info = JSON.parse(data);
-    console.log(info);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
@@ -543,7 +549,7 @@ $(document).ready(function() {
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
     // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]);
+    //addCostChange(info["cost_delta"]);
     // Update then rehighlight edited schedule
     $fullCal.fullCalendar("updateEvent", $event[0]);
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
@@ -597,10 +603,11 @@ $(document).ready(function() {
     var delete_schedule = confirm("Delete Schedule?");
       
     if (delete_schedule) {
-      event_id = $(".fc-event-clicked").parent().data("event-id");
+      var event_id = $(".fc-event-clicked").parent().data("event-id");
+      var calendar_date = $("#add-date").val();
       if (event_id) {
         $.post("remove_schedule", 
-               {schedule_pk: event_id}, 
+               {schedule_pk: event_id, cal_date: calendar_date}, 
                remove_event_after_delete);
       }
     }
@@ -613,6 +620,7 @@ $(document).ready(function() {
    */
   function remove_event_after_delete(data) {
     var info = JSON.parse(data);
+    console.log(data);
     var schedulePk = info["schedule_pk"];
     $fullCal.fullCalendar("removeEvents", schedulePk);
     // Clear out eligable list
@@ -621,7 +629,7 @@ $(document).ready(function() {
     // Disable remove button since no schedule will be selected after delete
     $(".fc-removeSchedule-button").addClass("fc-state-disabled");
     // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]);
+    //addCostChange(info["cost_delta"]);
   }
     
   

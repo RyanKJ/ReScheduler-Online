@@ -12,7 +12,8 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      Absence, BusinessData)
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, schedule_cost, all_calendar_costs, 
-                             get_avg_monthly_revenue)
+                             get_avg_monthly_revenue, 
+                             remove_schedule_cost_change)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm)
@@ -74,7 +75,7 @@ def get_schedules(request):
             for s in schedules:
                 if s.employee:
                     employees.add(s.employee)
-                    
+            
             # Convert schedules and employees to dicts for json dump
             schedules_as_dicts = []
             employees_as_dicts = []
@@ -86,7 +87,7 @@ def get_schedules(request):
                 employees_as_dicts.append(employee_dict)
                 
             # Get calendar costs to display to user
-            calendar_costs = all_calendar_costs(logged_in_user, month, year)
+            department_costs = all_calendar_costs(logged_in_user, month, year)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
                 
             # Combine all appropriate data into dict for serialization
@@ -94,7 +95,7 @@ def get_schedules(request):
                              'department': department_id,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
-                             'all_calendar_costs': calendar_costs,
+                             'department_costs': department_costs,
                              'avg_monthly_revenue': avg_monthly_revenue}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
@@ -190,15 +191,25 @@ def remove_schedule(request):
     """Remove schedule from the database."""
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
+    cal_date = datetime.strptime(request.POST['cal_date'], "%Y-%m-%d")
+    
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
-    
-    sch_cost = 0 - schedule_cost(schedule)
-    cost_delta = {'id': schedule.department.id, 'cost': sch_cost}
+            
+    # Change of cost for workweek if employee was assigned
+    if schedule.employee:
+      departments = Department.objects.filter(user=logged_in_user)
+      business_data = BusinessData.objects.get(user=logged_in_user)
+      cost_delta = remove_schedule_cost_change(logged_in_user, schedule,
+                                               departments, business_data,
+                                               cal_date)
+    else:
+      cost_delta = {}
+      
     schedule.delete()
-    
     json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},
                             default=date_handler)
+                            
     return JsonResponse(json_info, safe=False)
     
         

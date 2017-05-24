@@ -128,13 +128,14 @@ class BusinessData(models.Model):
     #2) Add time interval for timepicker option for user
     #3) Add last calendar loaded state
     #4) Limit amount of employees displayable in eligable list option
-    #5) Add lunch subtraction length of hours per 8 hour shift?
+    #5) Add lunch subtraction length of hours per 8 hour shift? (In minutes)
     #6) Display costs disable/enable option
-    #7) Add overtime multiplier option
     
-    overtime = models.IntegerField('overtime')
+    overtime = models.IntegerField('Overtime')
+    overtime_multiplier = models.FloatField('Overtime Multiplier')
     workweek_weekday_start = models.IntegerField('weekday', default=0)
     workweek_time_start = models.TimeField('start time')
     display_am_pm = models.BooleanField()
     display_minutes = models.BooleanField()
+    display_last_names = models.BooleanField()
     
