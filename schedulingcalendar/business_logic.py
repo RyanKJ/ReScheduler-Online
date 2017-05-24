@@ -668,9 +668,7 @@ def workweek_hours(user, start_dt, end_dt, month=None, year=None, departments, b
     Args:
     Returns:
     """
-    # TODO: Remove schedules so we don't query 4 times for month? Not sure worth it.
-    
-    
+
     schedules = (Schedule.objects.select_related('department', 'employee')
                                  .filter(user=user,
                                          start_datetime__gte=start_dt,
@@ -779,8 +777,6 @@ def calculate_weekly_hours(start_dt, end_dt, departments, business_data, schedul
     Args:
     Returns:
     """
-                                         
-    #TODO: Correctly count time for month only time, case of 1 schedule 2 months?
                      
     # Create hours dict to keep track of hours for each department
     overtime = business_data.overtime
@@ -872,3 +868,43 @@ def time_dur_in_hours(start_datetime, end_datetime,
     time_delta = end - start
     hours = time_delta.seconds / 3600
     return hours
+    
+    
+def all_calendar_costs(user, month, year):
+    """Calculate cost of given month of schedules, including benefits.
+    
+    Args:
+        user: django authenticated user
+        month: integer value of month
+        year: integer value of year
+    Returns:
+        
+    """
+    
+    
+    departments = Department.objects.filter(user=user)
+    business_data = BusinessData.objects.get(user=user)
+    
+    month_only_costs {}
+    workweeks = []
+    
+    # Get all workweeks with any intersection with month
+    beginning_of_month = datetime(year, month, 1)
+    first_workweek = get_start_end_of_weekday(beginning_of_month, user)
+    workweeks.append(first_workweek)
+    for i in range(1, 6):
+        ith_day = first_workweek['start'] + timedelta((i * 7) + 1)
+        ith_workweek = get_start_end_of_weekday(ith_day, user)
+        # If start of workweek is contained in month, add workweek
+        if ith_workweek[start].month == month:
+            workweeks.append(ith_workweek)
+        
+    # Sum up costs for each workweek
+    for workweek in workweeks:
+        hours = workweek_hours(workweek['start'], workweek['end'], 
+                               month, year, departments, business_data)
+        costs = calculate_workweek_costs(hours, departments, business_data, True)
+        
+        month_only_costs[workweek['start'].isoformat()] = costs
+        
+    return month_only_costs

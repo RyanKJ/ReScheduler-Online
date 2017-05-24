@@ -17,6 +17,7 @@ $(document).ready(function() {
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
+  var workweek_costs = {};
 
 
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
@@ -195,6 +196,12 @@ $(document).ready(function() {
   
   /** display calendar cost li elements. */
   function displayCalendarCosts(calendarCosts, avgTotalRevenue) {
+    // 1) Set workweek_costs to calendarCosts, which should be as is
+    // 1b) In order for this to be modular with respect to updating cost, this
+    //     function should call workweek_costs instead of being passed the
+    //     argument.
+    // 2) Calculate cost of each department by summing up from each workweek
+    // 3) Display li with costs
     $costList.empty();
     if (avgTotalRevenue == -1) { // -1 means no sales data currently exists
         var $li = $("<li>", {
@@ -224,6 +231,9 @@ $(document).ready(function() {
   
   /** Calculate the change of cost to a calendar via data attr. */
   function addCostChange(costChange) {
+    //1) Using iso-string, find corresponding workweek
+    //2) Add in differential for all departments
+    //3) Resum and redraw li's by calling displayCalendarCosts
     var avgMonthlyRev = $costList.data("avg-total-revenue");
     if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
       var updateList = [costChange["id"], 'all']; // List of cost-li we will update
