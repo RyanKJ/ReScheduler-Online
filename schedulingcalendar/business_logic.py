@@ -592,7 +592,8 @@ def all_calendar_costs(user, month, year):
         month: integer value of month
         year: integer value of year
     Returns:
-        A dict containing 
+        A dict containing departments and corresponding float values
+        representing dollar cost.
     """  
     
     departments = Department.objects.filter(user=user)
@@ -660,7 +661,21 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
     hous that strictly fall within a given month.
     
     Args:
+        user: django authenticated user
+        start_dt: Python datetime representing start of workweek
+        end_dt: Python datetime representing end of workweek
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        month: integer value of month. If value present, this function
+            calculates schedules that only have overlapping time in the month.
+            (Since often workweeks at start/end of month have days that are
+            outside that month.)
+        year: integer value of year. Optional value similar to month.
     Returns:
+        A dict of employees that map to a sub-dict of float values representing
+        how many hours and overtime hours that employee works both in the work-
+        week and if month and year are supplied, how many hours an employee
+        works in a workweek that only intersect with the month.
     """
 
     schedules = (Schedule.objects.select_related('department', 'employee')
@@ -689,7 +704,10 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
     
     
 def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
-    """
+    """Calculate the costs of workweek_hours data-structure and return cost.
+    
+    The compiled cost dict looks like: 
+    
     workweek_costs {
       dep_1: float
       dep_2: float
@@ -697,6 +715,16 @@ def calculate_workweek_costs(workweek_hours, departments, business_data, month_o
       dep_n: float
       total: float
     }
+    
+    Args:
+        workweek_hours: Dict of employees and their hours in that workweek.
+        departments: List of all departments for managing user.
+        business_data: Django model of business data for managing user
+        month_only: Boolean to determine if to count all of the workweek costs
+            or only days in the workweek that overlap with the month.
+    Returns:
+        A dict of key values mapping department to float number costs in
+        dollars.
     """
     
     # TODO: Add hourly associated benefits cost like social security, workmans comp
@@ -725,22 +753,7 @@ def calculate_workweek_costs(workweek_hours, departments, business_data, month_o
         
 def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedules, 
                             month=None, year=None):
-    """
-    hours {
-      dep_1 {
-        hours: float
-        hours_in_month: float
-      }   
-      ...
-      dep_n {
-        hours: float
-        hours_in_month: float
-      }
-      total {
-        hours: float
-        hours_in_month: float
-      }
-    }
+    """Calculate the number of hours and overtime hours for given schedules.
     
     This function works similarly to calculate_weekly_hours in that it does
     not count time overlapping between multiple schedules for one employee as
@@ -767,7 +780,22 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     create schedules.
     
     Args:
+        start_dt: Python datetime representing start of workweek
+        end_dt: Python datetime representing end of workweek
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        schedules: Queryset of schedules to be calculated. Usually all schedules
+            for an employee that have any intersection with a particular
+            workweek.
+        month: integer value of month. If value present, this function
+            calculates schedules that only have overlapping time in the month.
+            (Since often workweeks at start/end of month have days that are
+            outside that month.)
+        year: integer value of year. Optional value similar to month.
     Returns:
+        A dict containing the values of how many hours and overtime hours
+        the schedules will add up to given the start and end times of a
+        workweek.
     """
                      
     # Create hours dict to keep track of hours for each department
@@ -834,7 +862,26 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     
 def remove_schedule_cost_change(user, schedule, departments, business_data,
                                 calendar_date):
-    """"""
+    """Calculate cost differential to departments after deleting schedule.
+    
+    This function recalcuates the workweek costs of the employee assigned
+    to the schedule being deleted. This is because the cost of schedules is
+    sequential and not independent, thus we must recalculate the cost of the
+    workweek for the employee with and without the schedule that will be
+    deleted.
+    
+    Args:
+        user: django authenticated user
+        schedule: The schedule that will be deleted from the database.
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        calendar_date: Datetime date containing month and year of calendar
+            that the user has removed schedule from.
+    Returns:
+        A dictionary of departments that map to the change in cost to the 
+        various departments. 
+    """
+    
     # TODO: Edge case where schedule is a part of 2 workweeks?
 
     # Create dict for department costs
@@ -865,18 +912,17 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
     # Remove schedule to be deleted and recalculate new workweek cost
     new_workweek_schedules = workweek_schedules.exclude(pk=schedule.id)
     workweek_hours = workweek_hours_detailed(workweek_times['start'], 
-                                              workweek_times['end'], 
-                                              departments, business_data, 
-                                              new_workweek_schedules, 
-                                              calendar_date.month, 
-                                              calendar_date.year) 
+                                             workweek_times['end'], 
+                                             departments, business_data, 
+                                             new_workweek_schedules, 
+                                             calendar_date.month, 
+                                             calendar_date.year) 
     new_workweek_hours = {schedule.employee: workweek_hours}
     new_workweek_costs = calculate_workweek_costs(new_workweek_hours, 
                                                   departments, business_data,
                                                   True)
                                                   
     # Calculate difference between old and new costs
-    
     for dep in new_workweek_costs:
       old_cost = old_workweek_costs[dep]
       new_cost = new_workweek_costs[dep]
