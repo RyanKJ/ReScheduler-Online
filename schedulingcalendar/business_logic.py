@@ -536,24 +536,7 @@ def time_dur_in_hours(start_datetime, end_datetime,
     
     return hours
     
-        
-def schedule_cost(schedule):
-    """Calculate cost of schedule.
-    
-    Args:
-        schedule: django schedule object.
-    Returns:
-        Float number representing wage cost of schedule. (Note: this does not
-        factor in the total cost of benefits of assigned employee.)
-    """
-    
-    if schedule.employee == None:
-        return 0
-            
-    hours = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
-    return hours * schedule.employee.wage
-    
-    
+
 def get_avg_monthly_revenue(user, month):
     """Calculate average revenue of a given month.
     
@@ -579,7 +562,7 @@ def get_avg_monthly_revenue(user, month):
         return -1
     
     
-def non_wage_monthly_benefits_costs(user, month, year, department):
+def non_wage_monthly_costs(user, month, year, department):
     """Calculate the cost of benefits for a given calendar."""
     return 0
     
@@ -862,13 +845,18 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     
 def remove_schedule_cost_change(user, schedule, departments, business_data,
                                 calendar_date):
-    """Calculate cost differential to departments after deleting schedule.
+    """Calculate cost differential to departments if deleting schedule.
     
     This function recalcuates the workweek costs of the employee assigned
     to the schedule being deleted. This is because the cost of schedules is
     sequential and not independent, thus we must recalculate the cost of the
     workweek for the employee with and without the schedule that will be
     deleted.
+    
+    In rare cases a schedule lands in 2 different workweeks. For example, a
+    a late night shift on a saturday night where the beginning of a workweek
+    is at midnight on sunday. Therefore this function will calculate both
+    workweek cost changes in that case.
     
     Args:
         user: django authenticated user
@@ -881,8 +869,6 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
         A dictionary of departments that map to the change in cost to the 
         various departments. 
     """
-    
-    # TODO: Edge case where schedule is a part of 2 workweeks?
 
     # Create dict for department costs
     department_costs = {}
@@ -890,43 +876,183 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
         department_costs[department.id] = {'name': department.name, 'cost': 0}
     department_costs['total'] = {'name': 'total', 'cost': 0}         
     
-    # Calculate old workweek costs before deletion
-    workweek_times = get_start_end_of_weekday(schedule.start_datetime, user)
-    workweek_schedules = (Schedule.objects.select_related('department', 'employee')
-                                  .filter(user=user,
-                                          end_datetime__gt=workweek_times['start'],
-                                          start_datetime__lt=workweek_times['end'],
-                                          employee=schedule.employee)
-                                  .order_by('start_datetime', 'end_datetime'))
-                                  
-    workweek_hours = workweek_hours_detailed(workweek_times['start'], 
-                                             workweek_times['end'], departments, 
-                                             business_data, workweek_schedules,
-                                             calendar_date.month, 
-                                             calendar_date.year)     
-    old_workweek_hours = {schedule.employee: workweek_hours}
-    old_workweek_costs = calculate_workweek_costs(old_workweek_hours, 
-                                                  departments, business_data,
-                                                  True)
-                                                  
-    # Remove schedule to be deleted and recalculate new workweek cost
-    new_workweek_schedules = workweek_schedules.exclude(pk=schedule.id)
-    workweek_hours = workweek_hours_detailed(workweek_times['start'], 
-                                             workweek_times['end'], 
-                                             departments, business_data, 
-                                             new_workweek_schedules, 
-                                             calendar_date.month, 
-                                             calendar_date.year) 
-    new_workweek_hours = {schedule.employee: workweek_hours}
-    new_workweek_costs = calculate_workweek_costs(new_workweek_hours, 
-                                                  departments, business_data,
-                                                  True)
-                                                  
-    # Calculate difference between old and new costs
-    for dep in new_workweek_costs:
-      old_cost = old_workweek_costs[dep]
-      new_cost = new_workweek_costs[dep]
-      
-      new_workweek_costs[dep] = new_cost - old_cost
+    # Get workweeks schedule intersects with schedule
+    workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
+    if schedule.end_datetime > workweek_times_list[0]['end']:
+        second_workweek = get_start_end_of_weekday(schedule.end_datetime, user)
+        workweek_times_list.append(second_workweek)
+        
+    total_new_cost = {}
     
-    return new_workweek_costs
+    # For each workweek schedule intersects with, calculate cost difference
+    for workweek_times in workweek_times_list:
+        # Calculate old workweek costs before deletion
+        workweek_schedules = (Schedule.objects.select_related('department', 'employee')
+                                      .filter(user=user,
+                                              end_datetime__gt=workweek_times['start'],
+                                              start_datetime__lt=workweek_times['end'],
+                                              employee=schedule.employee)
+                                      .order_by('start_datetime', 'end_datetime'))                                         
+        old_cost = single_employee_costs(workweek_times['start'], workweek_times['end'],
+                                         schedule.employee, workweek_schedules, 
+                                         departments, business_data, 
+                                         calendar_date.month, calendar_date.year)
+                                                                                           
+        # Remove schedule to be deleted and recalculate new workweek cost
+        new_workweek_schedules = workweek_schedules.exclude(pk=schedule.id)
+        new_cost = single_employee_costs(workweek_times['start'], workweek_times['end'],
+                                         schedule.employee, new_workweek_schedules, 
+                                         departments, business_data, 
+                                         calendar_date.month, calendar_date.year)
+                                               
+        # Calculate difference between old and new costs
+        for dep in new_cost:
+          old_department_cost = old_cost[dep]
+          new_department_cost = new_cost[dep]
+          new_cost[dep] = new_department_cost - old_department_cost
+          
+        if not total_new_cost:
+            total_new_cost = new_cost
+        else: # If 2 workweeks, combine cost difference of the 2 workweeks
+            for dep in new_cost:
+              total_new_cost[dep] += new_cost[dep]
+            
+    return total_new_cost
+    
+    
+def add_employee_cost_change(user, schedule, new_employee, departments, 
+                             business_data, calendar_date):
+    #1) Figure out cost of old and new employee given old employee assignment
+    #     a) Skip old employee calculation if no employee was assigned
+    #     b) Sum up workweek costs if 2 employees
+    #2) Figure out cost of old and new employee given new employee assignment 
+    #     a) Skip old employee calculation if no employee was assigned
+    #     b) Sum up workweek costs if 2 employees
+    #3) Calculate cost difference
+    
+    #1) Given workweek query all schedules for 1-2 employees
+    #2) Calculate cost for each employee as is and sum
+    #3) Remove assigned schedule from one set and assign to other
+    #4) Calculate cost for each employee as is and sum
+    #5) calculate difference between costs
+    # The biggest speed goal is hitting the database only once
+    # I think eventually speeding up you'd only query certain fields
+    
+    # We don't have to actually assign new employee to schedule, we just have
+    # to pass in queryset containing workweek schedules and new schedule they
+    # will be assigned to, since helper functions calculate general queryset 
+    # of schedules.
+    
+    # Create dict for department costs
+    department_costs = {}
+    for department in departments:
+        department_costs[department.id] = {'name': department.name, 'cost': 0}
+    department_costs['total'] = {'name': 'total', 'cost': 0}         
+    
+    # Get workweeks schedule intersects with schedule
+    workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
+    if schedule.end_datetime > workweek_times_list[0]['end']:
+        second_workweek = get_start_end_of_weekday(schedule.end_datetime, user)
+        workweek_times_list.append(second_workweek)
+        
+        
+    employees = [new_employee]
+    if schedule.employee:
+        employees.append(schedule.employee)
+    total_new_cost = {}
+    
+    # For each workweek schedule intersects with, calculate cost difference
+    for workweek_times in workweek_times_list:
+        # Calculate old workweek costs before deletion
+        workweek_schedules = (Schedule.objects.select_related('department', 'employee')
+                                      .filter(user=user,
+                                              end_datetime__gt=workweek_times['start'],
+                                              start_datetime__lt=workweek_times['end'],
+                                              employee__in=employees)
+                                      .order_by('start_datetime', 'end_datetime'))                                         
+        old_cost = single_employee_costs(workweek_times['start'], workweek_times['end'],
+                                         schedule.employee, workweek_schedules, 
+                                         departments, business_data, 
+                                         calendar_date.month, calendar_date.year)
+                                                                                           
+        # Add schedule to be assigned and recalculate new workweek cost
+        new_workweek_schedules = workweek_schedules.filter(pk=schedule.id)
+        new_cost = single_employee_costs(workweek_times['start'], workweek_times['end'],
+                                         schedule.employee, new_workweek_schedules, 
+                                         departments, business_data, 
+                                         calendar_date.month, calendar_date.year)
+                                               
+        # Calculate difference between old and new costs
+        for dep in new_cost:
+          old_department_cost = old_cost[dep]
+          new_department_cost = new_cost[dep]
+          new_cost[dep] = new_department_cost - old_department_cost
+          
+        if not total_new_cost:
+            total_new_cost = new_cost
+        else: # If 2 workweeks, combine cost difference of the 2 workweeks
+            for dep in new_cost:
+              total_new_cost[dep] += new_cost[dep]
+            
+    if schedule.employee: # Calculate cost of unassigning employee from schedule
+      removed_employee_cost = remove_schedule_cost_change(user, schedule, departments, business_data,
+                                                          calendar_date)
+      for dep in removed_employee_cost:
+          total_new_cost[dep] += removed_employee_cost[dep]
+      return total_new_cost
+    else:
+      return total_new_cost
+      
+      
+def calculate_cost_differential():
+    pass
+    
+    
+def single_employee_costs(start_dt, end_dt, employee, schedules, departments, 
+                          business_data, month=None, year=None):
+    """Calculate costs of employee given workweek and schedules.
+    
+    This function is simply a helper functio that combines the various
+    functions used to calculate the cost of schedules with respect to a
+    workweek.
+    
+    
+    Args:
+        start_dt: Python datetime representing start of workweek.
+        end_dt: Python datetime representing end of workweek.
+        employee: employee of schedules to calculate cost with.
+        schedules: schedules of employee in workweek.
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        month: integer value of month. If value present, this function
+            calculates schedules that only have overlapping time in the month.
+            (Since often workweeks at start/end of month have days that are
+            outside that month.)
+        year: integer value of year. Optional value similar to month.
+    Returns:
+        A dict containing cost of employing employee for a given workweek for
+        all departments of managing user.
+    """
+    
+    workweek_hours = workweek_hours_detailed(start_dt, end_dt, departments, 
+                                             business_data, schedules, 
+                                             month, year)
+    workweek_hours_dict = {employee: workweek_hours}
+    
+    if month and year:
+        month_only = True
+    else:
+        month_only = False
+    
+    workweek_costs = calculate_workweek_costs(workweek_hours_dict, 
+                                              departments, business_data,
+                                              month_only)             
+    return workweek_costs
+    
+    
+    
+                          
+                          
+                          
+                          
+                          

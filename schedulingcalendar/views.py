@@ -11,8 +11,8 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData)
 from .business_logic import (get_eligables, eligable_list_to_dict,  
-                             date_handler, schedule_cost, all_calendar_costs, 
-                             get_avg_monthly_revenue, 
+                             date_handler, all_calendar_costs, 
+                             get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
@@ -164,19 +164,23 @@ def add_employee_to_schedule(request):
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     employee_pk = request.POST['employee_pk']
+    cal_date = datetime.strptime(request.POST['cal_date'], "%Y-%m-%d")
     # Get schedule and its cost with old employee
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
-    old_cost = schedule_cost(schedule)
-    
-    # Get new employee, assign to schedule, then get new cost of schedule
     new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
+    
+    # Get cost of assigning new employee to schedule
+    departments = Department.objects.filter(user=logged_in_user)
+    business_data = BusinessData.objects.get(user=logged_in_user)
+    cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
+                                          departments, business_data, cal_date)
+    
+    # Assign new employee to schedule
     schedule.employee = new_employee
     schedule.save(update_fields=['employee'])
-    new_cost = schedule_cost(schedule)
     
     # Process information for json dump
-    cost_delta = {'id': schedule.department.id, 'cost': new_cost - old_cost}
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(new_employee)
     data = {'schedule': schedule_dict, 'employee': employee_dict, 
@@ -192,19 +196,16 @@ def remove_schedule(request):
     logged_in_user = request.user
     schedule_pk = request.POST['schedule_pk']
     cal_date = datetime.strptime(request.POST['cal_date'], "%Y-%m-%d")
-    
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
-            
-    # Change of cost for workweek if employee was assigned
-    if schedule.employee:
+                                
+    cost_delta = {}
+    if schedule.employee: # Get change of cost if employee was assigned
       departments = Department.objects.filter(user=logged_in_user)
       business_data = BusinessData.objects.get(user=logged_in_user)
       cost_delta = remove_schedule_cost_change(logged_in_user, schedule,
                                                departments, business_data,
                                                cal_date)
-    else:
-      cost_delta = {}
       
     schedule.delete()
     json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},

@@ -214,6 +214,7 @@ $(document).ready(function() {
           var department = departmentCosts[department_key]
           var percentage = _getPercentage(department['cost'], avgMonthlyRev);
           var $li = $("<li>", {
+            "id": "calendar-cost-" + department_key,
             "text": department['name'] + ": " + percentage + "%",
             "class": "cost-list",
             }
@@ -221,20 +222,7 @@ $(document).ready(function() {
         }
     }
   }
-  
-  
-  /** Calculate calendar cost li elements. */
-  function _calculateCalendarCost() {
-    // 1) Calculate cost of each department by summing up from each workweek
-    var departmentCosts = {};
-    for (department in departmentCosts) {
-      // Do something
-      
-    }
-    
-    return departmentCosts;
-  }
-  
+
     
   /** Compute percentage of two numbers and convert to integer format. */ 
   function _getPercentage(numerator, denominator) {
@@ -242,22 +230,19 @@ $(document).ready(function() {
   }
   
   
-  /** Calculate the change of cost to a calendar via data attr. */
+  /** Calculate the change of cost to a calendar */
   function addCostChange(costChange) {
-    //1) Using iso-string, find corresponding workweek
-    //2) Add in differential for all departments
-    //3) Resum and redraw li's by calling displayCalendarCosts
-    var avgMonthlyRev = $costList.data("avg-total-revenue");
     if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
-      var updateList = [costChange["id"], 'all']; // List of cost-li we will update
-      // Set new cost and text for appropriate cost-li
-      for (var i=0;i<updateList.length;i++) { 
-        var $departmentCostLi = $("#calendar-cost-" + updateList[i]);
-        var oldCost = $departmentCostLi.data("department-cost");
-        var newCost = oldCost + costChange["cost"];
-        $departmentCostLi.data("department-cost", newCost);
+      for (department_key in costChange) { 
+        // Get new cost of department
+        var department = departmentCosts[department_key]
+        var oldCost = department['cost']
+        var newCost = oldCost + costChange[department_key]
+        department['cost'] = newCost
+        // Set new cost and text for appropriate cost-li
         percentage = _getPercentage(newCost, avgMonthlyRev);
-        $departmentCostLi.text($departmentCostLi.data("department-name") + ": " + percentage + "%");
+        var $departmentCostLi = $("#calendar-cost-" + department_key);
+        $departmentCostLi.text(department['name'] + ": " + percentage + "%");
       }
     }
   }
@@ -491,8 +476,9 @@ $(document).ready(function() {
     } else {
       var empPk = $eligableLi.attr("data-employee-pk");
       var schPk = $eligableLi.attr("data-schedule-pk");
+      var calendarDate = $("#add-date").val();
       $.post("add_employee_to_schedule",
-             {employee_pk: empPk, schedule_pk: schPk},
+             {employee_pk: empPk, schedule_pk: schPk, cal_date: calendarDate},
              updateScheduleView);
     }
   }
@@ -522,8 +508,9 @@ $(document).ready(function() {
   function _assignEmployeeAfterWarning(event) { 
     var empPk = $(this).data("employee-pk");
     var schPk = $(this).data("schedule-pk");
+    var calendarDate = $("#add-date").val();
     $.post("add_employee_to_schedule",
-           {employee_pk: empPk, schedule_pk: schPk},
+           {employee_pk: empPk, schedule_pk: schPk, cal_date: calendarDate},
            updateScheduleView);
   }
     
@@ -549,7 +536,7 @@ $(document).ready(function() {
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
     // Update cost display to reflect any cost changes
-    //addCostChange(info["cost_delta"]);
+    addCostChange(info["cost_delta"]);
     // Update then rehighlight edited schedule
     $fullCal.fullCalendar("updateEvent", $event[0]);
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
@@ -604,10 +591,10 @@ $(document).ready(function() {
       
     if (delete_schedule) {
       var event_id = $(".fc-event-clicked").parent().data("event-id");
-      var calendar_date = $("#add-date").val();
+      var calendarDate = $("#add-date").val();
       if (event_id) {
         $.post("remove_schedule", 
-               {schedule_pk: event_id, cal_date: calendar_date}, 
+               {schedule_pk: event_id, cal_date: calendarDate}, 
                remove_event_after_delete);
       }
     }
@@ -629,7 +616,7 @@ $(document).ready(function() {
     // Disable remove button since no schedule will be selected after delete
     $(".fc-removeSchedule-button").addClass("fc-state-disabled");
     // Update cost display to reflect any cost changes
-    //addCostChange(info["cost_delta"]);
+    addCostChange(info["cost_delta"]);
   }
     
   
