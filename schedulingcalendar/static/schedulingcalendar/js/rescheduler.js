@@ -535,12 +535,12 @@ $(document).ready(function() {
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
-    // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]);
     // Update then rehighlight edited schedule
     $fullCal.fullCalendar("updateEvent", $event[0]);
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
+    // Update cost display to reflect any cost changes
+    addCostChange(info["cost_delta"]);
   }
     
     
