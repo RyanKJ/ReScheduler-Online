@@ -385,44 +385,6 @@ def calculate_weekly_hours(employee, dt, user):
     return hours
     
     
-def get_start_end_of_weekday(dt, user):
-    """Return start and end datetimes of workweek that contain datetime inside
-    
-    Because users are allowed to pick a specific day and time for the start
-    of the workweek, one cannot assume the workweek will start on a monday at
-    12:00 am. In order to calculate the start datetime of a workweek, we first
-    find the start date relative to some date that must be contained within 
-    the workweek
-    """
-    
-    business_data = BusinessData.objects.get(user=user)
-    start_day_of_week = business_data.workweek_weekday_start
-    start_time_of_week = business_data.workweek_time_start
-    dt_weekday = dt.weekday()
-    
-    if start_day_of_week < dt_weekday:
-        day_difference = dt_weekday - start_day_of_week
-    elif start_day_of_week > dt_weekday:
-        day_difference = dt_weekday + (7 - start_day_of_week)
-    # Case where start of workweek weekday is equal to datetime weekday
-    else:
-        # Case where start time of workweek is before datetime's time
-        if start_time_of_week < dt.time():
-            day_difference = 0
-        # Case where datetime comes before start of work week start time
-        # So we subtract 7 days since it belongs to 'last week'
-        else:
-            day_difference = 7
-        
-    start_date_of_week = dt.date() - timedelta(day_difference)
-    start_dt = datetime.combine(start_date_of_week, start_time_of_week)
-    start_datetime_of_week = timezone.make_aware(start_dt)
-    end_datetime_of_week = start_datetime_of_week + timedelta(7)
-    
-    return {'start': start_datetime_of_week, 'end': end_datetime_of_week}
-    
-    
-    
 def eligable_list_to_dict(eligable_list):
     """Convert eligable_list into a dict ready for json serialization.
     
@@ -493,6 +455,43 @@ def date_handler(obj):
         return obj.isoformat()
     else:
         raise TypeError
+        
+        
+def get_start_end_of_weekday(dt, user):
+    """Return start and end datetimes of workweek that contain datetime inside
+    
+    Because users are allowed to pick a specific day and time for the start
+    of the workweek, one cannot assume the workweek will start on a monday at
+    12:00 am. In order to calculate the start datetime of a workweek, we first
+    find the start date relative to some date that must be contained within 
+    the workweek
+    """
+    
+    business_data = BusinessData.objects.get(user=user)
+    start_day_of_week = business_data.workweek_weekday_start
+    start_time_of_week = business_data.workweek_time_start
+    dt_weekday = dt.weekday()
+    
+    if start_day_of_week < dt_weekday:
+        day_difference = dt_weekday - start_day_of_week
+    elif start_day_of_week > dt_weekday:
+        day_difference = dt_weekday + (7 - start_day_of_week)
+    # Case where start of workweek weekday is equal to datetime weekday
+    else:
+        # Case where start time of workweek is before datetime's time
+        if start_time_of_week < dt.time():
+            day_difference = 0
+        # Case where datetime comes before start of work week start time
+        # So we subtract 7 days since it belongs to 'last week'
+        else:
+            day_difference = 7
+        
+    start_date_of_week = dt.date() - timedelta(day_difference)
+    start_dt = datetime.combine(start_date_of_week, start_time_of_week)
+    start_datetime_of_week = timezone.make_aware(start_dt)
+    end_datetime_of_week = start_datetime_of_week + timedelta(7)
+    
+    return {'start': start_datetime_of_week, 'end': end_datetime_of_week}
     
     
 def time_dur_in_hours(start_datetime, end_datetime, 
@@ -689,16 +688,6 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
 def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
     """Calculate the costs of workweek_hours data-structure and return cost.
     
-    The compiled cost dict looks like: 
-    
-    workweek_costs {
-      dep_1: float
-      dep_2: float
-      ...
-      dep_n: float
-      total: float
-    }
-    
     Args:
         workweek_hours: Dict of employees and their hours in that workweek.
         departments: List of all departments for managing user.
@@ -874,7 +863,7 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
     department_costs = {}
     for department in departments:
         department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'total', 'cost': 0}         
+    department_costs['total'] = {'name': 'total', 'cost': 0}
     
     # Get workweeks schedule intersects with schedule
     workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
@@ -1027,10 +1016,6 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
             
     return total_new_cost
       
-      
-def calculate_cost_differential():
-    pass
-    
     
 def single_employee_costs(start_dt, end_dt, employee, schedules, departments, 
                           business_data, month=None, year=None):

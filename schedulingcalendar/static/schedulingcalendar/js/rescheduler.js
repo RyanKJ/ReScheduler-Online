@@ -17,14 +17,12 @@ $(document).ready(function() {
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
-  var departments = {};
+  var displaySettings = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
 
-
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
-      
-      
+  
   $fullCal.fullCalendar({
     editable: false,
     events: [],
