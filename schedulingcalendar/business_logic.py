@@ -5,7 +5,7 @@ Python module containing business logic. Functions for processing eligability
 of employees and getting employee availability for a given schedule are
 contained here.
 """
-
+import bisect
 from datetime import date, datetime, timedelta
 from operator import itemgetter
 from django.utils import timezone
@@ -587,7 +587,7 @@ def all_calendar_costs(user, month, year):
     # Create dict for department costs
     for department in departments:
         department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'total', 'cost': 0}                                       
+    department_costs['total'] = {'name': 'Total', 'cost': 0}                                       
     
     # Get all workweeks with any intersection with month
     beginning_of_month = timezone.make_aware(datetime(year, month, 1))
@@ -829,6 +829,7 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
                 employee_hours['total']['hours_in_month'] += schedule_hours
                 employee_hours[schedule.department.id]['hours_in_month'] += schedule_hours
     
+    print "**************** employee_hours are: ", employee_hours
     return employee_hours       
     
     
@@ -881,7 +882,7 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
                                               end_datetime__gt=workweek_times['start'],
                                               start_datetime__lt=workweek_times['end'],
                                               employee=schedule.employee)
-                                      .order_by('start_datetime', 'end_datetime'))                                         
+                                      .order_by('start_datetime', 'end_datetime'))                                        
         old_cost = single_employee_costs(workweek_times['start'], workweek_times['end'],
                                          schedule.employee, workweek_schedules, 
                                          departments, business_data, 
@@ -970,14 +971,20 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
                                          departments, business_data, 
                                          calendar_date.month,
                                          calendar_date.year)
-        # Get new workweek costs after employee assignment   
-        new_employee_schedules.append(schedule)
+        # Get new workweek costs after employee assignment  
+        print "*********************schedule is: ", schedule
+        print "*********************new_employee_schedules are: ", new_employee_schedules
+        bisect.insort_left(new_employee_schedules, schedule)
+        print "*********************new_employee_schedules are: ", new_employee_schedules
         new_cost = single_employee_costs(workweek_times['start'], 
                                          workweek_times['end'],
                                          new_employee, new_employee_schedules, 
                                          departments, business_data, 
                                          calendar_date.month,
                                          calendar_date.year)
+                                         
+        print "*********************old cost is: ", old_cost
+        print "*********************new cost is: ", new_cost
         if schedule.employee: # Calculate changes to unassigning employee
             old_employee_schedules = [sch for sch in workweek_schedules if sch.employee == schedule.employee]
             old_emp_old_cost = single_employee_costs(workweek_times['start'], 
@@ -1014,6 +1021,7 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
             for dep in new_cost:
               total_new_cost[dep] += new_cost[dep]
             
+    print "*********************total new cost is: ", total_new_cost
     return total_new_cost
       
     

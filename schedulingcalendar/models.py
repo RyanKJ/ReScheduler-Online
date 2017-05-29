@@ -64,7 +64,24 @@ class Schedule(models.Model):
         start_str = self.start_datetime.strftime("%B %d, %I:%M %p")
         end_str = self.end_datetime.strftime("%I:%M %p")
         
-        return start_str + " - " + end_str
+        return "Department: " + self.department.name + " " + start_str + " - " + end_str
+        
+        
+    # __gt__ and __lt__ are implemented for use in bisect
+    def __gt__(self, other):
+        """Comparison if end_datetime is greater than other schedule."""
+        if not isinstance(other, Schedule):
+            raise Exception("Schedules are only comparable to other Schedules, not to %s" % type(other))
+        else:
+            return self.end_datetime > other.end_datetime
+            
+
+    def __lt__(self, other):
+        """Comparison if end_datetime is less than other schedule."""
+        if not isinstance(other, Schedule):
+            raise Exception("Schedules are only comparable to other Schedules, not to %s" % type(other))
+        else:
+            return self.end_datetime < other.end_datetime
         
         
 class Vacation(models.Model):
@@ -134,6 +151,8 @@ class BusinessData(models.Model):
     #5) Display costs disable/enable option
     #6) Limit amount of employees displayable in eligable list option
     #7) 24 hour time option
+    #8) Count overlapping time or not?
+    #9) Option to customize eligable sort?
     
     overtime = models.IntegerField('Overtime')
     overtime_multiplier = models.FloatField('Overtime Multiplier')

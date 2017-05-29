@@ -6,7 +6,7 @@
 
 $(document).ready(function() {
   /**
-   * Selectors
+   * Selectors And Variables
    */
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
@@ -233,10 +233,10 @@ $(document).ready(function() {
     if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
       for (department_key in costChange) { 
         // Get new cost of department
-        var department = departmentCosts[department_key]
-        var oldCost = department['cost']
-        var newCost = oldCost + costChange[department_key]
-        department['cost'] = newCost
+        var department = departmentCosts[department_key];
+        var oldCost = department['cost'];
+        var newCost = oldCost + costChange[department_key];
+        department['cost'] = newCost;
         // Set new cost and text for appropriate cost-li
         percentage = _getPercentage(newCost, avgMonthlyRev);
         var $departmentCostLi = $("#calendar-cost-" + department_key);
