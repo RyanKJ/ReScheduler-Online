@@ -756,9 +756,9 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
         end_dt: Python datetime representing end of workweek
         departments: Queryset of all departments for user.
         business_data: Django model of business data for user
-        schedules: Queryset of schedules to be calculated. Usually all schedules
-            for an employee that have any intersection with a particular
-            workweek.
+        schedules: Sorted queryset of schedules to be calculated. Usually all 
+            schedules for an employee that have any intersection with a 
+            particular workweek.
         month: integer value of month. If value present, this function
             calculates schedules that only have overlapping time in the month.
             (Since often workweeks at start/end of month have days that are
@@ -829,7 +829,6 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
                 employee_hours['total']['hours_in_month'] += schedule_hours
                 employee_hours[schedule.department.id]['hours_in_month'] += schedule_hours
     
-    print "**************** employee_hours are: ", employee_hours
     return employee_hours       
     
     
