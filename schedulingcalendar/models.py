@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import time
 
 
 class Employee(models.Model):
@@ -151,11 +152,11 @@ class BusinessData(models.Model):
     #8) Option to customize eligable sort?
     
     # Business Settings
-    overtime = models.IntegerField('Overtime', default=40)
+    overtime = models.IntegerField('Overtime In Hours', default=40)
     overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
     workweek_weekday_start = models.IntegerField('weekday', default=0)
-    workweek_time_start = models.TimeField('start time')
-    min_time_for_break = models.FloatField('Minimum Schedule Time In Hours For Break Eligability', 
+    workweek_time_start = models.TimeField('start time', time(0, 0, 0))
+    min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability', 
                                            default=5)
     break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
                                             default=30)
