@@ -91,7 +91,7 @@ def get_schedules(request):
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
             
             # Get business data for display settings on calendar
-            business_data = BusinessData.objects.get(user=logged_in_user)
+            business_data = (BusinessData.objects.get(user=logged_in_user))
             business_dict = model_to_dict(business_data)
               
             # Combine all appropriate data into dict for serialization
