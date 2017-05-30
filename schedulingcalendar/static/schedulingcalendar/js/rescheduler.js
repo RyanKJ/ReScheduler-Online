@@ -127,6 +127,9 @@ $(document).ready(function() {
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
     console.log(info);
+    // Save display settings for calendar events
+    displaySettings = info["display_settings"]
+    
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
     var newCalDate = moment(info["date"], format);
@@ -156,14 +159,16 @@ $(document).ready(function() {
       var hideEnd = schedules[i]["hide_end_time"];
           
       // Get employee name for event title string
-      var employeeName = "";
+      var firstName = "";
+      var lastName = "";
       var schEmployePk = schedules[i]["employee"]
       if (schEmployePk != null) {
-        employeeName = employeeNameDict[schEmployePk];
+        firstName = employeeNameDict[schEmployePk]["firstName"];
+        lastName = employeeNameDict[schEmployePk]["lastName"];
       }
       var str = getEventStr(startDateTime, endDateTime, 
                             hideStart, hideEnd,
-                            employeeName); 
+                            firstName, lastName); 
       // Create fullcalendar event corresponding to schedule
       var event = {
         id: schedulePk,
@@ -254,8 +259,10 @@ $(document).ready(function() {
     var EmployeePkDict = {};
     for (var i=0; i < employees.length; i++) {
       var employeePk = employees[i]["id"];
-      var employeeName = employees[i]["first_name"];
-      EmployeePkDict[employeePk] = employeeName;
+      var firstName = employees[i]["first_name"];
+      var lastName = employees[i]["last_name"];
+      EmployeePkDict[employeePk] = {"firstName": firstName,
+                                    "lastName": lastName};
     }
     return EmployeePkDict;
   }
@@ -266,22 +273,39 @@ $(document).ready(function() {
    * the schedule has an employee assigned). start and end are javascript 
    * moment objects.
    */
-  function getEventStr(start, end, hideStart, hideEnd, employeeName) {
+  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName) {
+    // Construct time format string based off of display settings
+    var displayMinutes = displaySettings["display_minutes"];
+    var displayAMPM = displaySettings["display_am_pm"];
+    timeFormat = "h"
+    if (displayMinutes) { timeFormat += ":mm"; }
+    if (displayAMPM) { timeFormat += " a"; }
+    // Name display settings
+    var displayLastNames = displaySettings["display_last_names"]; 
+    var displayLastNameFirstChar = displaySettings["display_first_char_last_name"]; 
+    
+    // Construct time strings
     var startStr = "?";
     if (!hideStart) {
        var startDateTime = moment(start);
-       startStr = startDateTime.format("h:mm");
+       startStr = startDateTime.format(timeFormat);
     }
-    
     var endStr = "?";
     if (!hideEnd) {
        var endDateTime = moment(end);
-       endStr = endDateTime.format("h:mm");
+       endStr = endDateTime.format(timeFormat);
     }
-    
+    // Construct name string
     var employeeStr = "";
-    if (employeeName) {
-      employeeStr = ": " + employeeName;
+    if (firstName) {
+      employeeStr = ": " + firstName;
+      if (displayLastNames && lastName) {
+        if (displayLastNameFirstChar) {
+          employeeStr += " " + lastName.charAt(0);
+        } else {
+          employeeStr += " " + lastName;
+        }
+      }
     }
       
     var str = startStr + " - " + endStr + employeeStr;
@@ -409,7 +433,7 @@ $(document).ready(function() {
     str += startStr = startDate.format(" on MMMM Do, YYYY: ");
     
     time_and_employee = getEventStr(schedule.start_datetime, schedule.end_datetime, 
-                                    false, false, null);              
+                                    false, false, null, null);              
     str += time_and_employee;
     return str
   }
@@ -524,10 +548,11 @@ $(document).ready(function() {
     var endDateTime = info["schedule"]["end_datetime"];
     var hideStart = info["schedule"]["hide_start_time"];
     var hideEnd = info["schedule"]["hide_end_time"];
-    var employee = info["employee"]["first_name"];
+    var firstName = info["employee"]["first_name"];
+    var lastName = info["employee"]["last_name"];
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
-                          employee);
+                          firstName, lastName);
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(info["employee"]["id"]);
     // Update title string to reflect changes to schedule
@@ -561,7 +586,7 @@ $(document).ready(function() {
     var hideEnd = json_schedule["hide_end_time"];
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
-                          null);
+                          null, null);
       
     var event = {
       id: schedulePk,

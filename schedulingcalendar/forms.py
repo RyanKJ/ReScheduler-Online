@@ -146,13 +146,23 @@ class BusinessDataForm(forms.ModelForm):
                                                 widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                                 min_value=0, max_value=6)
     workweek_time_start =  forms.TimeField(label='Workweek Start Time', 
-                                           input_formats=TIME_FORMATS)                                                       
+                                           input_formats=TIME_FORMATS)    
+    display_am_pm = forms.BooleanField(label="", required=False,
+                                       widget=forms.CheckboxInput())
+    display_minutes = forms.BooleanField(label="", required=False,
+                                         widget=forms.CheckboxInput())
+    display_last_names = forms.BooleanField(label="", required=False,
+                                            widget=forms.CheckboxInput())                                     
+    display_first_char_last_name = forms.BooleanField(label="", required=False,
+                                                      widget=forms.CheckboxInput())
 
-                                
+    
     class Meta:
         model = BusinessData
         fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
-                  'workweek_time_start', 'display_am_pm', 'display_minutes']
+                  'workweek_time_start', 'min_time_for_break', 'break_time_in_min', 
+                  'display_am_pm', 'display_minutes', 'display_last_names', 
+                  'display_first_char_last_name']
         
         
 class MonthlyRevenueForm(forms.ModelForm):

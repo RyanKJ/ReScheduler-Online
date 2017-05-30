@@ -89,14 +89,19 @@ def get_schedules(request):
             # Get calendar costs to display to user
             department_costs = all_calendar_costs(logged_in_user, month, year)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
-                
+            
+            # Get business data for display settings on calendar
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            business_dict = model_to_dict(business_data)
+              
             # Combine all appropriate data into dict for serialization
             combined_dict = {'date': cal_date.isoformat(), 
                              'department': department_id,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
                              'department_costs': department_costs,
-                             'avg_monthly_revenue': avg_monthly_revenue}
+                             'avg_monthly_revenue': avg_monthly_revenue,
+                             'display_settings': business_dict}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)
@@ -299,6 +304,7 @@ class EmployeeUpdateView(UpdateView):
 class EmployeeCreateView(CreateView):
     """Display an employee form to create a new employee."""
     template_name = 'schedulingcalendar/employeeCreate.html'
+    success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
     fields = ['first_name', 'last_name', 'employee_id', 'email',
               'wage', 'desired_hours', 'monthly_medical',

@@ -5,6 +5,8 @@ Python module containing business logic. Functions for processing eligability
 of employees and getting employee availability for a given schedule are
 contained here.
 """
+
+import json
 import bisect
 from datetime import date, datetime, timedelta
 from operator import itemgetter
@@ -14,7 +16,6 @@ from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
                      Absence, DesiredTime)
-import json
 
 
 def get_eligables(schedule):
@@ -495,7 +496,9 @@ def get_start_end_of_weekday(dt, user):
     
     
 def time_dur_in_hours(start_datetime, end_datetime, 
-                      start_lowerb=None, end_upperb=None, break_time=None):
+                      start_lowerb=None, end_upperb=None, 
+                      min_time_for_break=None,
+                      break_time_in_min=None):
     """Calculate length of time in hours, represented as a float number
     
     Args:
@@ -530,8 +533,8 @@ def time_dur_in_hours(start_datetime, end_datetime,
     time_delta = end - start
     hours = time_delta.seconds / 3600
     
-    if break_time:
-        hours -= break_time / 60
+    if min_time_for_break and min_time_for_break >= hours:
+        hours -= break_time_in_min / 60
     
     return hours
     
@@ -772,6 +775,8 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
                      
     # Create hours dict to keep track of hours for each department
     overtime = business_data.overtime
+    min_time_for_break = business_data.min_time_for_break
+    break_time_min = business_data.break_time_in_min
     employee_hours = {}
     
     for dep in departments:
@@ -787,14 +792,18 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
         if last_end_dt <= schedule.end_datetime: # Case 1
             schedule_hours = time_dur_in_hours(schedule.start_datetime, 
                                                schedule.end_datetime,
-                                               start_dt, end_dt)
+                                               start_dt, end_dt, 
+                                               min_time_for_break, 
+                                               break_time_min)
             last_end_dt = schedule.end_datetime
         elif last_end_dt >= schedule.end_datetime: # Case 2
             continue
         else: # Case 3
             schedule_hours = time_dur_in_hours(last_end_dt, 
                                                schedule.end_datetime,
-                                               start_dt, end_dt)
+                                               start_dt, end_dt,
+                                               min_time_for_break, 
+                                               break_time_min)
             last_end_dt = schedule.end_datetime
             
         # Calculate hours in the workweek
@@ -971,10 +980,7 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
                                          calendar_date.month,
                                          calendar_date.year)
         # Get new workweek costs after employee assignment  
-        print "*********************schedule is: ", schedule
-        print "*********************new_employee_schedules are: ", new_employee_schedules
         bisect.insort_left(new_employee_schedules, schedule)
-        print "*********************new_employee_schedules are: ", new_employee_schedules
         new_cost = single_employee_costs(workweek_times['start'], 
                                          workweek_times['end'],
                                          new_employee, new_employee_schedules, 
@@ -982,8 +988,6 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
                                          calendar_date.month,
                                          calendar_date.year)
                                          
-        print "*********************old cost is: ", old_cost
-        print "*********************new cost is: ", new_cost
         if schedule.employee: # Calculate changes to unassigning employee
             old_employee_schedules = [sch for sch in workweek_schedules if sch.employee == schedule.employee]
             old_emp_old_cost = single_employee_costs(workweek_times['start'], 
@@ -1019,8 +1023,7 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
         else: # If 2 workweeks, combine cost difference of the 2 workweeks
             for dep in new_cost:
               total_new_cost[dep] += new_cost[dep]
-            
-    print "*********************total new cost is: ", total_new_cost
+
     return total_new_cost
       
     

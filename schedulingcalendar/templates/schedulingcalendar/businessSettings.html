@@ -9,16 +9,123 @@
         action="{% url 'schedulingcalendar:business_update' %}"
         method="post">
     {% csrf_token %}
-    {% for field in form %}
-      <div class="form-group">
-        {{ field.errors }}
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field|add_class:'form-control' }}
-        {% if field.help_text %}
-          <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
+    {{ add_sch_form.non_field_errors }}
+    <!-- General Business Settings -->
+    
+    <!-- Overtime form input -->
+    <div class="form-group">
+      {{ form.overtime.errors }}
+      {{ form.overtime.label_tag }}
+      {{ form.overtime|add_class:'form-control' }}
+      {% if form.overtime.help_text %}
+        <p class="help">{{ form.overtime.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    <!-- Overtime multiplier form input -->
+    <div class="form-group">
+      {{ form.overtime_multiplier.errors }}
+      {{ form.overtime_multiplier.label_tag }}
+      {{ form.overtime_multiplier|add_class:'form-control' }}
+      {% if form.overtime_multiplier.help_text %}
+        <p class="help">{{ form.overtime_multiplier.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    <!-- Workweek weekday start form input -->
+    <div class="form-group">
+      {{ form.workweek_weekday_start.errors }}
+      {{ form.workweek_weekday_start.label_tag }}
+      {{ form.workweek_weekday_start|add_class:'form-control' }}
+      {% if form.workweek_weekday_start.help_text %}
+        <p class="help">{{ form.workweek_weekday_start.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    <!-- Workweek time of day start form input -->
+    <div class="form-group">
+      {{ form.workweek_time_start.errors }}
+      {{ form.workweek_time_start.label_tag }}
+      {{ form.workweek_time_start|add_class:'form-control' }}
+      {% if form.workweek_time_start.help_text %}
+        <p class="help">{{ form.workweek_time_start.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    <!-- Minimum Number Of Hours Of Schedule Needed For A Break Time -->
+    <div class="form-group">
+      {{ form.min_time_for_break.errors }}
+      {{ form.min_time_for_break.label_tag }}
+      {{ form.min_time_for_break|add_class:'form-control' }}
+      {% if form.min_time_for_break.help_text %}
+        <p class="help">{{ form.min_time_for_break.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    <!-- Lunch Break Time In Minutes -->
+    <div class="form-group">
+      {{ form.break_time_in_min.errors }}
+      {{ form.break_time_in_min.label_tag }}
+      {{ form.break_time_in_min|add_class:'form-control' }}
+      {% if form.break_time_in_min.help_text %}
+        <p class="help">{{ form.break_time_in_min.help_text|safe }}</p>
+      {% endif %}
+    </div>
+    
+    <!-- Calendar Display Settings -->
+
+    <!-- Display minutes form input -->
+    <div class="form-group">
+      <div class="checkbox-custom-container">
+        <div class="checkbox-custom">
+          {{ form.display_minutes.errors }}
+          {{ form.display_minutes }}
+          {{ form.display_minutes.label_tag }}
+          {% if form.display_minutes.help_text %}
+            <p class="help">{{ form.display_minutes.help_text|safe }}</p>
+          {% endif %}
+        </div>
+        <span class="checkbox-custom-text">Display Minutes</span>
       </div>
-    {% endfor %}
+    </div>
+    <!-- Display AM/PM form input -->
+    <div class="form-group">
+      <div class="checkbox-custom-container">
+        <div class="checkbox-custom">
+          {{ form.display_am_pm.errors }}
+          {{ form.display_am_pm }}
+          {{ form.display_am_pm.label_tag }}
+          {% if form.display_am_pm.help_text %}
+            <p class="help">{{ form.display_am_pm.help_text|safe }}</p>
+          {% endif %}
+        </div>
+        <span class="checkbox-custom-text">Display AM/PM</span>
+      </div>
+    </div>
+    <!-- Display last names form input -->
+    <div class="form-group">
+      <div class="checkbox-custom-container">
+        <div class="checkbox-custom">
+          {{ form.display_last_names.errors }}
+          {{ form.display_last_names }}
+          {{ form.display_last_names.label_tag }}
+          {% if form.display_last_names.help_text %}
+            <p class="help">{{ form.display_last_names.help_text|safe }}</p>
+          {% endif %}
+        </div>
+        <span class="checkbox-custom-text">Display Last Names</span>
+      </div>
+    </div>
+    <!-- Display character of last name only form input -->
+    <div class="form-group">
+      <div class="checkbox-custom-container">
+        <div class="checkbox-custom">
+          {{ form.display_first_char_last_name.errors }}
+          {{ form.display_first_char_last_name }}
+          {{ form.display_first_char_last_name.label_tag }}
+          {% if form.display_first_char_last_name.help_text %}
+            <p class="help">{{ form.display_first_char_last_name.help_text|safe }}</p>
+          {% endif %}
+        </div>
+        <span class="checkbox-custom-text">Display Only First Character Of Last Name</span>
+      </div>
+    </div>
+    
     <input type="submit" class="btn btn-primary" value="Save Changes">
   </form>
 {% endblock form_content %} 

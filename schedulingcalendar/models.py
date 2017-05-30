@@ -154,11 +154,17 @@ class BusinessData(models.Model):
     #8) Count overlapping time or not?
     #9) Option to customize eligable sort?
     
-    overtime = models.IntegerField('Overtime')
-    overtime_multiplier = models.FloatField('Overtime Multiplier')
+    overtime = models.IntegerField('Overtime', default=40)
+    overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
     workweek_weekday_start = models.IntegerField('weekday', default=0)
     workweek_time_start = models.TimeField('start time')
-    display_am_pm = models.BooleanField()
-    display_minutes = models.BooleanField()
-    display_last_names = models.BooleanField()
+    min_time_for_break = models.FloatField('Minimum Schedule Time In Hours For Break Eligability', 
+                                           default=5)
+    break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
+                                            default=30)
+    # Calendar Display Settings
+    display_am_pm = models.BooleanField(default=False)
+    display_minutes = models.BooleanField(default=True)
+    display_last_names = models.BooleanField(default=False)
+    display_first_char_last_name = models.BooleanField(default=False)
     
