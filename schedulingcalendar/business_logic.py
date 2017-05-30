@@ -19,12 +19,12 @@ from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
 
 
 def get_eligables(schedule):
-    """Return a sorted list of eligable employee's along with info.
+    """Return a sorted list of eligable employees along with info.
     
-    The eligable list is a sorted list of employees, a dictionary containing 
-    any potential conflicts the eligable employee has relative to the schedule,
-    and a tuple of integers that represents multiple criterion for sorting 
-    their 'eligability'.
+    The eligable list is a sorted list of dictionaries containing an employee, 
+    a sub-dictionary containing any potential conflicts the eligable employee 
+    has relative to the schedule, and a tuple of integers that represents 
+    multiple criterion for sorting their 'eligability'.
     
     Eligability is determined by how few conflicts the employee has with the
     schedule. An employee that has no conflicting schedules, has no conflicting 

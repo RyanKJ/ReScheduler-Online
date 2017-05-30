@@ -142,18 +142,15 @@ class BusinessData(models.Model):
     
     #TODO:
     #1) Add timezone of managing user
-    #2) Add lunch subtraction length of hours per 8 hour shift? (In minutes)
-    #3) Add last calendar loaded state
+    #2) Add last calendar loaded state
+    #3) Add time interval for timepicker option for user
+    #4) Display costs disable/enable option
+    #5) Limit amount of employees displayable in eligable list option
+    #6) 24 hour time option
+    #7) Count overlapping time or not?
+    #8) Option to customize eligable sort?
     
-    
-    
-    #4) Add time interval for timepicker option for user
-    #5) Display costs disable/enable option
-    #6) Limit amount of employees displayable in eligable list option
-    #7) 24 hour time option
-    #8) Count overlapping time or not?
-    #9) Option to customize eligable sort?
-    
+    # Business Settings
     overtime = models.IntegerField('Overtime', default=40)
     overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
     workweek_weekday_start = models.IntegerField('weekday', default=0)
