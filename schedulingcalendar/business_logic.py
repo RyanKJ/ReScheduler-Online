@@ -292,7 +292,7 @@ def get_availability(employee, schedule):
     
 def check_for_overtime(hours, user):
     """Calculate if number of hours is in overtime or not."""
-    business_data = BusinessData.objects.get(user=user, pk=1)
+    business_data = BusinessData.objects.get(user=user)
     
     if hours > business_data.overtime:
         return True

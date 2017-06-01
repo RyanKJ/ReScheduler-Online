@@ -35,6 +35,10 @@
 	border: 0;
 }
 
+li a.dropdown.open {
+	background: #0079D7 !important;
+}
+
 .dropdown-menu li a {
 	padding: 10px;
 }
