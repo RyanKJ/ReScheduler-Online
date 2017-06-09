@@ -3,6 +3,7 @@ from django.shortcuts import render, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.template import loader
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
@@ -322,6 +323,119 @@ class EmployeeDeleteView(DeleteView):
     template_name = 'schedulingcalendar/employeeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
+    fields = ['first_name', 'last_name', 'employee_id', 'email',
+              'wage', 'desired_hours', 'monthly_medical',
+              'workmans_comp', 'social_security']
+    
+    
+@method_decorator(login_required, name='dispatch')
+class EmployeeUserUpdateView(UpdateView):
+    """Display an employee user form to edit."""
+    template_name = 'schedulingcalendar/employeeUserUpdate.html'
+    model = User
+    fields = ['username', 'password']
+    
+    
+    def get_employee_profile(employee_pk, request):
+        """Get employee model given pk and request containing user."""
+        employee = (Employee.objects.select_related('employee_user')
+                                    .get(employee_pk, user=request.user))
+        return employee
+    
+    
+    def get(self, request, **kwargs):
+        employee = get_employee_profile(self.kwargs['employee_pk'], request)
+        self.object = employee.employee_user
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        employee = get_employee_profile(self.kwargs['employee_pk'], self.request)
+        obj = employee.employee_user
+        return obj
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(EmployeeUserUpdateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)
+                                                        
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+    
+   
+@method_decorator(login_required, name='dispatch')
+class EmployeeUserCreateView(CreateView):
+    """Display employee user form to create employee user object."""
+    template_name = 'schedulingcalendar/employeeUserCreate.html'
+    model = User
+    fields = ['username', 'password']
+              
+    # TODO: Add employee_user to Employee onetoone field
+    # TODO: Add employee_user to employee group for permissions
+    
+    """"
+    # One possible override for form_valid
+    
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        # things
+        self.object.save()
+
+        return http.HttpResponseRedirect(self.get_success_url())
+    """
+    
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                        user=self.request.user)
+        form.instance.employee = employee
+        return super(VacationCreateView, self).form_valid(form)
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(EmployeeUserCreateView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user) 
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
+        
+        
+        
+@method_decorator(login_required, name='dispatch') 
+class EmployeeUserDeleteView(DeleteView):
+    """Display a delete form to delete employee user object."""
+    template_name = 'schedulingcalendar/employeeUserDelete.html'
+    model = User
+    
+    
+    def get_context_data(self, **kwargs):
+        """Add employee owner of vacations to context."""
+        context = super(EmployeeUserDeleteView, self).get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
+                                                   user=self.request.user)                                               
+        return context
+        
+        
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': self.kwargs['employee_pk']})
     
     
 @method_decorator(login_required, name='dispatch')
