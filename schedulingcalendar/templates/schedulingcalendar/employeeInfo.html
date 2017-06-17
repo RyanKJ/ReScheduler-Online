@@ -19,6 +19,7 @@
           <!-- General Tabs -->
           <li class="active"><a href="#info-tab" data-toggle="tab">Information</a></li>
           <li><a href="#department-tab" data-toggle="tab">Departments</a></li>
+          <li><a href="#login-tab" data-toggle="tab">Login Settings</a></li>
         </ul>
       
         <div class="tab-content">
@@ -59,6 +60,11 @@
               </li>
             </ul>
             {% endfor %}
+          </div>
+          
+          <!-- Login settings for employee user account -->
+          <div class="tab-pane" id="login-tab">
+            {{ employee_user }}
           </div>
         </div>
       </div>

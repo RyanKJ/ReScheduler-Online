@@ -3,7 +3,7 @@ from django.shortcuts import render, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.template import loader
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
@@ -262,7 +262,9 @@ class EmployeeUpdateView(UpdateView):
         
         context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
                                                                               user=self.request.user)
-                                                                      .order_by('priority', 'seniority'))     
+                                                                      .order_by('priority', 'seniority'))   
+
+        context['employee_user'] = "Test"                                                               
                                                                       
         context['future_vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                                    user=self.request.user,
@@ -323,9 +325,6 @@ class EmployeeDeleteView(DeleteView):
     template_name = 'schedulingcalendar/employeeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
-    fields = ['first_name', 'last_name', 'employee_id', 'email',
-              'wage', 'desired_hours', 'monthly_medical',
-              'workmans_comp', 'social_security']
     
     
 @method_decorator(login_required, name='dispatch')
@@ -379,27 +378,26 @@ class EmployeeUserCreateView(CreateView):
     template_name = 'schedulingcalendar/employeeUserCreate.html'
     model = User
     fields = ['username', 'password']
-              
-    # TODO: Add employee_user to Employee onetoone field
-    # TODO: Add employee_user to employee group for permissions
-    
-    """"
-    # One possible override for form_valid
+             
+    # TODO: Correct way to get a django group
+    # TODO: Assert that employee actually belong to managing user in form_valid
     
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        # things
-        self.object.save()
-
-        return http.HttpResponseRedirect(self.get_success_url())
-    """
-    
-    def form_valid(self, form):
-        form.instance.user = self.request.user
+        """Save employee user, add to employee profile & employee group."""
+        # Save employee user object
+        self.object = form.save()
+        
+        # Assign employee user to employee profile 1-to-1 field
         employee = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                         user=self.request.user)
-        form.instance.employee = employee
-        return super(VacationCreateView, self).form_valid(form)
+        employee.employee_user = self.object
+        employee.save()
+        
+        # Add employee user to employee group for permissions
+        employee_user_group = Group.objects.get(name="Employees")
+        self.object.groups.add(employee_user_group)
+
+        return HttpResponseRedirect(self.get_success_url())
         
         
     def get_context_data(self, **kwargs):
