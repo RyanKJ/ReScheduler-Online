@@ -245,6 +245,7 @@ class EmployeeUpdateView(UpdateView):
                                            user=self.request.user)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        print "************** object in get request method is: ", self.object
         context = self.get_context_data(object=self.object, form=form)
         return self.render_to_response(context)
 
@@ -263,8 +264,8 @@ class EmployeeUpdateView(UpdateView):
         context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=self.kwargs['employee_pk'],
                                                                               user=self.request.user)
                                                                       .order_by('priority', 'seniority'))   
-
-        context['employee_user'] = "Test"                                                               
+        if self.object.employee_user:
+            context['employee_user'] = self.object.employee_user
                                                                       
         context['future_vacation_list'] = (Vacation.objects.filter(employee=self.kwargs['employee_pk'],
                                                                    user=self.request.user,
@@ -335,15 +336,10 @@ class EmployeeUserUpdateView(UpdateView):
     fields = ['username', 'password']
     
     
-    def get_employee_profile(employee_pk, request):
-        """Get employee model given pk and request containing user."""
-        employee = (Employee.objects.select_related('employee_user')
-                                    .get(employee_pk, user=request.user))
-        return employee
-    
-    
     def get(self, request, **kwargs):
-        employee = get_employee_profile(self.kwargs['employee_pk'], request)
+        employee = (Employee.objects.select_related('employee_user')
+                                    .get(pk=self.kwargs['employee_pk'],
+                                         user=self.request.user))
         self.object = employee.employee_user
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -352,7 +348,10 @@ class EmployeeUserUpdateView(UpdateView):
 
         
     def get_object(self, queryset=None):
-        employee = get_employee_profile(self.kwargs['employee_pk'], self.request)
+        employee = (Employee.objects.select_related('employee_user')
+                                    .get(pk=self.kwargs['employee_pk'],
+                                         user=self.request.user))
+        
         obj = employee.employee_user
         return obj
         

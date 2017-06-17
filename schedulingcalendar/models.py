@@ -5,8 +5,9 @@ from datetime import time
 
 
 class Employee(models.Model):
-    """Representation of an employee."""
-    user = models.ForeignKey(User)
+    """Representation of an employee profile and for schedule assignment."""
+    user = models.ForeignKey(User, related_name='manager', null=True)
+    employee_user = models.OneToOneField(User, related_name='employee', null=True, blank=True)
 
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
