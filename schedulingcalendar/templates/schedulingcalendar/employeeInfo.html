@@ -65,11 +65,17 @@
           <!-- Login settings for employee user account -->
           <div class="tab-pane" id="login-tab">
             {% if employee_user %}
-              <li><a href="{% url 'schedulingcalendar:employee_user_update' employee.id employee_user.id %}">Edit Login Settings</a></li>
-              <p>Deleting login account for employee does not delete the employee profile and its associated information such as availability.</p>
-              <li><a href="{% url 'schedulingcalendar:employee_user_delete' employee.id employee_user.id %}">Delete Employee Login Account</a></li>
+              <h4>Username For Employee: {{ employee_user.username }}</h4>
+              <ul class="list-inline">
+                <li><a href="{% url 'schedulingcalendar:employee_username_update' employee.id employee_user.id %}">Change Employee's Username</a></li>
+                <li><a href="{% url 'schedulingcalendar:employee_user_pw_update' employee.id employee_user.id %}">Change Employee's Password</a><br><br><br><br></li>
+                <li>
+                  <a href="{% url 'schedulingcalendar:employee_user_delete' employee.id employee_user.id %}">Delete Employee Login Account</a>
+                  <p>Note: Deleting login account for employee does not delete the employee profile and its associated information such as availability, department membership, etc.</p>
+                </li>
+              </ul>
             {% else %}
-              <p>Fail test</p>
+              <li><a href="{% url 'schedulingcalendar:employee_user_create' employee.id %}">Create Account For Employee</a></li>
             {% endif %}
           </div>
         </div>

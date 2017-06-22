@@ -1,8 +1,10 @@
 from django.core import serializers
-from django.shortcuts import render, get_list_or_404
+from django.shortcuts import render, redirect, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.template import loader
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -18,6 +20,8 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm)
+from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
+                                       SetPasswordForm)
 from .custom_mixins import AjaxFormResponseMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -328,12 +332,60 @@ class EmployeeDeleteView(DeleteView):
     model = Employee
     
     
+@login_required
+def change_employee_pw_as_manager(request, **kwargs):
+    """Change password of employee user account as managing user."""
+    
+    # TODO: Assert that employee actually belong to managing user in form_valid
+    employee_pk = kwargs['employee_pk']
+    employee = (Employee.objects.select_related('employee_user')
+                                .get(pk=employee_pk,
+                                     user=request.user))
+    employee_user = employee.employee_user
+    if request.method == 'POST':
+        form = SetPasswordForm(employee_user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect(reverse('schedulingcalendar:employee_info', 
+                            kwargs={'employee_pk': employee_pk}))
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = SetPasswordForm(employee_user)
+        
+    context = {'employee': employee, 'form': form}
+    return render(request, 'schedulingcalendar/employeeUserPwUpdate.html', context)
+    
+    
+@login_required
+def change_employee_pw_as_employee(request, **kwargs):
+    """Change password of employee user account as employee user."""
+    if request.method == 'POST':
+        employee = (Employee.objects.select_related('employee_user')
+                                    .get(pk=self.kwargs['employee_pk'],
+                                         user=self.request.user))
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('accounts:change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'accounts/change_password.html', {
+        'form': form
+    })
+    
+    
 @method_decorator(login_required, name='dispatch')
-class EmployeeUserUpdateView(UpdateView):
+class EmployeeUsernameUpdateView(UpdateView):
     """Display an employee user form to edit."""
-    template_name = 'schedulingcalendar/employeeUserUpdate.html'
+    template_name = 'schedulingcalendar/employeeUsernameUpdate.html'
     model = User
-    fields = ['username', 'password']
+    fields = ['username']
     
     
     def get(self, request, **kwargs):
@@ -358,7 +410,7 @@ class EmployeeUserUpdateView(UpdateView):
         
     def get_context_data(self, **kwargs):
         """Add employee owner of vacations to context."""
-        context = super(EmployeeUserUpdateView, self).get_context_data(**kwargs)
+        context = super(EmployeeUsernameUpdateView, self).get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=self.kwargs['employee_pk'],
                                                    user=self.request.user)
                                                         
@@ -375,8 +427,7 @@ class EmployeeUserUpdateView(UpdateView):
 class EmployeeUserCreateView(CreateView):
     """Display employee user form to create employee user object."""
     template_name = 'schedulingcalendar/employeeUserCreate.html'
-    model = User
-    fields = ['username', 'password']
+    form_class = UserCreationForm
              
     # TODO: Correct way to get a django group
     # TODO: Assert that employee actually belong to managing user in form_valid
@@ -419,7 +470,7 @@ class EmployeeUserDeleteView(DeleteView):
     """Display a delete form to delete employee user object."""
     template_name = 'schedulingcalendar/employeeUserDelete.html'
     model = User
-    
+
     
     def get_context_data(self, **kwargs):
         """Add employee owner of vacations to context."""
