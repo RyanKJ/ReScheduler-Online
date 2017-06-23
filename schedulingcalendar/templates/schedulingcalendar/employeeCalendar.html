@@ -4,8 +4,6 @@
   {{ block.super }}
   {% load static %}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.css" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css " media="print" />
@@ -42,85 +40,12 @@
               <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
             </form>
           </section>
-          
-          <section class="print-version no-print">
-            <label for="print-version-select">Version:</label>
-            <div class="select-cal-loader">
-              <select id="print-version-select">
-                {% for ver in versions %}
-                  <option value={{ ver }}>{{ ver }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </section>
         </aside>
       </div>
     </div>
 
     <div class="row">
-      <div class="col-md-2">
-        <!-- Schedule Editor -->
-        <aside class="schedule-editor no-print">
-          <section class="schedule-adder">
-            <h1>Schedule Editor</h1>
-            <form id="schedule-add-form"
-                  name= "addingScheduleForm"
-                  action="{% url 'schedulingcalendar:add_schedule' %}"
-                  onsubmit="return(validateAddScheduleForm())" 
-                  method="post" 
-                  align="left">
-              {% csrf_token %}
-              {{ add_sch_form.non_field_errors }}
-              
-              {{ add_sch_form.add_date.errors }}
-              {{ add_sch_form.add_date }}
-              
-              {{ add_sch_form.department.errors }}
-              {{ add_sch_form.department }}
-              
-              {{ add_sch_form.start_time.errors }}
-              {{ add_sch_form.start_time.label_tag }}
-              {{ add_sch_form.start_time }}
-              
-              <div class="checkbox-custom-container">
-                <div class="checkbox-custom">
-                  {{ add_sch_form.hide_start.errors }}
-                  {{ add_sch_form.hide_start }}
-                  {{ add_sch_form.hide_start.label_tag }}
-                </div>
-                <span class="checkbox-custom-text">Hide Start Time</span>
-              </div>
-              
-              {{ add_sch_form.end_time.errors }}
-              {{ add_sch_form.end_time.label_tag }}
-              {{ add_sch_form.end_time }}
-              
-              <div class="checkbox-custom-container">
-                <div class="checkbox-custom">
-                  {{ add_sch_form.hide_end.errors }}
-                  {{ add_sch_form.hide_end }}
-                  {{ add_sch_form.hide_end.label_tag }}
-                </div>
-                <span class="checkbox-custom-text">Hide Start Time</span>
-              </div>
-              
-              <input type="submit" value="Add Schedule">
-            </form>
-          </section>
-                
-          <section id="schedule-info">
-            <h3 id="eligable-list-header">Employees</h3>
-            <ul id="eligable-list"></ul>
-          </section>
-          
-          <section id="cost-info">
-            <h3 id="cost-header">Calendar Cost</h3>
-            <ul id="cost-list"></ul>
-          </section>
-        </aside>
-      </div>
-
-      <div class="col-md-10">
+      <div class="col-md">
         <!-- Fullcalendar -->
         <section>
           <div id="calendar"></div>
@@ -133,8 +58,6 @@
 {% block javascript %}
   {{ block.super }}     
   <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
-  <script src="{% static 'schedulingcalendar/js/rescheduler.js' %}" ></script>
+  <script src="{% static 'schedulingcalendar/js/employee.rescheduler.js' %}" ></script>
 {% endblock javascript %}    
 

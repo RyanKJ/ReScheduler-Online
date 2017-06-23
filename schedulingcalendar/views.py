@@ -52,6 +52,18 @@ def calendar_page(request):
 
     return HttpResponse(template.render(context, request))
     
+    
+@login_required
+def employee_calendar_page(request):
+    """Display the schedule editing page for a managing user."""
+    logged_in_user = request.user
+    
+    calendar_form = CalendarForm(logged_in_user)
+    template = loader.get_template('schedulingcalendar/employeeCalendar.html')
+    context = {'calendar_form': calendar_form}
+
+    return HttpResponse(template.render(context, request))
+    
 
 @login_required
 def get_schedules(request):
