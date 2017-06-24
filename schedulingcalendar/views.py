@@ -235,6 +235,23 @@ def remove_schedule(request):
                             
     return JsonResponse(json_info, safe=False)
     
+    
+@login_required
+def push_live(request):
+    """Create a live version of schedules for employee users to query."""
+    if request.method == 'POST':
+        form = PushLiveForm(request.POST)
+        if form.is_valid():
+            pass
+            #1) Query if LiveCalendar for date and department exists
+            #     a) If exists: 
+            #       1) count++ the version
+            #       2) Delete old associated live schedules
+            #       3) Create LiveSchedules associated with date and department
+            #     b) If doesn't exist:
+            #       1) Create LiveCalendar with date and department
+            #       2) Create LiveSchedules associated with date and department
+    
         
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):

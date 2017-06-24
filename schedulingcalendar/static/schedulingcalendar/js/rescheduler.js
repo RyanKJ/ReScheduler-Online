@@ -200,6 +200,24 @@ $(document).ready(function() {
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
   $("#get-calendar-button").trigger("click"); 
+  $("#push-live").click(pushCalendarLive);
+  
+  /** Tell server to make current calendar state live for employee queries */
+  function pushCalendarLive(event) {
+    var push_calendar = confirm("Make the current calendar live for employees?");
+    if (push_calendar) {
+      var calendarDepartment = $("#department").val();
+      var calendarDate = $("#add-date").val();
+      $.post("push_live",
+             {department: calendarDepartment, cal_date: calendarDate},
+              successfulCalendarPush);
+    }
+  }
+  
+  /** Inform user that the calendar was succesfully made live. */
+  function successfulCalendarPush() {
+    // Do something
+  }
       
   
   /** Display calendar cost li elements. */
