@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from .models import (Employee, Department, Schedule, Vacation, 
                      RepeatUnavailability, DesiredTime, MonthlyRevenue, 
-                     DepartmentMembership, BusinessData)
+                     DepartmentMembership, BusinessData, LiveSchedule,
+                     LiveCalendar)
 
 admin.site.register(Employee)
 admin.site.register(Department)
@@ -13,3 +14,5 @@ admin.site.register(RepeatUnavailability)
 admin.site.register(DesiredTime)
 admin.site.register(MonthlyRevenue)
 admin.site.register(BusinessData)
+admin.site.register(LiveSchedule)
+admin.site.register(LiveCalendar)

@@ -87,6 +87,32 @@ class Schedule(models.Model):
         else:
             return self.end_datetime < other.end_datetime
         
+
+class LiveCalendar(models.Model):
+    """Representation of a collection of live schedules for given date/dep."""
+    user = models.ForeignKey(User)
+    
+    date = models.DateField('Date')
+    department = models.ForeignKey(Department)
+    version = models.IntegerField('Version', default=1)
+    active = models.BooleanField(default=True)
+    
+    
+class LiveSchedule(models.Model):
+    """Copy of schedule used for displaying finished calendar to employees."""
+    user = models.ForeignKey(User)
+    schedule = models.OneToOneField(Schedule, on_delete=models.SET_NULL, null=True)
+    calendar = models.ForeignKey(LiveCalendar)
+
+    start_datetime = models.DateTimeField('start datetime')
+    end_datetime = models.DateTimeField('end datetime')
+    
+    hide_start_time = models.BooleanField()
+    hide_end_time = models.BooleanField()
+    
+    department = models.ForeignKey(Department)
+    employee = models.ForeignKey(Employee)
+    
         
 class Vacation(models.Model):
     """Representation of a vacation block of time for employee absentee."""

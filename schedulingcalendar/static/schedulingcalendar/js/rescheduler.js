@@ -206,17 +206,22 @@ $(document).ready(function() {
   function pushCalendarLive(event) {
     var push_calendar = confirm("Make the current calendar live for employees?");
     if (push_calendar) {
-      var calendarDepartment = $("#department").val();
-      var calendarDate = $("#add-date").val();
+      var calendarDepartment = $addScheduleDep.val()
+      var calendarDate = $addScheduleDate.val()
+      console.log("Values sent to server:")
+      console.log(calendarDepartment);
+      console.log(calendarDate);
       $.post("push_live",
-             {department: calendarDepartment, cal_date: calendarDate},
+             {department: calendarDepartment, date: calendarDate},
               successfulCalendarPush);
     }
   }
   
   /** Inform user that the calendar was succesfully made live. */
-  function successfulCalendarPush() {
-    // Do something
+  function successfulCalendarPush(data) {
+    var info = JSON.parse(data);
+    var msg = info['message'];
+    alert(msg);
   }
       
   

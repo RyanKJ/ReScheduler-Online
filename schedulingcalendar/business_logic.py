@@ -8,14 +8,14 @@ contained here.
 
 import json
 import bisect
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 from operator import itemgetter
 from django.utils import timezone
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
-                     Absence, DesiredTime)
+                     Absence, DesiredTime, LiveSchedule, LiveCalendar)
 
 
 def get_eligables(schedule):
@@ -1069,7 +1069,32 @@ def single_employee_costs(start_dt, end_dt, employee, schedules, departments,
     return workweek_costs
     
     
-    
+def create_live_schedules(user, live_calendar):
+    """Create live schedules for given date and department."""
+    # Get date month for calendar for queries
+    cal_date = datetime.combine(live_calendar.date, time.min)
+    lower_bound_dt = cal_date - timedelta(7)
+    upper_bound_dt = cal_date + timedelta(42)
+            
+    # Get schedule and employee models from database appropriate for calendar
+    schedules = (Schedule.objects.select_related('employee', 'department')
+                                 .filter(user=user,
+                                         start_datetime__gte=lower_bound_dt,
+                                         end_datetime__lte=upper_bound_dt,
+                                         department=live_calendar.department,
+                                         employee__isnull=False))
+    # Create mirror live schedules of schedule objects
+    for schedule in schedules:
+        live_schedule = LiveSchedule(user=schedule.user,
+                                     schedule=schedule,
+                                     calendar=live_calendar,
+                                     start_datetime=schedule.start_datetime, 
+                                     end_datetime=schedule.end_datetime,
+                                     hide_start_time=schedule.hide_start_time,
+                                     hide_end_time=schedule.hide_end_time,
+                                     department=schedule.department,
+                                     employee=schedule.employee)
+        live_schedule.save()
                           
                           
                           

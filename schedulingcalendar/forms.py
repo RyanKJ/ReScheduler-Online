@@ -50,8 +50,18 @@ class CalendarForm(forms.Form):
                                
     year = forms.IntegerField(label='Year', widget=forms.Select(), 
                               min_value=1900, max_value=9999)
-                     
-                   
+                              
+                              
+class PushLiveForm(forms.Form):
+    """Form for making currently selected calendar live for employee query."""
+    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
+    date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    
+    dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
+    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
+                                    min_value=0, max_value=1000)
+    
+    
 class AddScheduleForm(forms.Form):
     """Form for user to create a new schedule."""
 
@@ -167,7 +177,6 @@ class BusinessDataForm(forms.ModelForm):
         
 class MonthlyRevenueForm(forms.ModelForm):
     """Form for creating and editing monthly revenues."""                                                     
-    month_year_attrs = {}
     month_year =  forms.DateField(label='Year And Month',
                                   widget=forms.DateInput(format=DATE_FORMAT),
                                   input_formats=DATE_FORMATS)

@@ -12,14 +12,14 @@ from django.forms.models import model_to_dict
 from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
-                     Absence, BusinessData)
+                     Absence, BusinessData, LiveSchedule, LiveCalendar)
 from .business_logic import (get_eligables, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
-                             remove_schedule_cost_change)
+                             remove_schedule_cost_change, create_live_schedules)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
-                    MonthlyRevenueForm, BusinessDataForm)
+                    MonthlyRevenueForm, BusinessDataForm, PushLiveForm)
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
                                        SetPasswordForm)
 from .custom_mixins import AjaxFormResponseMixin
@@ -239,18 +239,35 @@ def remove_schedule(request):
 @login_required
 def push_live(request):
     """Create a live version of schedules for employee users to query."""
+    logged_in_user = request.user
     if request.method == 'POST':
         form = PushLiveForm(request.POST)
         if form.is_valid():
-            pass
-            #1) Query if LiveCalendar for date and department exists
-            #     a) If exists: 
-            #       1) count++ the version
-            #       2) Delete old associated live schedules
-            #       3) Create LiveSchedules associated with date and department
-            #     b) If doesn't exist:
-            #       1) Create LiveCalendar with date and department
-            #       2) Create LiveSchedules associated with date and department
+            date = form.cleaned_data['date']
+            department_pk = form.cleaned_data['department']
+            department = Department.objects.get(pk=department_pk)
+            live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
+                                                                        date=date, 
+                                                                        department=department)                                           
+            if created:
+                create_live_schedules(logged_in_user, live_calendar)
+            else:
+                old_live_schedules = LiveSchedule.objects.filter(user=logged_in_user,
+                                                                 calendar=live_calendar)
+                old_live_schedules.delete()
+                create_live_schedules(logged_in_user, live_calendar)
+                live_calendar.active = True
+                live_calendar.version += 1
+                live_calendar.save()
+                
+            json_info = json.dumps({'message': 'Successfully pushed calendar live.'})
+            return JsonResponse(json_info, safe=False)
+        
+        json_info = json.dumps({'message': 'Failed to push calendar live.'})
+        return JsonResponse(json_info, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests
     
         
 @method_decorator(login_required, name='dispatch')
