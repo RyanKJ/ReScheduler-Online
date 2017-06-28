@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import time
+from django.utils import timezone
 
 
 class Employee(models.Model):
@@ -92,7 +93,7 @@ class LiveCalendar(models.Model):
     """Representation of a collection of live schedules for given date/dep."""
     user = models.ForeignKey(User)
     
-    date = models.DateField('Date')
+    datetime = models.DateTimeField('Datetime', default=timezone.now())
     department = models.ForeignKey(Department)
     version = models.IntegerField('Version', default=1)
     active = models.BooleanField(default=True)

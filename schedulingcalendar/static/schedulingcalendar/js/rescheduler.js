@@ -15,6 +15,8 @@ $(document).ready(function() {
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
+  var cal_datetime = null;
+  var cal_department = null;
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
   var displaySettings = {};
@@ -131,14 +133,15 @@ $(document).ready(function() {
     displaySettings = info["display_settings"]
     
     // Get new calendar month view via date
-    var format = "YYYY-MM-DDThh:mm:ss";
-    var newCalDate = moment(info["date"], format);
-    $fullCal.fullCalendar("gotoDate", newCalDate);
-        
+    var FORMAT = "YYYY-MM-DDThh:mm:ss";
+    cal_datetime = moment(info["date"], FORMAT);
+    $fullCal.fullCalendar("gotoDate", cal_datetime);
+    
     // Change calendar title and schedule adding form title to new department
-    var depName = $("#id_department option[value='"+info['department']+"']").text();
-    $addScheduleDep.val(info["department"]);
-    $(".fc-center").find("h2").text(depName + " Calendar: " + newCalDate.format("MMMM, YYYY"));
+    cal_department = info['department']
+    var depName = $("#id_department option[value='"+cal_department+"']").text();
+    $addScheduleDep.val(cal_department);
+    $(".fc-center").find("h2").text(depName + " Calendar: " + cal_datetime.format("MMMM, YYYY"));
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
@@ -206,13 +209,12 @@ $(document).ready(function() {
   function pushCalendarLive(event) {
     var push_calendar = confirm("Make the current calendar live for employees?");
     if (push_calendar) {
-      var calendarDepartment = $addScheduleDep.val()
-      var calendarDate = $addScheduleDate.val()
+      var FORMAT = "YYYY-MM-DD hh:mm:ss";
       console.log("Values sent to server:")
-      console.log(calendarDepartment);
-      console.log(calendarDate);
+      console.log(cal_department);
+      console.log(cal_datetime.format(FORMAT));
       $.post("push_live",
-             {department: calendarDepartment, date: calendarDate},
+             {department: cal_department, datetime: cal_datetime.format(FORMAT)},
               successfulCalendarPush);
     }
   }
@@ -640,7 +642,7 @@ $(document).ready(function() {
       var calendarDate = $("#add-date").val();
       if (event_id) {
         $.post("remove_schedule", 
-               {schedule_pk: event_id, cal_date: calendarDate}, 
+               {schedule_pk: event_id, cal_datetime: calendarDate}, 
                remove_event_after_delete);
       }
     }

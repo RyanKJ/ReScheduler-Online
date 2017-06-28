@@ -22,12 +22,12 @@
         <aside class="calendar-page-toolbar">
           <section class="calendar-loader no-print">
             <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_schedules' %}"
+                  action="{% url 'schedulingcalendar:get_live_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
                   method="get">
               {% csrf_token %}
               
-              {% for field in calendar_form %}
+              {% for field in live_calendar_form %}
                 {{ field.errors }}
                 {{ field.label_tag }} 
                 <div class="select-cal-loader">

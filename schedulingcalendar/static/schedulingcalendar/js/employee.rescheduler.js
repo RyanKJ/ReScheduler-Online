@@ -115,6 +115,7 @@ $(document).ready(function() {
    * fullCalendar view, title, and events.
    */
   function loadSchedules(json_data) {
+    console.log("successful response")
     var info = JSON.parse(json_data);
     console.log(info);
     // Save display settings for calendar events
@@ -183,6 +184,7 @@ $(document).ready(function() {
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
+  $("#id_employee_only").prop('checked', false);
   $("#get-calendar-button").trigger("click"); 
     
   

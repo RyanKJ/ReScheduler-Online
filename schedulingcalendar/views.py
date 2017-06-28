@@ -19,7 +19,8 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
                              remove_schedule_cost_change, create_live_schedules)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
-                    MonthlyRevenueForm, BusinessDataForm, PushLiveForm)
+                    MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
+                    LiveCalendarForm)
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
                                        SetPasswordForm)
 from .custom_mixins import AjaxFormResponseMixin
@@ -58,9 +59,9 @@ def employee_calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
     
-    calendar_form = CalendarForm(logged_in_user)
+    live_calendar_form = LiveCalendarForm(logged_in_user)
     template = loader.get_template('schedulingcalendar/employeeCalendar.html')
-    context = {'calendar_form': calendar_form}
+    context = {'live_calendar_form': live_calendar_form}
 
     return HttpResponse(template.render(context, request))
     
@@ -128,6 +129,66 @@ def get_schedules(request):
       # TODO: Send back Unsuccessful Response
       pass
 
+  
+@login_required  
+def get_live_schedules(request):
+    """Get live schedules for given date and department."""
+    print "*********************** called get_live_schedules"
+    logged_in_user = request.user
+    if request.method == 'GET':
+        print "*********************** request get is", request.GET
+        form = LiveCalendarForm(logged_in_user, request.GET)
+        if form.is_valid():
+            department_id = form.cleaned_data['department']
+            year = form.cleaned_data['year']
+            month = form.cleaned_data['month']
+            employee_only = form.cleaned_data['employee_only']
+
+            # Get date month for calendar for queries
+            cal_date = datetime(year, month, 1)
+            lower_bound_dt = cal_date - timedelta(7)
+            upper_bound_dt = cal_date + timedelta(42)
+            
+            # Get schedule and employee models from database appropriate for calendar
+            schedules = (Schedule.objects.select_related('employee')
+                                         .filter(user=logged_in_user,
+                                                 start_datetime__gte=lower_bound_dt,
+                                                 end_datetime__lte=upper_bound_dt,
+                                                 department=department_id))
+                                                 
+            employees = set()
+            for s in schedules:
+                if s.employee:
+                    employees.add(s.employee)
+            
+            # Convert schedules and employees to dicts for json dump
+            schedules_as_dicts = []
+            employees_as_dicts = []
+            for s in schedules:
+                schedule_dict = model_to_dict(s)
+                schedules_as_dicts.append(schedule_dict)
+            for e in employees:
+                employee_dict = model_to_dict(e)
+                employees_as_dicts.append(employee_dict)
+            
+            # Get business data for display settings on calendar
+            business_data = (BusinessData.objects.get(user=logged_in_user))
+            business_dict = model_to_dict(business_data)
+              
+            # Combine all appropriate data into dict for serialization
+            combined_dict = {'date': cal_date.isoformat(), 
+                             'department': department_id,
+                             'schedules': schedules_as_dicts,
+                             'employees': employees_as_dicts,
+                             'display_settings': business_dict}
+            combined_json = json.dumps(combined_dict, default=date_handler)
+            
+            return JsonResponse(combined_json, safe=False)
+    
+    else:
+      # err_msg = "Year, Month, or Department was not selected."
+      # TODO: Send back Unsuccessful Response
+      pass  
     
 @login_required
 def add_schedule(request):
@@ -243,11 +304,11 @@ def push_live(request):
     if request.method == 'POST':
         form = PushLiveForm(request.POST)
         if form.is_valid():
-            date = form.cleaned_data['date']
+            datetime = form.cleaned_data['datetime']
             department_pk = form.cleaned_data['department']
             department = Department.objects.get(pk=department_pk)
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
-                                                                        date=date, 
+                                                                        datetime=datetime, 
                                                                         department=department)                                           
             if created:
                 create_live_schedules(logged_in_user, live_calendar)

@@ -52,10 +52,50 @@ class CalendarForm(forms.Form):
                               min_value=1900, max_value=9999)
                               
                               
+class LiveCalendarForm(forms.Form):
+    """Form for user to select a calendar given year, month, & department.
+    
+    Different from CalendarForm in that employees have a boolean option to
+    display only their schedules or all schedules for a given calendar.
+    """
+    
+    def __init__(self, user, *args, **kwargs):
+        super(LiveCalendarForm, self).__init__(*args, **kwargs)
+        
+        # TODO: Add edge case where user has 0 departments
+        dep_choices = get_department_tuple(user)
+        year_choices = self.get_year_choices()
+        
+        self.fields['department'].widget.choices = dep_choices
+        self.fields['year'].widget.choices = year_choices
+        
+        
+    def get_year_choices(self):
+        now = datetime.now()
+        current_year = now.year
+        year_choices = get_years_tuple(current_year, 5, 2)
+        
+        return year_choices
+        
+
+    department = forms.IntegerField(label='Department', widget=forms.Select(),
+                                    min_value=0, max_value=1000)
+    
+    month = forms.IntegerField(label='Month', 
+                               widget=forms.Select(choices=MONTH_CHOICES), 
+                               min_value=0, max_value=13)
+                               
+    year = forms.IntegerField(label='Year', widget=forms.Select(), 
+                              min_value=1900, max_value=9999)
+                              
+    employee_only = forms.BooleanField(label="", required=False,
+                                       widget=forms.CheckboxInput())
+                              
+                                                        
 class PushLiveForm(forms.Form):
     """Form for making currently selected calendar live for employee query."""
-    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
-    date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    datetime_attrs = {'id': 'datetime', 'value': '', 'name': 'datetime'}
+    datetime = forms.DateTimeField(widget=forms.HiddenInput(attrs=datetime_attrs))
     
     dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
