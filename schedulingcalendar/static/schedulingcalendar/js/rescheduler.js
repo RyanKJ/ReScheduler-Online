@@ -38,7 +38,7 @@ $(document).ready(function() {
         click: remove_schedule
       },
       printCalendar: {
-        text: "Print",
+        text: "Print Draft",
         click: print_calendar
       }
     },
@@ -670,6 +670,10 @@ $(document).ready(function() {
   
   /** Callback function for user to print calendar via print button on page */
   function print_calendar() {
+    var print_draft = confirm("This is a draft version. " + 
+                              "If you wish to print the calendar employees will see online, " +
+                              "click the View Live Calendar button and print that page. " +
+                              "Print draft?");
     window.print();
   }
   
