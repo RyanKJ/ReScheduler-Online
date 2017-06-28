@@ -133,10 +133,8 @@ def get_schedules(request):
 @login_required  
 def get_live_schedules(request):
     """Get live schedules for given date and department."""
-    print "*********************** called get_live_schedules"
     logged_in_user = request.user
     if request.method == 'GET':
-        print "*********************** request get is", request.GET
         form = LiveCalendarForm(logged_in_user, request.GET)
         if form.is_valid():
             department_id = form.cleaned_data['department']
@@ -145,26 +143,25 @@ def get_live_schedules(request):
             employee_only = form.cleaned_data['employee_only']
 
             # Get date month for calendar for queries
-            cal_date = datetime(year, month, 1)
-            lower_bound_dt = cal_date - timedelta(7)
-            upper_bound_dt = cal_date + timedelta(42)
-            
+            cal_date = date(year, month, 1)
+
+            live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+                                                     date=cal_date, 
+                                                     department=department_id)   
             # Get schedule and employee models from database appropriate for calendar
-            schedules = (Schedule.objects.select_related('employee')
-                                         .filter(user=logged_in_user,
-                                                 start_datetime__gte=lower_bound_dt,
-                                                 end_datetime__lte=upper_bound_dt,
-                                                 department=department_id))
+            live_schedules = (LiveSchedule.objects.select_related('employee')
+                                          .filter(user=logged_in_user,
+                                                  calendar=live_calendar))
                                                  
             employees = set()
-            for s in schedules:
+            for s in live_schedules:
                 if s.employee:
                     employees.add(s.employee)
             
-            # Convert schedules and employees to dicts for json dump
+            # Convert live_schedules and employees to dicts for json dump
             schedules_as_dicts = []
             employees_as_dicts = []
-            for s in schedules:
+            for s in live_schedules:
                 schedule_dict = model_to_dict(s)
                 schedules_as_dicts.append(schedule_dict)
             for e in employees:
@@ -180,6 +177,7 @@ def get_live_schedules(request):
                              'department': department_id,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
+                             'version': live_calendar.version,
                              'display_settings': business_dict}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
@@ -304,11 +302,11 @@ def push_live(request):
     if request.method == 'POST':
         form = PushLiveForm(request.POST)
         if form.is_valid():
-            datetime = form.cleaned_data['datetime']
+            date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
             department = Department.objects.get(pk=department_pk)
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
-                                                                        datetime=datetime, 
+                                                                        date=date, 
                                                                         department=department)                                           
             if created:
                 create_live_schedules(logged_in_user, live_calendar)

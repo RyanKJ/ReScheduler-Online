@@ -128,7 +128,8 @@ $(document).ready(function() {
         
     // Change calendar title and schedule adding form title to new department
     var depName = $("#id_department option[value='"+info['department']+"']").text();
-    $(".fc-center").find("h2").text(depName + " Calendar: " + newCalDate.format("MMMM, YYYY"));
+    var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
+    $(".fc-center").find("h2").text(cal_title);
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");

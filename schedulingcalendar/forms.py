@@ -94,8 +94,8 @@ class LiveCalendarForm(forms.Form):
                                                         
 class PushLiveForm(forms.Form):
     """Form for making currently selected calendar live for employee query."""
-    datetime_attrs = {'id': 'datetime', 'value': '', 'name': 'datetime'}
-    datetime = forms.DateTimeField(widget=forms.HiddenInput(attrs=datetime_attrs))
+    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
+    date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
     
     dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),

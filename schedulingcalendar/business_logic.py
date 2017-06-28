@@ -1072,8 +1072,9 @@ def single_employee_costs(start_dt, end_dt, employee, schedules, departments,
 def create_live_schedules(user, live_calendar):
     """Create live schedules for given date and department."""
     # Get date month for calendar for queries
-    lower_bound_dt = live_calendar.datetime - timedelta(7)
-    upper_bound_dt = live_calendar.datetime + timedelta(42)
+    cal_date = datetime.combine(live_calendar.date, time.min)
+    lower_bound_dt = cal_date - timedelta(7)
+    upper_bound_dt = cal_date + timedelta(42)
             
     # Get schedule and employee models from database appropriate for calendar
     schedules = (Schedule.objects.select_related('employee', 'department')
