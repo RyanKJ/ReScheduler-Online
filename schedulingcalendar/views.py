@@ -9,7 +9,10 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.views.generic import ListView, FormView, CreateView, UpdateView, DeleteView
+from django.views.generic import (ListView, FormView, CreateView, UpdateView, 
+                                  DeleteView)
+from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
+                                       SetPasswordForm)
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar)
@@ -20,13 +23,9 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
-                    LiveCalendarForm)
-from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
-                                       SetPasswordForm)
-from .custom_mixins import AjaxFormResponseMixin
+                    LiveCalendarForm, SetActiveStateLiveCalForm)
 from datetime import datetime, date, timedelta
 from itertools import chain
-import string
 import json
 
 
@@ -45,11 +44,9 @@ def calendar_page(request):
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
-    versions = list(string.ascii_uppercase)
     template = loader.get_template('schedulingcalendar/calendar.html')
     context = {'calendar_form': calendar_form, 
-               'add_sch_form': add_schedule_form,
-               'versions': versions}
+               'add_sch_form': add_schedule_form}
 
     return HttpResponse(template.render(context, request))
     
@@ -82,13 +79,21 @@ def get_schedules(request):
             lower_bound_dt = cal_date - timedelta(7)
             upper_bound_dt = cal_date + timedelta(42)
             
+            # Get live_calendar to find out if calendar is active
+            try:
+              live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+                                                       date=cal_date.date(), 
+                                                       department=department_id)
+              is_active = live_calendar.active
+            except LiveCalendar.DoesNotExist:
+              is_active = False
+            
             # Get schedule and employee models from database appropriate for calendar
             schedules = (Schedule.objects.select_related('employee')
                                          .filter(user=logged_in_user,
                                                  start_datetime__gte=lower_bound_dt,
                                                  end_datetime__lte=upper_bound_dt,
                                                  department=department_id))
-                                                 
             employees = set()
             for s in schedules:
                 if s.employee:
@@ -119,7 +124,8 @@ def get_schedules(request):
                              'employees': employees_as_dicts,
                              'department_costs': department_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
-                             'display_settings': business_dict}
+                             'display_settings': business_dict,
+                             'is_active': is_active}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)
@@ -304,10 +310,9 @@ def push_live(request):
         if form.is_valid():
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
-            department = Department.objects.get(pk=department_pk)
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
                                                                         date=date, 
-                                                                        department=department)                                           
+                                                                        department=department_pk)                                  
             if created:
                 create_live_schedules(logged_in_user, live_calendar)
             else:
@@ -327,7 +332,40 @@ def push_live(request):
     else:
         pass
         #TODO: Implement reponse for non-POST requests
-    
+        
+        
+def deactivate_live(request):
+    """Deactivate the live_calendar for given month"""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = SetActiveStateLiveCalForm(request.POST)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+            department_pk = form.cleaned_data['department']
+            new_active_state = form.cleaned_data['active']
+            try: # Get live_calendar to find out if calendar is active
+              live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+                                                       date=date, 
+                                                       department=department_id)
+              live_calendar.active = new_active_state
+              live_calendar.save()
+              # Return success message
+              if new_active_state:
+                  message = 'Successfully activated the live calendar.'
+              else:
+                  message = 'Successfully deactivated the live calendar.'
+            except LiveCalendar.DoesNotExist:
+                message = 'No live calendar currently exists for this month, year, and department.'
+                
+            json_info = json.dumps({'message': message})
+            return JsonResponse(json_info, safe=False)
+            
+        json_info = json.dumps({'message': 'Invalid data used to set active state of live calendar.'})
+        return JsonResponse(json_info, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests      
+            
         
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):

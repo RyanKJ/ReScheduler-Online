@@ -16,7 +16,6 @@
   margin-bottom: 15px;
   height: 50px;
   z-index: 100;
-  
 }
 
 .calendar-page-toolbar h2 {
@@ -115,6 +114,7 @@
 .calendar-push-btn { 
   position: relative;
   right: 5px;
+  margin-left: 7px;
   float: right;
   display: inline-block;
   top: -30px;
@@ -131,7 +131,7 @@
   padding: 4px 6px 4px 6px;
   border: solid #ffffff 3px;
   
-    -webkit-transition: all .3s ease;
+  -webkit-transition: all .3s ease;
   -moz-transition: all .3s ease;
   -o-transition: all .3s ease;
   -ms-transition: all .3s ease;

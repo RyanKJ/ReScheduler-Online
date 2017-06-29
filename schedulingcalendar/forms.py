@@ -100,6 +100,19 @@ class PushLiveForm(forms.Form):
     dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
                                     min_value=0, max_value=1000)
+                                    
+                                    
+class SetActiveStateLiveCalForm(forms.Form):
+    """Form for setting active/deactive state of a live calendar."""
+    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
+    date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    
+    dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
+    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
+                                    min_value=0, max_value=1000)
+                                    
+    active = forms.BooleanField(label="Set Active State", 
+                                widget=forms.CheckboxInput())
     
     
 class AddScheduleForm(forms.Form):

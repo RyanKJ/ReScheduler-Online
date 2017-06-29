@@ -21,8 +21,9 @@
     <div class="row">
       <div class="col-md">
         <!-- Calendar Toolbar -->
-        <aside class="calendar-page-toolbar">
-          <section class="calendar-loader no-print">
+        <aside class="calendar-page-toolbar no-print">
+          <!-- Form for getting calendar to edit -->
+          <section class="calendar-loader">
             <form id="load-calendar-form"
                   action="{% url 'schedulingcalendar:get_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
@@ -43,20 +44,18 @@
             </form>
           </section>
           
-          <section class="push-live no-print">
+          <!-- Buttons for live version of calendar that employees see -->
+          <section class="push-live">
             <div id="push-live" class="calendar-push-btn">
               Push Live
             </div>
-          </section>
-          
-          <section class="print-version no-print">
-            <label for="print-version-select">Version:</label>
-            <div class="select-cal-loader">
-              <select id="print-version-select">
-                {% for ver in versions %}
-                  <option value={{ ver }}>{{ ver }}</option>
-                {% endfor %}
-              </select>
+            
+            <div id="active-live-set" class="calendar-push-btn">
+              Deactivate Live
+            </div>
+            
+            <div id="view-live" class="calendar-push-btn">
+              View Live
             </div>
           </section>
         </aside>

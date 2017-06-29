@@ -8,6 +8,16 @@ $(document).ready(function() {
   /**
    * Selectors And Variables
    */
+  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday", "Sunday"]
+  // General state variables
+  var calDate = null;
+  var calDepartment = null;
+  var calActive = null;
+  var displaySettings = {};
+  var departmentCosts = {};
+  var avgMonthlyRev = -1;
+  // Jquery object variables
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
@@ -15,13 +25,6 @@ $(document).ready(function() {
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
-  var cal_date = null;
-  var cal_department = null;
-  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
-                  "Friday", "Saturday", "Sunday"]
-  var displaySettings = {};
-  var departmentCosts = {};
-  var avgMonthlyRev = -1;
 
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
   
@@ -134,14 +137,14 @@ $(document).ready(function() {
     
     // Get new calendar month view via date
     var FORMAT = "YYYY-MM-DD";
-    cal_date = moment(info["date"], FORMAT);
-    $fullCal.fullCalendar("gotoDate", cal_date);
+    calDate = moment(info["date"], FORMAT);
+    $fullCal.fullCalendar("gotoDate", calDate);
     
     // Change calendar title and schedule adding form title to new department
-    cal_department = info['department']
-    var depName = $("#id_department option[value='"+cal_department+"']").text();
-    $addScheduleDep.val(cal_department);
-    $(".fc-center").find("h2").text(depName + " Calendar: " + cal_date.format("MMMM, YYYY"));
+    calDepartment = info['department']
+    var depName = $("#id_department option[value='"+calDepartment+"']").text();
+    $addScheduleDep.val(calDepartment);
+    $(".fc-center").find("h2").text(depName + " Calendar: " + calDate.format("MMMM, YYYY"));
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
@@ -190,6 +193,9 @@ $(document).ready(function() {
     avgMonthlyRev = info["avg_monthly_revenue"];
     displayCalendarCosts();
     
+    //Set activate/deactivate to state of live_calendar
+    calActive = info["is_active"];
+    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
@@ -202,25 +208,43 @@ $(document).ready(function() {
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
-  $("#get-calendar-button").trigger("click"); 
+  $("#get-calendar-button").trigger("click");
   $("#push-live").click(pushCalendarLive);
+  $("#active-live-set").click(SetActiveLiveCalendar);
   
   /** Tell server to make current calendar state live for employee queries */
   function pushCalendarLive(event) {
     var push_calendar = confirm("Make the current calendar live for employees?");
     if (push_calendar) {
       var FORMAT = "YYYY-MM-DD";
-      console.log("Values sent to server:")
-      console.log(cal_department);
-      console.log(cal_date.format(FORMAT));
       $.post("push_live",
-             {department: cal_department, date: cal_date.format(FORMAT)},
+             {department: calDepartment, date: calDate.format(FORMAT)},
               successfulCalendarPush);
     }
   }
   
   /** Inform user that the calendar was succesfully made live. */
   function successfulCalendarPush(data) {
+    var info = JSON.parse(data);
+    var msg = info['message'];
+    alert(msg);
+  }
+  
+  
+  function SetActiveLiveCalendar(event) {
+    var push_calendar = confirm("Make the current calendar live for employees?");
+    
+    if (push_calendar) {
+      var FORMAT = "YYYY-MM-DD";
+      $.post("set_active_state",
+             {department: calDepartment, date: calDate.format(FORMAT), active: calActive},
+              successfulActiveStateSet);
+    }
+  }
+  
+  
+  /** Inform user that the active state of live calendar was set. */
+  function successfulActiveStateSet(data) {
     var info = JSON.parse(data);
     var msg = info['message'];
     alert(msg);
