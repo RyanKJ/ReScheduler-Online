@@ -25,8 +25,14 @@ $(document).ready(function() {
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
+  var $pushLive = $("#push-live");
+  var $setActiveLive = $("#active-live-set");
+  var $viewLive = $("#view-live");
+  
 
-  $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
+  $conflictAssignBtn.click(_assignEmployeeAfterWarning);
+  $pushLive.click(pushCalendarLive);
+  $setActiveLive.click(SetActiveLiveCalendar);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -195,6 +201,7 @@ $(document).ready(function() {
     
     //Set activate/deactivate to state of live_calendar
     calActive = info["is_active"];
+    setCalLiveButtonStyles();
     
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -209,8 +216,6 @@ $(document).ready(function() {
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
   $("#get-calendar-button").trigger("click");
-  $("#push-live").click(pushCalendarLive);
-  $("#active-live-set").click(SetActiveLiveCalendar);
   
   /** Tell server to make current calendar state live for employee queries */
   function pushCalendarLive(event) {
@@ -226,28 +231,73 @@ $(document).ready(function() {
   /** Inform user that the calendar was succesfully made live. */
   function successfulCalendarPush(data) {
     var info = JSON.parse(data);
-    var msg = info['message'];
+    var msg = info["message"];
+    calActive = true;
+    // Set styles of View Live and De/Reactivate buttons depending on state
+    setCalLiveButtonStyles();
+    console.log(data);
     alert(msg);
   }
   
   
+  /** 
+   * Set active state of live calendar to opposite of current state. In the 
+   * case a live calendar instance doesn't exist yet for given date and 
+   * department, do nothing.
+   */
   function SetActiveLiveCalendar(event) {
-    var push_calendar = confirm("Make the current calendar live for employees?");
-    
-    if (push_calendar) {
-      var FORMAT = "YYYY-MM-DD";
-      $.post("set_active_state",
-             {department: calDepartment, date: calDate.format(FORMAT), active: calActive},
-              successfulActiveStateSet);
+    // Check to see if live calendar exists for date/dep
+    if(calActive !== null) {
+      var msg = "Reactivate the live calendar?";
+      var newCalActive = true;
+      // Live calendar exists, so set newCalActive to opposite of current state
+      if (calActive) {
+        msg = "Deactivate the live calendar?"
+        newCalActive = false;
+      }
+      var changeActiveState = confirm(msg);
+      if (changeActiveState) {
+        var FORMAT = "YYYY-MM-DD";
+        $.post("set_active_state",
+               {department: calDepartment, date: calDate.format(FORMAT), active: newCalActive},
+               successfulActiveStateSet);
+      }
     }
   }
   
   
-  /** Inform user that the active state of live calendar was set. */
+  /** 
+   * Inform user that the active state of live calendar was set and update
+   * styles and state of variables representing the live calendar's state.
+   */
   function successfulActiveStateSet(data) {
     var info = JSON.parse(data);
-    var msg = info['message'];
+    var msg = info["message"];
+    calActive = info["is_active"];
+    console.log(data);
+    // Set styles of View Live and De/Reactivate buttons depending on state
+    setCalLiveButtonStyles();
     alert(msg);
+  }
+  
+  
+  /** Set styles of view live and De/Reactivate Live buttons given active state */
+  function setCalLiveButtonStyles() {
+    if (calActive == null) {
+      $setActiveLive.addClass("unactive-live");
+      $viewLive.addClass("unactive-live");
+      $setActiveLive.text("Reactivate Live");
+    }
+    if (!calActive && calActive !== null) {
+      $setActiveLive.removeClass("unactive-live");
+      $viewLive.addClass("unactive-live");
+      $setActiveLive.text("Reactivate Live");
+    }
+    if (calActive) {
+      $setActiveLive.removeClass("unactive-live");
+      $viewLive.removeClass("unactive-live");
+      $setActiveLive.text("Deactivate Live");
+    }
   }
       
   

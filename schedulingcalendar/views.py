@@ -86,7 +86,7 @@ def get_schedules(request):
                                                        department=department_id)
               is_active = live_calendar.active
             except LiveCalendar.DoesNotExist:
-              is_active = False
+              is_active = None;
             
             # Get schedule and employee models from database appropriate for calendar
             schedules = (Schedule.objects.select_related('employee')
@@ -310,9 +310,11 @@ def push_live(request):
         if form.is_valid():
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
+            department = Department.objects.get(pk=department_pk)
+            print "************** department is: ", department
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
                                                                         date=date, 
-                                                                        department=department_pk)                                  
+                                                                        department=department)                                  
             if created:
                 create_live_schedules(logged_in_user, live_calendar)
             else:
@@ -334,14 +336,15 @@ def push_live(request):
         #TODO: Implement reponse for non-POST requests
         
         
-def deactivate_live(request):
+def set_active_state(request):
     """Deactivate the live_calendar for given month"""
     logged_in_user = request.user
     if request.method == 'POST':
         form = SetActiveStateLiveCalForm(request.POST)
+        print "******************** request POST for set_active_state: ", request.POST
         if form.is_valid():
             date = form.cleaned_data['date']
-            department_pk = form.cleaned_data['department']
+            department_id = form.cleaned_data['department']
             new_active_state = form.cleaned_data['active']
             try: # Get live_calendar to find out if calendar is active
               live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
@@ -351,13 +354,16 @@ def deactivate_live(request):
               live_calendar.save()
               # Return success message
               if new_active_state:
-                  message = 'Successfully activated the live calendar.'
+                  message = 'Successfully reactivated the live calendar.'
+                  active_state = True
               else:
                   message = 'Successfully deactivated the live calendar.'
+                  active_state = False
             except LiveCalendar.DoesNotExist:
                 message = 'No live calendar currently exists for this month, year, and department.'
+                active_state = None
                 
-            json_info = json.dumps({'message': message})
+            json_info = json.dumps({'message': message, 'is_active': active_state})
             return JsonResponse(json_info, safe=False)
             
         json_info = json.dumps({'message': 'Invalid data used to set active state of live calendar.'})

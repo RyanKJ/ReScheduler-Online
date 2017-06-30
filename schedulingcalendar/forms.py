@@ -111,7 +111,7 @@ class SetActiveStateLiveCalForm(forms.Form):
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
                                     min_value=0, max_value=1000)
                                     
-    active = forms.BooleanField(label="Set Active State", 
+    active = forms.BooleanField(label="Set Active State", required=False,
                                 widget=forms.CheckboxInput())
     
     

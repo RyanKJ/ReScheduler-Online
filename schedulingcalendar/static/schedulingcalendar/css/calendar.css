@@ -139,6 +139,13 @@
 }
 
 
+.unactive-live {
+  background: transparent !important;
+  color: silver;
+  border-color: silver;
+}
+
+
 .print-version > label:nth-child(1) {
   position: relative;
   color: white;
