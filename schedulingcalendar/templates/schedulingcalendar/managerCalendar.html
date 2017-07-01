@@ -1,0 +1,63 @@
+{% extends "site/__base.html" %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  {% load static %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.css" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css " media="print" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-print-custom.css' %}" media="print" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/calendar.css' %}" />
+{% endblock stylesheets %}
+
+{% block content %}
+  <!-- Modal used for dialogs -->
+  {% include "schedulingcalendar/_conflictModal.html" %}
+    
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md">
+        <!-- Calendar Toolbar -->
+        <aside class="calendar-page-toolbar">
+          <section class="calendar-loader no-print">
+            <form id="load-calendar-form"
+                  action="{% url 'schedulingcalendar:get_live_schedules' %}"
+                  onsubmit="return(validateGetCalendarForm())"
+                  method="get">
+              {% csrf_token %}
+              
+              {% for field in live_calendar_form %}
+                {{ field.errors }}
+                {{ field.label_tag }} 
+                <div class="select-cal-loader">
+                  {{ field }}
+                </div>
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+              {% endfor %}
+              <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+            </form>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md">
+        <!-- Fullcalendar -->
+        <section>
+          <div id="calendar"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascript %}
+  {{ block.super }}     
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js" ></script>
+  <script src="{% static 'schedulingcalendar/js/employee.rescheduler.js' %}" ></script>
+{% endblock javascript %}    
+

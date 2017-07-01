@@ -274,7 +274,6 @@ $(document).ready(function() {
     var info = JSON.parse(data);
     var msg = info["message"];
     calActive = info["is_active"];
-    console.log(data);
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
     alert(msg);

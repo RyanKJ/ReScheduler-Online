@@ -56,28 +56,29 @@
   color: white;
   font-size: 16px;
   font-weight: bold;
-    
-  -webkit-transition: all .3s ease;
-  -moz-transition: all .3s ease;
-  -o-transition: all .3s ease;
-  -ms-transition: all .3s ease;
-	transition: all .3s ease;
 }
 
-.select-cal-loader:hover {
-  background: #00BFFF;
-  text-decoration: none;
-}
 
 .select-cal-loader select {
     padding: 5px 8px;
     width: 130%;
     border: none;
     box-shadow: none;
-    background: transparent;
+    background: #0079D7;
     background-image: none;
     -webkit-appearance: none;
+    
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    -o-transition: all .3s ease;
+    -ms-transition: all .3s ease;
+    transition: all .3s ease;
 }
+
+.select-cal-loader select:hover {
+    background: #00BFFF;
+}
+
 
 .select-cal-loader select:focus {
     outline: none;
