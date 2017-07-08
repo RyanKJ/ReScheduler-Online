@@ -33,6 +33,7 @@ $(document).ready(function() {
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $pushLive.click(pushCalendarLive);
   $setActiveLive.click(SetActiveLiveCalendar);
+  $viewLive.click(ViewLiveCalendar);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -266,6 +267,24 @@ $(document).ready(function() {
   }
   
   
+  /** Display calendar cost li elements. */
+  function ViewLiveCalendar(event) {
+    // Check to see if live calendar exists for date/dep and is live
+    if(calActive && calActive !== null) {
+        //Check if live calendar actually exists
+        $.get("view_live_calendar",
+              {department: calDepartment, date: calDate.format(FORMAT)},
+               viewLiveCalendarSuccess);
+      }
+    }
+  }
+  
+  
+  function viewLiveCalendarSuccess(data) {
+    // Redirect to live calendar page
+  }
+  
+  
   /** 
    * Inform user that the active state of live calendar was set and update
    * styles and state of variables representing the live calendar's state.
@@ -298,7 +317,7 @@ $(document).ready(function() {
       $setActiveLive.text("Deactivate Live");
     }
   }
-      
+    
   
   /** Display calendar cost li elements. */
   function displayCalendarCosts() {

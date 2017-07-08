@@ -23,7 +23,8 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
-                    LiveCalendarForm, SetActiveStateLiveCalForm)
+                    LiveCalendarForm, SetActiveStateLiveCalForm,
+                    ViewLiveCalendarForm)
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
@@ -193,6 +194,7 @@ def get_live_schedules(request):
       # err_msg = "Year, Month, or Department was not selected."
       # TODO: Send back Unsuccessful Response
       pass  
+      
     
 @login_required
 def add_schedule(request):
@@ -371,8 +373,38 @@ def set_active_state(request):
     else:
         pass
         #TODO: Implement reponse for non-POST requests      
-            
         
+   
+def view_live(request):   
+    """Redirect manager to view corresponding live_calendar."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ViewLiveCalendarForm(request.POST)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+            department_id = form.cleaned_data['department']
+            try: # Get live_calendar to find out if calendar is active
+                live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+                                                         date=date, 
+                                                         department=department_id)
+                is_active = live_calendar.active
+                if is_active:
+                    return redirect('some-view-name', foo='bar')
+                else:
+                    message = 'Successfully deactivated the live calendar.'
+            except:
+                message = 'No live calendar currently exists for this month, year, and department.'
+                
+            json_info = json.dumps({'message': message})
+            return JsonResponse(json_info, safe=False)      
+               
+        json_info = json.dumps({'message': 'Invalid data used to view live calendar.'})
+        return JsonResponse(json_info, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests     
+                  
+                  
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):
     """Display an alphabetical list of all employees for a managing user."""

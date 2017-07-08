@@ -113,6 +113,16 @@ class SetActiveStateLiveCalForm(forms.Form):
                                     
     active = forms.BooleanField(label="Set Active State", required=False,
                                 widget=forms.CheckboxInput())
+                                
+                                
+class ViewLiveCalendarForm(forms.Form):
+    """Form for manager to view an existing and active live calendar."""
+    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
+    date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    
+    dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
+    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
+                                    min_value=0, max_value=1000)
     
     
 class AddScheduleForm(forms.Form):
