@@ -97,6 +97,12 @@ class LiveCalendar(models.Model):
     version = models.IntegerField('Version', default=1)
     active = models.BooleanField(default=True)
     
+    def __str__(self):
+        date_str = self.date.strftime("%B %d")
+        
+        
+        return "Department: " + self.department.name + " " + date_str
+    
     
 class LiveSchedule(models.Model):
     """Copy of schedule used for displaying finished calendar to employees."""

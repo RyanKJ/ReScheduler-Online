@@ -21,10 +21,12 @@ $(document).ready(function() {
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
+  var $conflictAssignBtn = $("#conflict-assign-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
-  var $conflictAssignBtn = $("#conflict-assign-btn");
+  var $viewLiveDate = $("#view-live-date");
+  var $viewLiveDep = $("#view-live-department");
   var $pushLive = $("#push-live");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
@@ -146,11 +148,13 @@ $(document).ready(function() {
     var FORMAT = "YYYY-MM-DD";
     calDate = moment(info["date"], FORMAT);
     $fullCal.fullCalendar("gotoDate", calDate);
+    $viewLiveDate.val(calDate.format(FORMAT));
     
     // Change calendar title and schedule adding form title to new department
     calDepartment = info['department']
     var depName = $("#id_department option[value='"+calDepartment+"']").text();
     $addScheduleDep.val(calDepartment);
+    $viewLiveDep.val(calDepartment);
     $(".fc-center").find("h2").text(depName + " Calendar: " + calDate.format("MMMM, YYYY"));
         
     // Delete any previously loaded events before displaying new events
@@ -271,11 +275,10 @@ $(document).ready(function() {
   function ViewLiveCalendar(event) {
     // Check to see if live calendar exists for date/dep and is live
     if(calActive && calActive !== null) {
-        //Check if live calendar actually exists
-        $.get("view_live_calendar",
+        var FORMAT = "YYYY-MM-DD";
+        $.get("view_live_schedules",
               {department: calDepartment, date: calDate.format(FORMAT)},
                viewLiveCalendarSuccess);
-      }
     }
   }
   
@@ -303,18 +306,21 @@ $(document).ready(function() {
   function setCalLiveButtonStyles() {
     if (calActive == null) {
       $setActiveLive.addClass("unactive-live");
-      $viewLive.addClass("unactive-live");
       $setActiveLive.text("Reactivate Live");
+      $viewLive.addClass("unactive-live");
+      $viewLive.prop('disabled', true);
     }
     if (!calActive && calActive !== null) {
       $setActiveLive.removeClass("unactive-live");
-      $viewLive.addClass("unactive-live");
       $setActiveLive.text("Reactivate Live");
+      $viewLive.addClass("unactive-live");
+      $viewLive.prop('disabled', true);
     }
     if (calActive) {
       $setActiveLive.removeClass("unactive-live");
-      $viewLive.removeClass("unactive-live");
       $setActiveLive.text("Deactivate Live");
+      $viewLive.removeClass("unactive-live");
+      $viewLive.prop('disabled', false);
     }
   }
     

@@ -45,9 +45,11 @@ def calendar_page(request):
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
+    view_live_form = ViewLiveCalendarForm
     template = loader.get_template('schedulingcalendar/calendar.html')
     context = {'calendar_form': calendar_form, 
-               'add_sch_form': add_schedule_form}
+               'add_sch_form': add_schedule_form,
+               'view_live_form': view_live_form}
 
     return HttpResponse(template.render(context, request))
     
@@ -310,10 +312,10 @@ def push_live(request):
     if request.method == 'POST':
         form = PushLiveForm(request.POST)
         if form.is_valid():
+            print "******************** push live form is valid: ", request.POST
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
             department = Department.objects.get(pk=department_pk)
-            print "************** department is: ", department
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
                                                                         date=date, 
                                                                         department=department)                                  
@@ -343,7 +345,6 @@ def set_active_state(request):
     logged_in_user = request.user
     if request.method == 'POST':
         form = SetActiveStateLiveCalForm(request.POST)
-        print "******************** request POST for set_active_state: ", request.POST
         if form.is_valid():
             date = form.cleaned_data['date']
             department_id = form.cleaned_data['department']
@@ -375,14 +376,19 @@ def set_active_state(request):
         #TODO: Implement reponse for non-POST requests      
         
    
-def view_live(request):   
+def view_live_schedules(request):   
     """Redirect manager to view corresponding live_calendar."""
     logged_in_user = request.user
-    if request.method == 'POST':
-        form = ViewLiveCalendarForm(request.POST)
+    if request.method == 'GET':
+        form = ViewLiveCalendarForm(request.GET)
         if form.is_valid():
+            print "******************** view live form is valid: ", request.GET
             date = form.cleaned_data['date']
             department_id = form.cleaned_data['department']
+            
+            all_live_calendars = LiveCalendar.objects.all()
+            print "******************** all live calendars: ", all_live_calendars
+            
             try: # Get live_calendar to find out if calendar is active
                 live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                          date=date, 

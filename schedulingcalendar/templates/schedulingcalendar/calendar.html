@@ -54,9 +54,20 @@
               Deactivate Live
             </div>
             
-            <div id="view-live" class="calendar-push-btn unactive-live">
-              View Live
-            </div>
+            <form id="view-live-form"
+                  action="{% url 'schedulingcalendar:view_live_schedules' %}"
+                  method="get">
+              {% csrf_token %}
+              
+              {% for field in view_live_form %}
+                {{ field.errors }} 
+                {{ field }}
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+              {% endfor %}
+              <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
+            </form>
           </section>
         </aside>
       </div>
