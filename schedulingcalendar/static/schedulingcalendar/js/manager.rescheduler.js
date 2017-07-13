@@ -16,6 +16,7 @@ $(document).ready(function() {
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
   var displaySettings = {};
+  var $calendarLoaderForm = $("#load-calendar-form");
   
   $fullCal.fullCalendar({
     editable: false,
@@ -123,7 +124,7 @@ $(document).ready(function() {
     $fullCal.fullCalendar("gotoDate", newCalDate);
         
     // Change calendar title and schedule adding form title to new department
-    var depName = $("#id_department option[value='"+info['department']+"']").text();
+    var depName = $calendarLoaderForm.data("department-name");
     var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
     $(".fc-center").find("h2").text(cal_title);
         
@@ -175,13 +176,14 @@ $(document).ready(function() {
   
   
   // Load schedule upon loading page relative to current date
-  var nowDate = new Date();
-  var m = nowDate.getMonth();
-  var y = nowDate.getFullYear();
+  var liveCalDate = new Date($calendarLoaderForm.data("date"));
+  var m = liveCalDate.getMonth();
+  var y = liveCalDate.getFullYear();
+  var dep = $calendarLoaderForm.data("department");
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
-  $("#id_employee_only").prop('checked', false);
+  $("#id_department").val(dep);
   $("#get-calendar-button").trigger("click"); 
     
   
@@ -245,11 +247,15 @@ $(document).ready(function() {
     var str = startStr + " - " + endStr + employeeStr;
     return str;
   }
-}
     
   
   /** Callback function for user to print calendar via print button on page */
   function print_calendar() {
     window.print();
-  } 
+  }
 });
+
+/** Validate request get a calendar and associated data */
+function validateGetCalendarForm() {
+  //TODO: Check valid years, etc.
+}

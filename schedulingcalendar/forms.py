@@ -90,6 +90,44 @@ class LiveCalendarForm(forms.Form):
                               
     employee_only = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
+                                       
+                                       
+class LiveCalendarManagerForm(forms.Form):
+    """Form for manager to view a calendar given year, month, & department.
+    
+    The fields will have hidden widgets because the manager does not interact
+    with the live calendar, only looks at it as a static slice of the calendar
+    they are editing.
+    """
+    def __init__(self, user, *args, **kwargs):
+        super(LiveCalendarManagerForm, self).__init__(*args, **kwargs)
+        
+        # TODO: Add edge case where user has 0 departments
+        dep_choices = get_department_tuple(user)
+        year_choices = self.get_year_choices()
+        
+        self.fields['department'].widget.choices = dep_choices
+        self.fields['year'].widget.choices = year_choices
+        
+        
+    def get_year_choices(self):
+        now = datetime.now()
+        current_year = now.year
+        year_choices = get_years_tuple(current_year, 5, 2)
+        
+        return year_choices
+        
+
+    department = forms.IntegerField(label='Department', widget=forms.HiddenInput(),
+                                    min_value=0, max_value=1000)
+    
+    month = forms.IntegerField(label='Month', 
+                               widget=forms.HiddenInput(), 
+                               min_value=0, max_value=13)
+                               
+    year = forms.IntegerField(label='Year', widget=forms.HiddenInput(), 
+                              min_value=1900, max_value=9999)
+                                       
                               
                                                         
 class PushLiveForm(forms.Form):

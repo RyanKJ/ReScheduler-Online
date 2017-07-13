@@ -23,8 +23,8 @@ from .business_logic import (get_eligables, eligable_list_to_dict,
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
-                    LiveCalendarForm, SetActiveStateLiveCalForm,
-                    ViewLiveCalendarForm)
+                    LiveCalendarForm, LiveCalendarManagerForm,
+                    SetActiveStateLiveCalForm, ViewLiveCalendarForm)
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
@@ -312,7 +312,6 @@ def push_live(request):
     if request.method == 'POST':
         form = PushLiveForm(request.POST)
         if form.is_valid():
-            print "******************** push live form is valid: ", request.POST
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
             department = Department.objects.get(pk=department_pk)
@@ -382,20 +381,22 @@ def view_live_schedules(request):
     if request.method == 'GET':
         form = ViewLiveCalendarForm(request.GET)
         if form.is_valid():
-            print "******************** view live form is valid: ", request.GET
             date = form.cleaned_data['date']
             department_id = form.cleaned_data['department']
-            
-            all_live_calendars = LiveCalendar.objects.all()
-            print "******************** all live calendars: ", all_live_calendars
-            
             try: # Get live_calendar to find out if calendar is active
                 live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                          date=date, 
                                                          department=department_id)
                 is_active = live_calendar.active
                 if is_active:
-                    return redirect('some-view-name', foo='bar')
+                    template = loader.get_template('schedulingcalendar/managerCalendar.html')
+                    live_calendar_form = LiveCalendarManagerForm(logged_in_user)
+                    department = Department.objects.get(pk=department_id)
+                    context = {'live_calendar_form': live_calendar_form,
+                               'date': date,
+                               'department': department_id,
+                               'department_name': department.name}
+                    return HttpResponse(template.render(context, request))
                 else:
                     message = 'Successfully deactivated the live calendar.'
             except:
@@ -409,7 +410,7 @@ def view_live_schedules(request):
     else:
         pass
         #TODO: Implement reponse for non-POST requests     
-                  
+                   
                   
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(ListView):

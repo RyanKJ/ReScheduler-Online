@@ -19,6 +19,7 @@ a:active {
 }
 
 
+
 /* Calendar Styling
 --------------------------------------------------------------------------------------------------*/
 
@@ -69,9 +70,9 @@ a:active {
 
 .select-cal-loader {
   display: inline-block;
-  margin-left: 3px;
+  margin-left: 8px;
   border: 3px solid white;
-  width: 120px;
+  max-width: 500px;
   overflow: hidden;
   background: transparent;
   color: white;
@@ -80,7 +81,9 @@ a:active {
 }
 
 
-.select-cal-loader select {
+
+
+.select-cal-loader a {
     padding: 5px 8px;
     width: 130%;
     border: none;
@@ -88,6 +91,7 @@ a:active {
     background: #0079D7;
     background-image: none;
     -webkit-appearance: none;
+    color: white;
     
     -webkit-transition: all .3s ease;
     -moz-transition: all .3s ease;
@@ -96,7 +100,7 @@ a:active {
     transition: all .3s ease;
 }
 
-.select-cal-loader select:hover {
+.select-cal-loader a:hover {
     background: #00BFFF;
 }
 
@@ -158,6 +162,10 @@ a:active {
   -o-transition: all .3s ease;
   -ms-transition: all .3s ease;
 	transition: all .3s ease;
+}
+
+#get-calendar-button {
+  display: none;
 }
 
 
