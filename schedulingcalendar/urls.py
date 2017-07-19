@@ -5,6 +5,7 @@ from . import views
 app_name = 'schedulingcalendar'
 urlpatterns = [
     url(r'^$', views.front_page, name='front_page'),
+    url(r'login_success/$', views.login_success, name='login_success'),
     url(r'^calendar/$', views.calendar_page, name='calendar_page'),
     url(r'^calendar/add_schedule$', views.add_schedule, name='add_schedule'),
     url(r'^calendar/get_schedules$', views.get_schedules, name='get_schedules'),

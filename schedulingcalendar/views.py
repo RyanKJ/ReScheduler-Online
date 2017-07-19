@@ -6,7 +6,8 @@ from django.template import loader
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import (ListView, FormView, CreateView, UpdateView, 
@@ -36,9 +37,24 @@ def front_page(request):
     context = {}
 
     return HttpResponse(template.render(context, request))
+    
+
+def manager_check(user):
+    """Checks if user is a manager user or not."""
+    return user.groups.filter(name="Managers").exists()
+    
+ 
+@login_required 
+def login_success(request):
+    """Redirect user based on if they are manager or employee."""
+    if manager_check(request.user):
+        return redirect("/calendar/") # Manager page
+    else:
+        return redirect("/live_calendar/") 
 
 
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
@@ -64,9 +80,10 @@ def employee_calendar_page(request):
     context = {'live_calendar_form': live_calendar_form}
 
     return HttpResponse(template.render(context, request))
-    
+
 
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def get_schedules(request):
     """Display schedules for a given user, month, year, and department."""
     logged_in_user = request.user
@@ -199,6 +216,7 @@ def get_live_schedules(request):
       
     
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def add_schedule(request):
     """Add schedule to the database and return string of added schedule."""
     logged_in_user = request.user
@@ -233,7 +251,8 @@ def add_schedule(request):
         pass
         
      
-@login_required     
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")    
 def get_schedule_info(request):
     """Returns information for schedule such as eligable employees."""
     logged_in_user = request.user
@@ -250,6 +269,7 @@ def get_schedule_info(request):
     
 
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def add_employee_to_schedule(request):
     """Assign employee to schedule."""
     logged_in_user = request.user
@@ -282,6 +302,7 @@ def add_employee_to_schedule(request):
     
 
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def remove_schedule(request):
     """Remove schedule from the database."""
     logged_in_user = request.user
@@ -306,6 +327,7 @@ def remove_schedule(request):
     
     
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def push_live(request):
     """Create a live version of schedules for employee users to query."""
     logged_in_user = request.user
@@ -339,6 +361,8 @@ def push_live(request):
         #TODO: Implement reponse for non-POST requests
         
         
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def set_active_state(request):
     """Deactivate the live_calendar for given month"""
     logged_in_user = request.user
@@ -375,6 +399,8 @@ def set_active_state(request):
         #TODO: Implement reponse for non-POST requests      
         
    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def view_live_schedules(request):   
     """Redirect manager to view corresponding live_calendar."""
     logged_in_user = request.user
@@ -413,11 +439,16 @@ def view_live_schedules(request):
                    
                   
 @method_decorator(login_required, name='dispatch')
-class EmployeeListView(ListView):
+class EmployeeListView(UserPassesTestMixin, ListView):
     """Display an alphabetical list of all employees for a managing user."""
     model = Employee
     template_name = 'schedulingcalendar/employeeList.html'
     context_object_name = 'employee_list'
+    
+    def test_func(self):
+        """Check if user is a manager user."""
+        return manager_check(self.request.user)
+     
         
     def get_queryset(self):
         return (Employee.objects.filter(user=self.request.user)
