@@ -57,6 +57,9 @@ class LiveCalendarForm(forms.Form):
     
     Different from CalendarForm in that employees have a boolean option to
     display only their schedules or all schedules for a given calendar.
+    
+    Also, departments are fetched from associated manager user for employee,
+    as employees themselves are not 'owners' of any departments.
     """
     
     def __init__(self, user, *args, **kwargs):
@@ -73,7 +76,7 @@ class LiveCalendarForm(forms.Form):
     def get_year_choices(self):
         now = datetime.now()
         current_year = now.year
-        year_choices = get_years_tuple(current_year, 5, 2)
+        year_choices = get_years_tuple(current_year, 2, 1)
         
         return year_choices
         

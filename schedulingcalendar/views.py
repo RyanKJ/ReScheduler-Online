@@ -26,6 +26,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm)
+from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
 import json
@@ -74,8 +75,12 @@ def calendar_page(request):
 def employee_calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
+    # Get manager corresponding to employee
+    employee = (Employee.objects.select_related('user')
+                                .get(employee_user=logged_in_user))
+    manager_user = employee.user
     
-    live_calendar_form = LiveCalendarForm(logged_in_user)
+    live_calendar_form = LiveCalendarForm(manager_user)
     template = loader.get_template('schedulingcalendar/employeeCalendar.html')
     context = {'live_calendar_form': live_calendar_form}
 
@@ -161,24 +166,45 @@ def get_live_schedules(request):
     """Get live schedules for given date and department."""
     logged_in_user = request.user
     if request.method == 'GET':
-        form = LiveCalendarForm(logged_in_user, request.GET)
+        # Check if browsing user is manager or employee, use appropriate form
+        # depending on which kind of user called this view
+        user_is_manager = manager_check(logged_in_user)
+        if user_is_manager:
+            employee = None
+            manager_user = logged_in_user
+            form = LiveCalendarManagerForm(manager_user, request.GET)
+        else:
+            employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=logged_in_user))
+            manager_user = employee.user
+            form = LiveCalendarForm(manager_user, request.GET)
+            
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
             month = form.cleaned_data['month']
-            employee_only = form.cleaned_data['employee_only']
+            # LiveCalendarManagerForm form does not have employee only option,
+            # so we set it to false so manager sees all schedules for calendar
+            if user_is_manager:
+                employee_only = False
+            else:
+                employee_only = form.cleaned_data['employee_only']
 
             # Get date month for calendar for queries
             cal_date = date(year, month, 1)
-
-            live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+            live_calendar = LiveCalendar.objects.get(user=manager_user, 
                                                      date=cal_date, 
-                                                     department=department_id)   
+                                                     department=department_id)
             # Get schedule and employee models from database appropriate for calendar
-            live_schedules = (LiveSchedule.objects.select_related('employee')
-                                          .filter(user=logged_in_user,
-                                                  calendar=live_calendar))
-                                                 
+            if employee_only:
+                live_schedules = (LiveSchedule.objects.select_related('employee')
+                                              .filter(user=manager_user,
+                                                      employee=employee,
+                                                      calendar=live_calendar))
+            else: 
+                live_schedules = (LiveSchedule.objects.select_related('employee')
+                                              .filter(user=manager_user,
+                                                      calendar=live_calendar))      
             employees = set()
             for s in live_schedules:
                 if s.employee:
@@ -195,7 +221,7 @@ def get_live_schedules(request):
                 employees_as_dicts.append(employee_dict)
             
             # Get business data for display settings on calendar
-            business_data = (BusinessData.objects.get(user=logged_in_user))
+            business_data = (BusinessData.objects.get(user=manager_user))
             business_dict = model_to_dict(business_data)
               
             # Combine all appropriate data into dict for serialization
@@ -439,16 +465,11 @@ def view_live_schedules(request):
                    
                   
 @method_decorator(login_required, name='dispatch')
-class EmployeeListView(UserPassesTestMixin, ListView):
+class EmployeeListView(UserIsManagerMixin, ListView):
     """Display an alphabetical list of all employees for a managing user."""
     model = Employee
     template_name = 'schedulingcalendar/employeeList.html'
-    context_object_name = 'employee_list'
-    
-    def test_func(self):
-        """Check if user is a manager user."""
-        return manager_check(self.request.user)
-     
+    context_object_name = 'employee_list' 
         
     def get_queryset(self):
         return (Employee.objects.filter(user=self.request.user)
@@ -456,7 +477,7 @@ class EmployeeListView(UserPassesTestMixin, ListView):
         
  
 @method_decorator(login_required, name='dispatch') 
-class EmployeeUpdateView(UpdateView):
+class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
     """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
     fields = ['first_name', 'last_name', 'employee_id', 'email',
@@ -528,7 +549,7 @@ class EmployeeUpdateView(UpdateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeCreateView(CreateView):
+class EmployeeCreateView(UserIsManagerMixin, CreateView):
     """Display an employee form to create a new employee."""
     template_name = 'schedulingcalendar/employeeCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
@@ -544,7 +565,7 @@ class EmployeeCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeDeleteView(DeleteView):
+class EmployeeDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete employee object."""
     template_name = 'schedulingcalendar/employeeDelete.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
@@ -552,6 +573,7 @@ class EmployeeDeleteView(DeleteView):
     
     
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def change_employee_pw_as_manager(request, **kwargs):
     """Change password of employee user account as managing user."""
     
@@ -600,7 +622,7 @@ def change_employee_pw_as_employee(request, **kwargs):
     
     
 @method_decorator(login_required, name='dispatch')
-class EmployeeUsernameUpdateView(UpdateView):
+class EmployeeUsernameUpdateView(UserIsManagerMixin, UpdateView):
     """Display an employee user form to edit."""
     template_name = 'schedulingcalendar/employeeUsernameUpdate.html'
     model = User
@@ -643,7 +665,7 @@ class EmployeeUsernameUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class EmployeeUserCreateView(CreateView):
+class EmployeeUserCreateView(UserIsManagerMixin, CreateView):
     """Display employee user form to create employee user object."""
     template_name = 'schedulingcalendar/employeeUserCreate.html'
     form_class = UserCreationForm
@@ -685,7 +707,7 @@ class EmployeeUserCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeUserDeleteView(DeleteView):
+class EmployeeUserDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete employee user object."""
     template_name = 'schedulingcalendar/employeeUserDelete.html'
     model = User
@@ -706,7 +728,7 @@ class EmployeeUserDeleteView(DeleteView):
     
     
 @method_decorator(login_required, name='dispatch')
-class VacationUpdateView(UpdateView):
+class VacationUpdateView(UserIsManagerMixin, UpdateView):
     """Display vacation form to edit vacation object."""
     template_name = 'schedulingcalendar/vacationUpdate.html'
     form_class = VacationForm
@@ -743,7 +765,7 @@ class VacationUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class VacationCreateView(CreateView):
+class VacationCreateView(UserIsManagerMixin, CreateView):
     """Display vacation form to create vacation object."""
     template_name = 'schedulingcalendar/vacationCreate.html'
     form_class = VacationForm
@@ -774,7 +796,7 @@ class VacationCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class VacationDeleteView(DeleteView):
+class VacationDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete vacation object."""
     template_name = 'schedulingcalendar/vacationDelete.html'
     model = Vacation
@@ -795,7 +817,7 @@ class VacationDeleteView(DeleteView):
                             
                             
 @method_decorator(login_required, name='dispatch')
-class AbsentUpdateView(UpdateView):
+class AbsentUpdateView(UserIsManagerMixin, UpdateView):
     """Display absent form to edit absence object."""
     template_name = 'schedulingcalendar/absenceUpdate.html'
     form_class = AbsentForm
@@ -832,7 +854,7 @@ class AbsentUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class AbsentCreateView(CreateView):
+class AbsentCreateView(UserIsManagerMixin, CreateView):
     """Display absence form to create absence object."""
     template_name = 'schedulingcalendar/absenceCreate.html'
     form_class = AbsentForm
@@ -863,7 +885,7 @@ class AbsentCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class AbsentDeleteView(DeleteView):
+class AbsentDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete absence object."""
     template_name = 'schedulingcalendar/absenceDelete.html'
     model = Absence
@@ -884,7 +906,7 @@ class AbsentDeleteView(DeleteView):
                             
         
 @method_decorator(login_required, name='dispatch')
-class RepeatUnavailableUpdateView(UpdateView):
+class RepeatUnavailableUpdateView(UserIsManagerMixin, UpdateView):
     """Display repeat unavailable form to edit unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
     form_class = RepeatUnavailabilityForm
@@ -921,7 +943,7 @@ class RepeatUnavailableUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class RepeatUnavailableCreateView(CreateView):
+class RepeatUnavailableCreateView(UserIsManagerMixin, CreateView):
     """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
     form_class = RepeatUnavailabilityForm
@@ -951,7 +973,7 @@ class RepeatUnavailableCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class RepeatUnavailableDeleteView(DeleteView):
+class RepeatUnavailableDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete unavailable repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableDelete.html'
     model = RepeatUnavailability
@@ -972,7 +994,7 @@ class RepeatUnavailableDeleteView(DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DesiredTimeUpdateView(UpdateView):
+class DesiredTimeUpdateView(UserIsManagerMixin, UpdateView):
     """Display desired time form to edit object."""
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
     form_class = DesiredTimeForm
@@ -1009,7 +1031,7 @@ class DesiredTimeUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class DesiredTimeCreateView(CreateView):
+class DesiredTimeCreateView(UserIsManagerMixin, CreateView):
     """Display desired time form to create object."""
     template_name = 'schedulingcalendar/desiredTimeCreate.html'
     form_class = DesiredTimeForm
@@ -1039,7 +1061,7 @@ class DesiredTimeCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class DesiredTimeDeleteView(DeleteView):
+class DesiredTimeDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete desired time object."""
     template_name = 'schedulingcalendar/desiredTimeDelete.html'
     model = DesiredTime
@@ -1060,7 +1082,7 @@ class DesiredTimeDeleteView(DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DepartmentMembershipUpdateView(UpdateView):
+class DepartmentMembershipUpdateView(UserIsManagerMixin, UpdateView):
     """Display department membership form to edit existing object."""
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
     fields = ['department', 'priority', 'seniority']
@@ -1097,7 +1119,7 @@ class DepartmentMembershipUpdateView(UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class DepartmentMembershipCreateView(CreateView):
+class DepartmentMembershipCreateView(UserIsManagerMixin, CreateView):
     """Display department membership form to create object."""
     template_name = 'schedulingcalendar/departmentMembershipCreate.html'
     model = DepartmentMembership
@@ -1128,7 +1150,7 @@ class DepartmentMembershipCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class DepartmentMembershipDeleteView(DeleteView):
+class DepartmentMembershipDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete department membership object."""
     template_name = 'schedulingcalendar/departmentMembershipDelete.html'
     model = DepartmentMembership
@@ -1149,7 +1171,7 @@ class DepartmentMembershipDeleteView(DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DepartmentListView(ListView):
+class DepartmentListView(UserIsManagerMixin, ListView):
     """Display an alphabetical list of all departments for a managing user."""
     model = Department
     template_name = 'schedulingcalendar/departmentList.html'
@@ -1160,7 +1182,7 @@ class DepartmentListView(ListView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DepartmentUpdateView(UpdateView):
+class DepartmentUpdateView(UserIsManagerMixin, UpdateView):
     """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/departmentUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
@@ -1183,7 +1205,7 @@ class DepartmentUpdateView(UpdateView):
         
    
 @method_decorator(login_required, name='dispatch')
-class DepartmentCreateView(CreateView):
+class DepartmentCreateView(UserIsManagerMixin, CreateView):
     """Display department form to create object."""
     template_name = 'schedulingcalendar/departmentCreate.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
@@ -1197,7 +1219,7 @@ class DepartmentCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class DepartmentDeleteView(DeleteView):
+class DepartmentDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete department object."""
     template_name = 'schedulingcalendar/departmentDelete.html'
     success_url = reverse_lazy('schedulingcalendar:department_list')
@@ -1205,7 +1227,7 @@ class DepartmentDeleteView(DeleteView):
     
     
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueListView(ListView):
+class MonthlyRevenueListView(UserIsManagerMixin, ListView):
     """Display an alphabetical list of all departments for a managing user."""
     model = MonthlyRevenue
     template_name = 'schedulingcalendar/monthlyRevenueList.html'
@@ -1217,7 +1239,7 @@ class MonthlyRevenueListView(ListView):
         
         
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueUpdateView(UpdateView):
+class MonthlyRevenueUpdateView(UserIsManagerMixin, UpdateView):
     """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/monthlyRevenueUpdate.html'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
@@ -1240,7 +1262,7 @@ class MonthlyRevenueUpdateView(UpdateView):
         
    
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueCreateView(CreateView):
+class MonthlyRevenueCreateView(UserIsManagerMixin, CreateView):
     """Display department form to create object."""
     template_name = 'schedulingcalendar/monthlyRevenueCreate.html'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
@@ -1253,7 +1275,7 @@ class MonthlyRevenueCreateView(CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class MonthlyRevenueDeleteView(DeleteView):
+class MonthlyRevenueDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete department object."""
     template_name = 'schedulingcalendar/monthlyRevenueDelete.html'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
@@ -1261,7 +1283,7 @@ class MonthlyRevenueDeleteView(DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class BusinessDataUpdateView(UpdateView):
+class BusinessDataUpdateView(UserIsManagerMixin, UpdateView):
     """Display business data form to edit business settings."""
     template_name = 'schedulingcalendar/businessSettings.html'
     success_url = reverse_lazy('schedulingcalendar:business_update')

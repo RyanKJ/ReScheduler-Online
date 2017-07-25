@@ -1,0 +1,369 @@
+/* Remove link decorations
+--------------------------------------------------------------------------------------------------*/
+
+
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+
+
+/* Calendar Styling
+--------------------------------------------------------------------------------------------------*/
+
+#calendar {
+  margin: 0 auto;
+  visibility: hidden;
+}
+
+
+/* Calendar Toolbar Styling
+--------------------------------------------------------------------------------------------------*/
+
+.calendar-page-toolbar {
+  position: relative;
+  background-color: #0079D7;
+  margin-bottom: 15px;
+  height: 50px;
+  z-index: 100;
+}
+
+.calendar-page-toolbar h2 {
+  color: white;
+  display: inline;
+  padding-bottom: 15px;
+}
+
+.calendar-loader {
+    display: inline-block;
+    position: relative;
+    top: 7px;
+    vertical-align: middle;
+}
+
+.calendar-loader label,
+.calendar-loader input[type="button"],
+.calendar-loader input[type="submit"],
+.calendar-loader submit,
+.calendar-loader form,
+.calendar-loader div {
+    vertical-align: middle;
+}
+
+.calendar-loader label {
+  color: white;
+  font-size: 16px;
+  margin-left: 7px;
+}
+
+.select-cal-loader {
+  display: inline-block;
+  margin-left: 3px;
+  border: 3px solid white;
+  width: 120px;
+  overflow: hidden;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+.select-cal-loader select {
+    padding: 5px 8px;
+    width: 130%;
+    border: none;
+    box-shadow: none;
+    background: #0079D7;
+    background-image: none;
+    -webkit-appearance: none;
+    
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    -o-transition: all .3s ease;
+    -ms-transition: all .3s ease;
+    transition: all .3s ease;
+}
+
+.select-cal-loader select:hover {
+    background: #00BFFF;
+}
+
+
+.select-cal-loader select:focus {
+    outline: none;
+}
+
+.calendar-loader-btn {
+  margin-left: 15px;
+  background: transparent;
+  background-image: -webkit-linear-gradient(top, transparent, transparent);
+  background-image: -moz-linear-gradient(top, transparent, transparent);
+  background-image: -ms-linear-gradient(top, transparent, transparent);
+  background-image: -o-linear-gradient(top, transparent, transparent);
+  background-image: linear-gradient(to bottom, transparent, transparent);
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 4px 6px 4px 6px;
+  border: solid #ffffff 3px;
+  text-decoration: none;
+  
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+	transition: all .3s ease;
+}
+
+.calendar-push-btn:hover, .calendar-loader-btn:hover {
+  background: #00BFFF;
+  text-decoration: none;
+}
+
+.calendar-push-btn { 
+  position: relative;
+  right: 5px;
+  margin-left: 7px;
+  float: right;
+  display: inline-block;
+  top: -30px;
+  padding-right: 37px;
+  background: transparent;
+  background-image: -webkit-linear-gradient(top, transparent, transparent);
+  background-image: -moz-linear-gradient(top, transparent, transparent);
+  background-image: -ms-linear-gradient(top, transparent, transparent);
+  background-image: -o-linear-gradient(top, transparent, transparent);
+  background-image: linear-gradient(to bottom, transparent, transparent);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 4px 6px 4px 6px;
+  border: solid #ffffff 3px;
+  
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+	transition: all .3s ease;
+}
+
+
+.unactive-live {
+  background: transparent !important;
+  color: silver;
+  border-color: silver;
+}
+
+.select-cal-loader-checkbox {
+  display: inline-block;
+  width: 240px;
+  overflow: hidden;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+
+/* Schedule Editor styling
+--------------------------------------------------------------------------------------------------*/
+
+.schedule-editor {
+  margin-top: 62px;
+  margin-left: 4px;
+}
+
+
+/* Eligable list styling
+--------------------------------------------------------------------------------------------------*/
+
+.schedule-adder h1{
+  background: #ffc34d;
+  padding: 12px 0;
+  font-size: 180%;
+  font-weight: 300;
+  text-align: center;
+  color: #fff;
+  margin: -16px -16px 16px -16px;
+}
+
+#schedule-info {
+  visibility: hidden;
+}
+
+ul#eligable-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#eligable-list-header {
+    background: #0079D7;
+    padding: 4px 0;
+    margin-bottom: 0px;
+    font-size: 140%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+}
+
+li.eligable-list {
+  font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
+  border-bottom: 1px solid #ccc;
+  text-decoration: none;
+  color: #000;
+}
+
+li.eligable-list.curr-assigned-employee {
+  background: #59bcff;
+}
+
+li:last-child.eligable-list {
+  border: none;
+}
+
+li:hover.eligable-list:not(.curr-assigned-employee) {
+  background: #d1ecff;
+}
+
+
+/* Calendar costs styling
+--------------------------------------------------------------------------------------------------*/
+
+ul#cost-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#cost-header {
+    background: #0079D7;
+    padding: 4px 0;
+    margin-bottom: 0px;
+    font-size: 140%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+}
+
+li.cost-list {
+  font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+  text-decoration: none;
+  color: #000;
+}
+
+li:last-child.cost-list {
+  border: none;
+  font-weight: bold;
+}
+
+
+/* Scheduler adder styling
+--------------------------------------------------------------------------------------------------*/
+
+.schedule-adder h1{
+  background: #ffc34d;
+  padding: 12px 0;
+  font-size: 180%;
+  font-weight: 300;
+  text-align: center;
+  color: #fff;
+  margin: -16px -16px 16px -16px;
+}
+
+.schedule-adder{
+    font: 95% Arial, Helvetica, sans-serif;
+    margin: 10px auto;
+    padding: 16px;
+    background: #F7F7F7;
+}
+
+.schedule-adder h1{
+    background: #ffc34d;
+    padding: 12px 0;
+    font-size: 180%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+    margin: -16px -16px 16px -16px;
+}
+
+
+.schedule-adder input[type="text"],
+.schedule-adder input[type="date"],
+.schedule-adder input[type="datetime"],
+.schedule-adder input[type="email"],
+.schedule-adder input[type="number"],
+.schedule-adder input[type="search"],
+.schedule-adder input[type="time"],
+.schedule-adder input[type="url"],
+.schedule-adder textarea,
+.schedule-adder select
+{
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+    -ms-transition: all 0.30s ease-in-out;
+    -o-transition: all 0.30s ease-in-out;
+    outline: none;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 100%;
+    background: #fff;
+    margin-bottom: 4%;
+    border: 1px solid #ccc;
+    padding: 3%;
+    color: #555;
+    font: 95% Arial, Helvetica, sans-serif;
+}
+
+.schedule-adder input[type="text"]:focus,
+.schedule-adder input[type="date"]:focus,
+.schedule-adder input[type="datetime"]:focus,
+.schedule-adder input[type="email"]:focus,
+.schedule-adder input[type="number"]:focus,
+.schedule-adder input[type="search"]:focus,
+.schedule-adder input[type="time"]:focus,
+.schedule-adder input[type="url"]:focus,
+.schedule-adder textarea:focus,
+.schedule-adder select:focus
+{
+    box-shadow: 0 0 5px #43D1AF;
+    padding: 3%;
+    border: 1px solid #43D1AF;
+}
+
+.schedule-adder input[type="submit"],
+.schedule-adder input[type="button"]{
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 100%;
+    padding: 3%;
+    background: #ffc34d;
+    border-bottom: 2px solid #ffd480;
+    border-top-style: none;
+    border-right-style: none;
+    border-left-style: none;   
+    color: #fff;
+}
+
+.schedule-adder input[type="submit"]:hover,
+.schedule-adder input[type="button"]:hover{
+    background: #ffd480;
+}

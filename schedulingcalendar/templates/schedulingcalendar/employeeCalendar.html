@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css " media="print" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-print-custom.css' %}" media="print" />
-  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/calendar.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/employee.calendar.css' %}" />
 {% endblock stylesheets %}
 
 {% block content %}
@@ -26,17 +26,34 @@
                   onsubmit="return(validateGetCalendarForm())"
                   method="get">
               {% csrf_token %}
+              {{ live_calendar_form.department.errors }}
+              {{ live_calendar_form.department.label_tag }}
+              <div class="select-cal-loader">
+                {{ live_calendar_form.department }}
+              </div>
               
-              {% for field in live_calendar_form %}
-                {{ field.errors }}
-                {{ field.label_tag }} 
-                <div class="select-cal-loader">
-                  {{ field }}
+              {{ live_calendar_form.month.errors }}
+              {{ live_calendar_form.month.label_tag }}
+              <div class="select-cal-loader">
+                {{ live_calendar_form.month }}
+              </div>
+              
+              {{ live_calendar_form.year.errors }}
+              {{ live_calendar_form.year.label_tag }}
+              <div class="select-cal-loader">
+                {{ live_calendar_form.year }}
+              </div>
+              
+              <div class="select-cal-loader-checkbox">
+                <div class="checkbox-custom-container">
+                  <div class="checkbox-custom">
+                    {{ live_calendar_form.employee_only.errors }}
+                    {{ live_calendar_form.employee_only }}
+                    {{ live_calendar_form.employee_only.label_tag }}
+                  </div>
+                  <span class="checkbox-custom-text">Display Only My Schedules</span>
                 </div>
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-              {% endfor %}
+              </div>
               <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
             </form>
           </section>
