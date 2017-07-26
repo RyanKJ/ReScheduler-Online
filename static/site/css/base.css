@@ -77,7 +77,6 @@ main {
 	background: #fff;
 }
 
-
 .checkbox-custom input[type=checkbox]:checked + label {
 	left: 18px;
 	background: #0095FF;

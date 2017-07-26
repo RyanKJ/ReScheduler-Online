@@ -160,7 +160,6 @@ a:active {
 	transition: all .3s ease;
 }
 
-
 .unactive-live {
   background: transparent !important;
   color: silver;
@@ -170,11 +169,21 @@ a:active {
 .select-cal-loader-checkbox {
   display: inline-block;
   width: 240px;
+  max-height: 24px;
+  margin-left: 6px;
   overflow: hidden;
   background: transparent;
   color: white;
   font-size: 16px;
   font-weight: bold;
+}
+
+.checkbox-custom label { 
+  left: -2px;
+}
+
+.checkbox-custom input[type=checkbox]:checked + label {
+	left: 9px;
 }
 
 
