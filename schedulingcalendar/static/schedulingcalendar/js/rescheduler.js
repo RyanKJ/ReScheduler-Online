@@ -30,12 +30,15 @@ $(document).ready(function() {
   var $pushLive = $("#push-live");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
+  var $printDraftBtn = $("#print-draft-calendar");
+  var $printLiveBtn = $("#print-live-calendar");
   
 
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $pushLive.click(pushCalendarLive);
   $setActiveLive.click(SetActiveLiveCalendar);
-  $viewLive.click(ViewLiveCalendar);
+  $printDraftBtn.click(_printAfterWarning);
+  $printLiveBtn.click(_goToLiveAfterPrintWarning);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -51,7 +54,7 @@ $(document).ready(function() {
       },
       printCalendar: {
         text: "Print Draft",
-        click: print_calendar
+        click: printCalendar
       }
     },
         
@@ -268,23 +271,6 @@ $(document).ready(function() {
                successfulActiveStateSet);
       }
     }
-  }
-  
-  
-  /** Display calendar cost li elements. */
-  function ViewLiveCalendar(event) {
-    // Check to see if live calendar exists for date/dep and is live
-    if(calActive && calActive !== null) {
-        var FORMAT = "YYYY-MM-DD";
-        $.get("view_live_schedules",
-              {department: calDepartment, date: calDate.format(FORMAT)},
-               viewLiveCalendarSuccess);
-    }
-  }
-  
-  
-  function viewLiveCalendarSuccess(data) {
-    // Redirect to live calendar page
   }
   
   
@@ -728,8 +714,7 @@ $(document).ready(function() {
     // Enable remove button, new schedule is selected
     $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
   }
-    
-   
+  
 
   /** Tell server to remove schedule given its primary key. */
   function remove_schedule() {
@@ -767,12 +752,27 @@ $(document).ready(function() {
     
   
   /** Callback function for user to print calendar via print button on page */
-  function print_calendar() {
-    var print_draft = confirm("This is a draft version. " + 
-                              "If you wish to print the calendar employees will see online, " +
-                              "click the View Live Calendar button and print that page. " +
-                              "Print draft?");
+  function printCalendar() {
+    if(calActive) { 
+      // Show print warning modal
+      $printModal = $("#printModal");
+      $printModal.css("margin-top", Math.max(0, ($(window).height() - $printModal.height()) / 2));
+      $printModal.modal('show');
+    } else {
+      window.print();
+    }
+  }
+  
+  
+  /** Print draft calendar after user has been warned live version exists. */
+  function _printAfterWarning(event) {
     window.print();
+  }
+  
+  
+  /** Redirect user to live calendar to print most up to date live calendar. */
+  function _goToLiveAfterPrintWarning(event) {
+    $viewLive.click();
   }
   
     
