@@ -22,6 +22,7 @@ $(document).ready(function() {
   var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
   var $conflictAssignBtn = $("#conflict-assign-btn");
+  var $removeScheduleBtn = $("#remove-schedule-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
@@ -33,8 +34,8 @@ $(document).ready(function() {
   var $printDraftBtn = $("#print-draft-calendar");
   var $printLiveBtn = $("#print-live-calendar");
   
-
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
+  $removeScheduleBtn.click(_removeScheduleAfterWarning);
   $pushLive.click(pushCalendarLive);
   $setActiveLive.click(SetActiveLiveCalendar);
   $printDraftBtn.click(_printAfterWarning);
@@ -50,7 +51,7 @@ $(document).ready(function() {
     customButtons: {
       removeSchedule: {
         text: "Remove Schedule",
-        click: remove_schedule
+        click: removeSchedule
       },
       printCalendar: {
         text: "Print Draft",
@@ -716,18 +717,22 @@ $(document).ready(function() {
   }
   
 
-  /** Tell server to remove schedule given its primary key. */
-  function remove_schedule() {
-    var delete_schedule = confirm("Delete Schedule?");
-      
-    if (delete_schedule) {
-      var event_id = $(".fc-event-clicked").parent().data("event-id");
-      var calendarDate = $("#add-date").val();
-      if (event_id) {
-        $.post("remove_schedule", 
-               {schedule_pk: event_id, cal_date: calendarDate}, 
-               remove_event_after_delete);
-      }
+  /** Give user warning dialog to choose if they want to remove schedule. */
+  function removeSchedule() {
+    $removeModal = $("#removeModal");
+    $removeModal.css("margin-top", Math.max(0, ($(window).height() - $removeModal.height()) / 2));
+    $removeModal.modal('show');
+  }
+  
+  
+  /** Remove selected schedule after user has clicked okay on warning dialog. */
+  function _removeScheduleAfterWarning(event) {
+    var event_id = $(".fc-event-clicked").parent().data("event-id");
+    var calendarDate = $("#add-date").val();
+    if (event_id) {
+      $.post("remove_schedule", 
+             {schedule_pk: event_id, cal_date: calendarDate}, 
+             removeEventAfterDelete);
     }
   }
     
@@ -736,7 +741,7 @@ $(document).ready(function() {
    * Given successful response for deleting schedule, remove corresponding
    * event from fullCalendar.
    */
-  function remove_event_after_delete(data) {
+  function removeEventAfterDelete(data) {
     var info = JSON.parse(data);
     console.log(data);
     var schedulePk = info["schedule_pk"];
