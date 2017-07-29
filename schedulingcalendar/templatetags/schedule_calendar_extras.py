@@ -1,4 +1,5 @@
 from django import template
+from django.contrib.auth.models import Group 
 
 register = template.Library()
 
@@ -14,3 +15,9 @@ def int_to_weekday(value):
     """
     
     return WEEKDAYS[value]
+    
+    
+@register.filter(name='has_group') 
+def has_group(user, group_name):
+    """Checks if user is a manager user or not."""
+    return user.groups.filter(name=group_name).exists()
