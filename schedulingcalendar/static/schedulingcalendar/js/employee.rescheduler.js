@@ -106,7 +106,9 @@ $(document).ready(function() {
   $(".fc-swapSchedule-button").addClass("fc-state-disabled");
     
   // Turn loadSchedules into a callback function for the load-calendar-form
-  $("#load-calendar-form").ajaxForm(loadSchedules); 
+  var options = {success: loadSchedules,
+                 error: calendarNotFoundError}
+  $("#load-calendar-form").ajaxForm(options); 
   
       
   /**
@@ -174,6 +176,27 @@ $(document).ready(function() {
     $fullCal.fullCalendar("renderEvents", events);
 
     // Ensure calendar is visible once fully loaded
+    $fullCal.css("visibility", "visible");
+  }
+  
+  
+  /**
+   * Callback where user queries for calendar that does not exist
+   */
+  function calendarNotFoundError(jqXHR, exception) {
+    console.log(jqXHR);
+    console.log(exception);
+    alert("Calendar does not exist for this date and department.");
+    
+    // Clear any events to indicate no calendar for this date
+    var events = [];
+    $fullCal.fullCalendar("renderEvents", events);
+    
+    // Set calendar title to indicate it does not exist
+    //var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
+    //$(".fc-center").find("h2").text(cal_title);
+
+    // Ensure calendar is visible
     $fullCal.css("visibility", "visible");
   }
   

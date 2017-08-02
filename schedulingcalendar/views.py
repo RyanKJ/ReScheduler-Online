@@ -192,48 +192,53 @@ def get_live_schedules(request):
 
             # Get date month for calendar for queries
             cal_date = date(year, month, 1)
-            live_calendar = LiveCalendar.objects.get(user=manager_user, 
-                                                     date=cal_date, 
-                                                     department=department_id)
-            # Get schedule and employee models from database appropriate for calendar
-            if employee_only:
-                live_schedules = (LiveSchedule.objects.select_related('employee')
-                                              .filter(user=manager_user,
-                                                      employee=employee,
-                                                      calendar=live_calendar))
-            else: 
-                live_schedules = (LiveSchedule.objects.select_related('employee')
-                                              .filter(user=manager_user,
-                                                      calendar=live_calendar))      
-            employees = set()
-            for s in live_schedules:
-                if s.employee:
-                    employees.add(s.employee)
             
-            # Convert live_schedules and employees to dicts for json dump
-            schedules_as_dicts = []
-            employees_as_dicts = []
-            for s in live_schedules:
-                schedule_dict = model_to_dict(s)
-                schedules_as_dicts.append(schedule_dict)
-            for e in employees:
-                employee_dict = model_to_dict(e)
-                employees_as_dicts.append(employee_dict)
-            
-            # Get business data for display settings on calendar
-            business_data = (BusinessData.objects.get(user=manager_user))
-            business_dict = model_to_dict(business_data)
-              
-            # Combine all appropriate data into dict for serialization
-            combined_dict = {'date': cal_date.isoformat(), 
-                             'department': department_id,
-                             'schedules': schedules_as_dicts,
-                             'employees': employees_as_dicts,
-                             'version': live_calendar.version,
-                             'display_settings': business_dict}
-            combined_json = json.dumps(combined_dict, default=date_handler)
-            
-            return JsonResponse(combined_json, safe=False)
+            try:
+                live_calendar = LiveCalendar.objects.get(user=manager_user, 
+                                                         date=cal_date, 
+                                                         department=department_id)
+                # Get schedule and employee models from database appropriate for calendar
+                if employee_only:
+                    live_schedules = (LiveSchedule.objects.select_related('employee')
+                                                  .filter(user=manager_user,
+                                                          employee=employee,
+                                                          calendar=live_calendar))
+                else: 
+                    live_schedules = (LiveSchedule.objects.select_related('employee')
+                                                  .filter(user=manager_user,
+                                                          calendar=live_calendar))      
+                employees = set()
+                for s in live_schedules:
+                    if s.employee:
+                        employees.add(s.employee)
+                
+                # Convert live_schedules and employees to dicts for json dump
+                schedules_as_dicts = []
+                employees_as_dicts = []
+                for s in live_schedules:
+                    schedule_dict = model_to_dict(s)
+                    schedules_as_dicts.append(schedule_dict)
+                for e in employees:
+                    employee_dict = model_to_dict(e)
+                    employees_as_dicts.append(employee_dict)
+                
+                # Get business data for display settings on calendar
+                business_data = (BusinessData.objects.get(user=manager_user))
+                business_dict = model_to_dict(business_data)
+                  
+                # Combine all appropriate data into dict for serialization
+                combined_dict = {'date': cal_date.isoformat(), 
+                                 'department': department_id,
+                                 'schedules': schedules_as_dicts,
+                                 'employees': employees_as_dicts,
+                                 'version': live_calendar.version,
+                                 'display_settings': business_dict}
+                combined_json = json.dumps(combined_dict, default=date_handler)
+                
+                return JsonResponse(combined_json, safe=False)
+                
+            except LiveCalendar.DoesNotExist:
+                return HttpResponseNotFound('No calendar exists for this date and department.')
     
     else:
       # err_msg = "Year, Month, or Department was not selected."
