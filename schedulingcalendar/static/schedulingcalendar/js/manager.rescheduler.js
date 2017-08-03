@@ -103,7 +103,9 @@ $(document).ready(function() {
   $(".fc-swapSchedule-button").addClass("fc-state-disabled");
     
   // Turn loadSchedules into a callback function for the load-calendar-form
-  $("#load-calendar-form").ajaxForm(loadSchedules); 
+  var options = {success: loadSchedules,
+                 error: calendarNotFoundError}
+  $("#load-calendar-form").ajaxForm(options); 
   
       
   /**
@@ -175,11 +177,40 @@ $(document).ready(function() {
   }
   
   
+  /**
+   * Callback where user queries for calendar that does not exist
+   */
+  function calendarNotFoundError(jqXHR, exception) {
+    // Clear any events to indicate no calendar for this date
+    $fullCal.fullCalendar("removeEvents");
+    
+    // Ensure calendar is visible
+    $fullCal.css("visibility", "visible");
+    
+    // Set calendar title to indicate it does not exist
+    var cal_title = jqXHR.responseText
+    $(".fc-center").find("h2").text(cal_title);
+    
+    // Show no calendar alert modal
+    $noCalendarModal = $("#noCalendarModal");
+    $noCalendarModal.css("margin-top", Math.max(0, ($(window).height() - $noCalendarModal.height()) / 2));
+    $noCalendarModal.modal('show');
+  }
+  
+  
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));
   var m = liveCalDate.getMonth();
   var y = liveCalDate.getFullYear();
   var dep = $calendarLoaderForm.data("department");
+  
+  console.log("liveCalDate is:");
+  console.log(liveCalDate);
+  
+  console.log("m is:");
+  console.log(m);
+  console.log("y is:");
+  console.log(y);
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);

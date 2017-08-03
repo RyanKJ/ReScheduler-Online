@@ -1,6 +1,7 @@
 from django.core import serializers
 from django.shortcuts import render, redirect, get_list_or_404
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import (HttpResponseRedirect, HttpResponse, 
+                         HttpResponseNotFound, JsonResponse)
 from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib import messages
@@ -179,6 +180,8 @@ def get_live_schedules(request):
             manager_user = employee.user
             form = LiveCalendarForm(manager_user, request.GET)
             
+        print "********************** Is form valid?: ", form.is_valid()
+        print "********************** request get is: ", request.GET 
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
@@ -238,7 +241,10 @@ def get_live_schedules(request):
                 return JsonResponse(combined_json, safe=False)
                 
             except LiveCalendar.DoesNotExist:
-                return HttpResponseNotFound('No calendar exists for this date and department.')
+                department_name = Department.objects.get(pk=department_id).name
+                message = "No Schedules For " + department_name + " Calendar: " + cal_date.strftime("%B, %Y")
+                response = HttpResponseNotFound(message)
+                return response
     
     else:
       # err_msg = "Year, Month, or Department was not selected."

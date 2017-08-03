@@ -184,20 +184,20 @@ $(document).ready(function() {
    * Callback where user queries for calendar that does not exist
    */
   function calendarNotFoundError(jqXHR, exception) {
-    console.log(jqXHR);
-    console.log(exception);
-    alert("Calendar does not exist for this date and department.");
-    
     // Clear any events to indicate no calendar for this date
-    var events = [];
-    $fullCal.fullCalendar("renderEvents", events);
+    $fullCal.fullCalendar("removeEvents");
     
-    // Set calendar title to indicate it does not exist
-    //var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
-    //$(".fc-center").find("h2").text(cal_title);
-
     // Ensure calendar is visible
     $fullCal.css("visibility", "visible");
+    
+    // Set calendar title to indicate it does not exist
+    var cal_title = jqXHR.responseText
+    $(".fc-center").find("h2").text(cal_title);
+    
+    // Show no calendar alert modal
+    $noCalendarModal = $("#noCalendarModal");
+    $noCalendarModal.css("margin-top", Math.max(0, ($(window).height() - $noCalendarModal.height()) / 2));
+    $noCalendarModal.modal('show');
   }
   
   
