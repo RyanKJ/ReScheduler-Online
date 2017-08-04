@@ -28,7 +28,7 @@
             <form id="load-calendar-form"
                   action="{% url 'schedulingcalendar:get_live_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
-                  data-date="{{ date }}"
+                  data-date="{{ date|date:"Y-m-d" }}
                   data-department="{{ department }}"
                   data-department-name="{{ department_name }}"
                   method="get">

@@ -443,8 +443,11 @@ def view_live_schedules(request):
     logged_in_user = request.user
     if request.method == 'GET':
         form = ViewLiveCalendarForm(request.GET)
+        print "request get is: ", request.GET
         if form.is_valid():
             date = form.cleaned_data['date']
+            print "************* date for view live is: ", date
+            print "request get is: ", request.GET
             department_id = form.cleaned_data['department']
             try: # Get live_calendar to find out if calendar is active
                 live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
