@@ -200,17 +200,9 @@ $(document).ready(function() {
   
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));
-  var m = liveCalDate.getMonth();
+  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
   var y = liveCalDate.getFullYear();
   var dep = $calendarLoaderForm.data("department");
-  
-  console.log("liveCalDate is:");
-  console.log(liveCalDate);
-  
-  console.log("m is:");
-  console.log(m);
-  console.log("y is:");
-  console.log(y);
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);

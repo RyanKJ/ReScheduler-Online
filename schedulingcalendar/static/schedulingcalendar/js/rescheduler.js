@@ -29,6 +29,7 @@ $(document).ready(function() {
   var $viewLiveDate = $("#view-live-date");
   var $viewLiveDep = $("#view-live-department");
   var $pushLive = $("#push-live");
+  var $pushLiveAfterWarning = $("#push-calendar-after-warning-btn");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
   var $printDraftBtn = $("#print-draft-calendar");
@@ -37,6 +38,7 @@ $(document).ready(function() {
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(_removeScheduleAfterWarning);
   $pushLive.click(pushCalendarLive);
+  $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
   $setActiveLive.click(SetActiveLiveCalendar);
   $printDraftBtn.click(_printAfterWarning);
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
@@ -226,26 +228,35 @@ $(document).ready(function() {
   $("#id_year").val(y);
   $("#get-calendar-button").trigger("click");
   
-  /** Tell server to make current calendar state live for employee queries */
+  
+  /** Show user modal asking if they want to make current calendar state live. */
   function pushCalendarLive(event) {
-    var push_calendar = confirm("Make the current calendar live for employees?");
-    if (push_calendar) {
-      var FORMAT = "YYYY-MM-DD";
-      $.post("push_live",
-             {department: calDepartment, date: calDate.format(FORMAT)},
-              successfulCalendarPush);
-    }
+    $pushModal = $("#pushModal");
+    $pushModal.css("margin-top", Math.max(0, ($(window).height() - $pushModal.height()) / 2));
+    $pushModal.modal('show');
   }
+  
+  
+  /** Tell server to make current calendar state live for employee queries */
+  function _pushCalendarAfterWarning(event) {
+    var FORMAT = "YYYY-MM-DD";
+    $.post("push_live",
+           {department: calDepartment, date: calDate.format(FORMAT)},
+            successfulCalendarPush);
+  }
+  
   
   /** Inform user that the calendar was succesfully made live. */
   function successfulCalendarPush(data) {
     var info = JSON.parse(data);
-    var msg = info["message"];
     calActive = true;
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
     console.log(data);
-    alert(msg);
+    // Inform user of successful push
+    $successfulPushModal = $("#successfulPushModal");
+    $successfulPushModal.css("margin-top", Math.max(0, ($(window).height() - $successfulPushModal.height()) / 2));
+    $successfulPushModal.modal('show');
   }
   
   
