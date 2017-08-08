@@ -178,13 +178,12 @@ class BusinessData(models.Model):
     
     #TODO:
     #1) Add timezone of managing user
-    #2) Add last calendar loaded state
-    #3) Add time interval for timepicker option for user
-    #4) Display costs disable/enable option
-    #5) Limit amount of employees displayable in eligable list option
-    #6) 24 hour time option
-    #7) Count overlapping time or not?
-    #8) Option to customize eligable sort?
+    #2) Add time interval for timepicker option for user
+    #3) Display costs disable/enable option
+    #4) Limit amount of employees displayable in eligable list option
+    #5) 24 hour time option
+    #6) Count overlapping time or not?
+    #7) Option to customize eligable sort?
     
     # Business Settings
     overtime = models.IntegerField('Overtime In Hours', default=40)

@@ -60,14 +60,20 @@ def login_success(request):
 def calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
+    template = loader.get_template('schedulingcalendar/calendar.html')
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm
-    template = loader.get_template('schedulingcalendar/calendar.html')
+    business_data = BusinessData.objects.get(user=logged_in_user)
+    date = business_data.last_cal_date_loaded
+    department = business_data.last_cal_department_loaded
+    
     context = {'calendar_form': calendar_form, 
                'add_sch_form': add_schedule_form,
-               'view_live_form': view_live_form}
+               'view_live_form': view_live_form,
+               'date': date,
+               'department': department.id}
 
     return HttpResponse(template.render(context, request))
     
@@ -140,8 +146,14 @@ def get_schedules(request):
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
             
             # Get business data for display settings on calendar
-            business_data = (BusinessData.objects.get(user=logged_in_user))
+            business_data = BusinessData.objects.get(user=logged_in_user)
             business_dict = model_to_dict(business_data)
+            
+            # Use business data to remember last calendar loaded by user
+            business_data.last_cal_date_loaded = cal_date
+            department = Department.objects.get(pk=department_id)
+            business_data.last_cal_department_loaded = department
+            business_data.save()
               
             # Combine all appropriate data into dict for serialization
             combined_dict = {'date': cal_date.isoformat(), 
@@ -179,9 +191,6 @@ def get_live_schedules(request):
                                     .get(employee_user=logged_in_user))
             manager_user = employee.user
             form = LiveCalendarForm(manager_user, request.GET)
-            
-        print "********************** Is form valid?: ", form.is_valid()
-        print "********************** request get is: ", request.GET 
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']

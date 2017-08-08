@@ -31,6 +31,8 @@
             <form id="load-calendar-form"
                   action="{% url 'schedulingcalendar:get_schedules' %}"
                   onsubmit="return(validateGetCalendarForm())"
+                  data-date="{{ date|date:"Y-m-d" }}"
+                  data-department="{{ department }}"
                   method="get">
               {% csrf_token %}
               

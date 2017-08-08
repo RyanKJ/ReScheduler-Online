@@ -21,6 +21,7 @@ $(document).ready(function() {
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $eligableList = $("#eligable-list");
+  var $calendarLoaderForm = $("#load-calendar-form");
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $removeScheduleBtn = $("#remove-schedule-btn");
   var $costList =  $("#cost-list");
@@ -217,16 +218,18 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
-  
-  
+
+
   // Load schedule upon loading page relative to current date
-  var nowDate = new Date();
-  var m = nowDate.getMonth();
-  var y = nowDate.getFullYear();
+  var liveCalDate = new Date($calendarLoaderForm.data("date"));
+  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
+  var y = liveCalDate.getFullYear();
+  var dep = $calendarLoaderForm.data("department");
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
-  $("#get-calendar-button").trigger("click");
+  $("#id_department").val(dep);
+  $("#get-calendar-button").trigger("click"); 
   
   
   /** Show user modal asking if they want to make current calendar state live. */
