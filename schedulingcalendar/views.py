@@ -53,6 +53,22 @@ def login_success(request):
         return redirect("/calendar/") # Manager page
     else:
         return redirect("/live_calendar/") 
+        
+        
+def signup(request):
+    """Signup form for manager users"""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
 
 @login_required
@@ -60,14 +76,40 @@ def login_success(request):
 def calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
+    
+    # Check that user has at least 1 department before loading calendar
+    departments = Department.objects.filter(user=logged_in_user)
+    if not departments:
+        return redirect('/departments/')
+    
     template = loader.get_template('schedulingcalendar/calendar.html')
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm
+    
+    btest = BusinessData.objects.all()
+    print "***************** all business_data is: ", btest
+    #print "***************** business_data.last_calendar is: ", business_data.last_cal_department_loaded
+    
+    
+    
     business_data = BusinessData.objects.get(user=logged_in_user)
-    date = business_data.last_cal_date_loaded
-    department = business_data.last_cal_department_loaded
+    
+    print "***************** business_data is: ", business_data
+    print "***************** business_data.last_calendar is: ", business_data.last_cal_department_loaded
+    
+    # If user has previously loaded a calendar, load that calendar. Otherwise,
+    # load the current date and first department found in query
+    if business_data.last_cal_date_loaded:
+        date = business_data.last_cal_date_loaded
+    else:
+        date = datetime.now()
+        
+    if business_data.last_cal_department_loaded:
+        department = business_data.last_cal_department_loaded
+    else:
+        department = departments.first()
     
     context = {'calendar_form': calendar_form, 
                'add_sch_form': add_schedule_form,
@@ -509,7 +551,6 @@ class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
                                            user=self.request.user)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        print "************** object in get request method is: ", self.object
         context = self.get_context_data(object=self.object, form=form)
         return self.render_to_response(context)
 
@@ -1199,6 +1240,18 @@ class DepartmentListView(UserIsManagerMixin, ListView):
         
     def get_queryset(self):
         return Department.objects.filter(user=self.request.user).order_by('name')
+        
+        
+    def get_context_data(self, **kwargs):
+        """Add warning message to user if no departments currently exist."""
+        context = super(DepartmentListView, self).get_context_data(**kwargs)
+        
+        departments = Department.objects.filter(user=self.request.user)
+        if not departments:
+            warning_msg = "You have not created any departments. Please create at least one department before creating a calendar."
+            context['warning_msg'] = warning_msg
+                                                        
+        return context
         
         
 @method_decorator(login_required, name='dispatch')

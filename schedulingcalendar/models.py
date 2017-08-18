@@ -99,8 +99,6 @@ class LiveCalendar(models.Model):
     
     def __str__(self):
         date_str = self.date.strftime("%B %d")
-        
-        
         return "Department: " + self.department.name + " " + date_str
     
     
@@ -201,6 +199,6 @@ class BusinessData(models.Model):
     display_first_char_last_name = models.BooleanField(default=False)
     
     # Last calendar loaded of manager user
-    last_cal_date_loaded = models.DateField('last_cal_date', default=date.today)
-    last_cal_department_loaded = models.ForeignKey(Department, default=1, null=True)
+    last_cal_date_loaded = models.DateField('last_cal_date', default=date.today, null=True)
+    last_cal_department_loaded = models.ForeignKey(Department, default=1, on_delete=models.SET_NULL, null=True)
     
