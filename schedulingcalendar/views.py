@@ -5,8 +5,9 @@ from django.http import (HttpResponseRedirect, HttpResponse,
 from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.utils.decorators import method_decorator
@@ -55,7 +56,7 @@ def login_success(request):
         return redirect("/live_calendar/") 
         
         
-def signup(request):
+def register(request):
     """Signup form for manager users"""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -64,11 +65,17 @@ def signup(request):
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
+            # Create business logic for user
+            business_data = BusinessData.objects.create(user)
+            # Add user to manager group for permissions
+            manager_user_group = Group.objects.get(name="Managers")
+            user.groups.add(employee_user_group)
+            # Log user in and redirect to department page to create 1st dep
             login(request, user)
-            return redirect('home')
+            return redirect('/departments/')
     else:
         form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
+    return render(request, 'registration/signUp.html', {'form': form})
 
 
 @login_required
@@ -87,18 +94,6 @@ def calendar_page(request):
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm
-    
-    btest = BusinessData.objects.all()
-    print "***************** all business_data is: ", btest
-    #print "***************** business_data.last_calendar is: ", business_data.last_cal_department_loaded
-    
-    
-    
-    business_data = BusinessData.objects.get(user=logged_in_user)
-    
-    print "***************** business_data is: ", business_data
-    print "***************** business_data.last_calendar is: ", business_data.last_cal_department_loaded
-    
     # If user has previously loaded a calendar, load that calendar. Otherwise,
     # load the current date and first department found in query
     if business_data.last_cal_date_loaded:
