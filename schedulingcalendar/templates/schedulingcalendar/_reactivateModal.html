@@ -1,0 +1,32 @@
+<!-- Modal -->
+<div id="reactivateLive" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title text-center">Reactivate The Live Calendar?</h4>
+      </div>
+      
+      <div class="modal-body">
+        <div class="text-center">
+          <p>Employees will be able to see schedules of last pushed calendar 
+             for this date and department.</p>
+          <p>Note that this is not necessarily the current state of the draft 
+             calendar! Use Push Live button if you wish employees to see the 
+             current state of the calendar you have created.</p>
+        
+          <button type="button" 
+                  class="btn btn-default"   
+                  data-dismiss="modal">Do Not Reactivate</button>
+                  
+          <button type="button" 
+                  class="btn btn-danger"
+                  id="push-calendar-after-warning-btn"
+                  data-dismiss="modal">Reactivate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

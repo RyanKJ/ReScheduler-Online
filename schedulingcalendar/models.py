@@ -187,7 +187,7 @@ class BusinessData(models.Model):
     overtime = models.IntegerField('Overtime In Hours', default=40)
     overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
     workweek_weekday_start = models.IntegerField('weekday', default=0)
-    workweek_time_start = models.TimeField('start time', time(0, 0, 0))
+    workweek_time_start = models.TimeField('start time', default=time(0, 0, 0))
     min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability', 
                                            default=5)
     break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
@@ -200,5 +200,5 @@ class BusinessData(models.Model):
     
     # Last calendar loaded of manager user
     last_cal_date_loaded = models.DateField('last_cal_date', default=date.today, null=True)
-    last_cal_department_loaded = models.ForeignKey(Department, default=1, on_delete=models.SET_NULL, null=True)
+    last_cal_department_loaded = models.ForeignKey(Department, default=None, on_delete=models.SET_NULL, null=True)
     

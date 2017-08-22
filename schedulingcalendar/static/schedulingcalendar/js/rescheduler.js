@@ -31,6 +31,8 @@ $(document).ready(function() {
   var $viewLiveDep = $("#view-live-department");
   var $pushLive = $("#push-live");
   var $pushLiveAfterWarning = $("#push-calendar-after-warning-btn");
+  var $deactivateLive = $("#deactivateLive");
+  var $reactivateLive = $("#reactivateLive");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
   var $printDraftBtn = $("#print-draft-calendar");

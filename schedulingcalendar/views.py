@@ -51,10 +51,10 @@ def manager_check(user):
 def login_success(request):
     """Redirect user based on if they are manager or employee."""
     if manager_check(request.user):
-        return redirect("/calendar/") # Manager page
+        return redirect("/calendar/") # Manager calendar
     else:
-        return redirect("/live_calendar/") 
-        
+        return redirect("/live_calendar/") # Employee calendar
+
         
 def register(request):
     """Signup form for manager users"""
@@ -66,10 +66,11 @@ def register(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             # Create business logic for user
-            business_data = BusinessData.objects.create(user)
+            business_data = BusinessData(user=user)
+            business_data.save()
             # Add user to manager group for permissions
             manager_user_group = Group.objects.get(name="Managers")
-            user.groups.add(employee_user_group)
+            user.groups.add(manager_user_group)
             # Log user in and redirect to department page to create 1st dep
             login(request, user)
             return redirect('/departments/')
@@ -96,6 +97,7 @@ def calendar_page(request):
     view_live_form = ViewLiveCalendarForm
     # If user has previously loaded a calendar, load that calendar. Otherwise,
     # load the current date and first department found in query
+    business_data = BusinessData.objects.get(user=logged_in_user)
     if business_data.last_cal_date_loaded:
         date = business_data.last_cal_date_loaded
     else:

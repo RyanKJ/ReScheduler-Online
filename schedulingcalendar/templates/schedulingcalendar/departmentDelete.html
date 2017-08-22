@@ -9,7 +9,8 @@
 
 {% block form_content %}
   <div class="text-center">
-    <h4 class="card-title text-center">Are You Sure You Want To Delete This Department?</h4>
+    <h3 class="card-title text-center">Are You Sure You Want To Delete This Department?</h3>
+    <h4>If you delete this department, all associated draft and live schedules will be lost!</h4>
       <form id="delete-department-form"
             name= "DeleteDepartmentForm"
             action="{% url 'schedulingcalendar:department_delete' department.id %}"
