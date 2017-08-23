@@ -31,8 +31,9 @@ $(document).ready(function() {
   var $viewLiveDep = $("#view-live-department");
   var $pushLive = $("#push-live");
   var $pushLiveAfterWarning = $("#push-calendar-after-warning-btn");
-  var $deactivateLive = $("#deactivateLive");
-  var $reactivateLive = $("#reactivateLive");
+  var $deactivateLiveAfterWarning = $("#deactivate-warning-btn");
+  var $reactivateLiveAfterWarning = $("#reactivate-warning-btn");
+  var $successfulLiveCalMsg = $("#successful-live-cal-change");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
   var $printDraftBtn = $("#print-draft-calendar");
@@ -42,6 +43,8 @@ $(document).ready(function() {
   $removeScheduleBtn.click(_removeScheduleAfterWarning);
   $pushLive.click(pushCalendarLive);
   $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
+  $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
+  $reactivateLiveAfterWarning.click(_SetActivityAfterWarning);
   $setActiveLive.click(SetActiveLiveCalendar);
   $printDraftBtn.click(_printAfterWarning);
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
@@ -149,7 +152,6 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
-    console.log(info);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
     
@@ -251,14 +253,20 @@ $(document).ready(function() {
   }
   
   
-  /** Inform user that the calendar was succesfully made live. */
+  /** Inform user that the calendar was succesfully pushed. */
   function successfulCalendarPush(data) {
     var info = JSON.parse(data);
     calActive = true;
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
-    console.log(data);
-    // Inform user of successful push
+    var msg = info["message"];
+    successfulLiveCalStateChange(msg);
+  }
+  
+  
+  /** Show user modal to indicate successful change to live calendar */
+  function successfulLiveCalStateChange(msg) {
+    $successfulLiveCalMsg.text(msg);
     $successfulPushModal = $("#successfulPushModal");
     $successfulPushModal.css("margin-top", Math.max(0, ($(window).height() - $successfulPushModal.height()) / 2));
     $successfulPushModal.modal('show');
@@ -266,27 +274,38 @@ $(document).ready(function() {
   
   
   /** 
-   * Set active state of live calendar to opposite of current state. In the 
-   * case a live calendar instance doesn't exist yet for given date and 
-   * department, do nothing.
+   * Warn user about changing active state of live calendar. If user still
+   * clicks okay, commit change to the activity state of the live calendar.
    */
   function SetActiveLiveCalendar(event) {
     // Check to see if live calendar exists for date/dep
     if(calActive !== null) {
-      var msg = "Reactivate the live calendar?";
+      // Show user warning modal before committing to change with live calendar
+      if (calActive) {
+        $deactivateModal = $("#deactivateLive");
+        $deactivateModal.css("margin-top", Math.max(0, ($(window).height() - $deactivateModal.height()) / 2));
+        $deactivateModal.modal('show');
+      } else {
+        $reactivateModal = $("#reactivateLive");
+        $reactivateModal.css("margin-top", Math.max(0, ($(window).height() - $reactivateModal.height()) / 2));
+        $reactivateModal.modal('show');
+      }
+    }
+  }
+  
+  
+  /** Set the activity state of live calendar after warning. */
+  function _SetActivityAfterWarning(event) {
+    if(calActive !== null) {
       var newCalActive = true;
       // Live calendar exists, so set newCalActive to opposite of current state
       if (calActive) {
-        msg = "Deactivate the live calendar?"
         newCalActive = false;
       }
-      var changeActiveState = confirm(msg);
-      if (changeActiveState) {
-        var FORMAT = "YYYY-MM-DD";
-        $.post("set_active_state",
-               {department: calDepartment, date: calDate.format(FORMAT), active: newCalActive},
-               successfulActiveStateSet);
-      }
+      var FORMAT = "YYYY-MM-DD";
+      $.post("set_active_state",
+             {department: calDepartment, date: calDate.format(FORMAT), active: newCalActive},
+              successfulActiveStateSet);
     }
   }
   
@@ -301,7 +320,7 @@ $(document).ready(function() {
     calActive = info["is_active"];
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
-    alert(msg);
+    successfulLiveCalStateChange(msg);
   }
   
   
@@ -759,7 +778,6 @@ $(document).ready(function() {
    */
   function removeEventAfterDelete(data) {
     var info = JSON.parse(data);
-    console.log(data);
     var schedulePk = info["schedule_pk"];
     $fullCal.fullCalendar("removeEvents", schedulePk);
     // Clear out eligable list

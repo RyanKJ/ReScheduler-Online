@@ -436,7 +436,7 @@ def push_live(request):
                 live_calendar.version += 1
                 live_calendar.save()
                 
-            json_info = json.dumps({'message': 'Successfully pushed calendar live.'})
+            json_info = json.dumps({'message': 'Successfully pushed calendar live!'})
             return JsonResponse(json_info, safe=False)
         
         json_info = json.dumps({'message': 'Failed to push calendar live.'})
@@ -465,7 +465,7 @@ def set_active_state(request):
               live_calendar.save()
               # Return success message
               if new_active_state:
-                  message = 'Successfully reactivated the live calendar.'
+                  message = 'Successfully reactivated the live calendar!'
                   active_state = True
               else:
                   message = 'Successfully deactivated the live calendar.'

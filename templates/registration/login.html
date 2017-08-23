@@ -1,14 +1,23 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load widget_tweaks %}
 
 {% block title %}Login{% endblock %}
 
-{% block content %}
-  <div class="container login">
-    <h2>Login</h2>
+{% block form_content %}
+    <h3 class="card-title text-center">Login</h3>
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Login</button>
+      
+      {% for field in form %}
+        <div class="form-group">
+          {{ field.errors }}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field|add_class:'form-control' }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <input type="submit" class="btn btn-primary" value="Login">
     </form>
-  </div>
-{% endblock content %}
+{% endblock form_content %}

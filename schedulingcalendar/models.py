@@ -41,9 +41,14 @@ class Department(models.Model):
 class DepartmentMembership(models.Model):
     """Representation of relationship between an employee and department."""
     user = models.ForeignKey(User)
+    
+    def limit_dep_choices():
+        """Limit departments for membership to user that owns employee."""
+        return Department.objects.filter(user=self.user)
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department,  
+                                   on_delete=models.CASCADE)
     # Integer used to determine if this is a primary (0th tier) or secondary
     # department for the employee (1st, 2nd, ... tier)
     priority = models.IntegerField('Department priority for employee', default=0)
