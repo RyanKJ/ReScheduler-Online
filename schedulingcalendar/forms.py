@@ -1,8 +1,8 @@
 from django import forms
 from datetime import datetime
-from .models import (Employee, Department, Vacation, Absence,
-                     RepeatUnavailability, DesiredTime, MonthlyRevenue,
-                     BusinessData)
+from .models import (Employee, Department, DepartmentMembership, 
+                     Vacation, Absence, RepeatUnavailability, DesiredTime, 
+                     MonthlyRevenue, BusinessData)
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -196,6 +196,18 @@ class AddScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", 
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
+                
+                
+class DepartmentMembershipForm(forms.ModelForm):
+    """Form for creating and editing department memberships."""                                                                               
+    def __init__(self, user, *args, **kwargs):
+        super(DepartmentMembershipForm, self).__init__(*args, **kwargs)
+        self.fields['department'].queryset = Department.objects.filter(user=user)
+                                
+                                
+    class Meta:
+        model = DepartmentMembership
+        fields = ['department', 'priority', 'seniority']
                                   
                                   
 class VacationForm(forms.ModelForm):

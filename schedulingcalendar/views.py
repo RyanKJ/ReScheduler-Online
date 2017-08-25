@@ -27,7 +27,8 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
-                    SetActiveStateLiveCalForm, ViewLiveCalendarForm)
+                    SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
+                    DepartmentMembershipForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -1143,7 +1144,13 @@ class DesiredTimeDeleteView(UserIsManagerMixin, DeleteView):
 class DepartmentMembershipUpdateView(UserIsManagerMixin, UpdateView):
     """Display department membership form to edit existing object."""
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
-    fields = ['department', 'priority', 'seniority']
+    form_class = DepartmentMembershipForm
+    
+    def get_form_kwargs(self):
+        """Set user as a value in kwargs dictionary."""
+        kwargs = super(DepartmentMembershipUpdateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
     
     
     def get(self, request, **kwargs):
@@ -1180,8 +1187,13 @@ class DepartmentMembershipUpdateView(UserIsManagerMixin, UpdateView):
 class DepartmentMembershipCreateView(UserIsManagerMixin, CreateView):
     """Display department membership form to create object."""
     template_name = 'schedulingcalendar/departmentMembershipCreate.html'
-    model = DepartmentMembership
-    fields = ['department', 'priority', 'seniority']
+    form_class = DepartmentMembershipForm
+    
+    def get_form_kwargs(self):
+        """Set user as a value in kwargs dictionary."""
+        kwargs = super(DepartmentMembershipCreateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
               
               
     def form_valid(self, form):
@@ -1205,8 +1217,8 @@ class DepartmentMembershipCreateView(UserIsManagerMixin, CreateView):
         """Return to employee's page after editing associated employee info."""
         return reverse_lazy('schedulingcalendar:employee_info', 
                             kwargs={'employee_pk': self.kwargs['employee_pk']})
-        
-        
+                            
+           
 @method_decorator(login_required, name='dispatch') 
 class DepartmentMembershipDeleteView(UserIsManagerMixin, DeleteView):
     """Display a delete form to delete department membership object."""
