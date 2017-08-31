@@ -4,38 +4,53 @@ from django.test import Client
 from .models import (Schedule, Department, DepartmentMembership, 
                      Employee, Vacation, RepeatUnavailability)
 from .business_logic import get_availability
+from datetime import datetime, date, timedelta
 
 
-def create_question(question_text, days):
-    """
-    Creates a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
-    """
-    time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)        
+def create_employee(user, first_name='A', last_name='1', email="a@a.com", 
+                    employee_id=1, wage=1, desired_hours=40, monthly_medical=0,
+                    workmans_comp=7.5, social_security=7.5):
+    """Creates an employee given a user, with the option to customize employee."""
+    employee = Employee.objects.create(user=user, first_name=first_name, last_name=last_name, 
+                                       email=email, employee_id=employee_id, wage=wage, 
+                                       desired_hours=desired_hours, monthly_medical=monthly_medical,
+                                       workmans_comp=workmans_comp, social_security=social_security)
+    return employee
+    
+    
+def create_department(user, name='TestDep'):
+    """Creates a department with optional customization of name."""
+    return Department.objects.create(user=user, name=name)
+    
+    
+def create_schedule(user, start_dt, end_dt, department, hide_start_time=False, 
+                    hide_end_time=False, employee=None):
+    """Creates a schedule with optional customization."""
+    schedule = Schedule(user=user, start_datetime=start_dt, end_datetime=end_dt,
+                 hide_start_time=hide_start_time, hide_end_time=hide_end_time,
+                 department=department, employee=employee)      
+
+    return schedule
                      
                      
 class GetAvailabilityTest(TestCase):
 
     def setUp(self):
+        """Create users, departments, employee and schedule objects necessary
+        to execute the get_availability function.
+        """
         user = User.objects.create(username='testuser')
         user.set_password('12345')
         user.save()
-
-        c = Client()
-        logged_in = c.login(username='testuser', password='12345')
         
-        #Employee.objects.create(name="lion", sound="roar")
-        #Department.objects.create(user=logged_in, name="TestDep")
-        #DepartmentMembership.objects.create()
-        
-        Schedule(user=logged_in,
-                 start_datetime=start_dt, end_datetime=end_dt,
-                 hide_start_time=False,
-                 hide_end_time=False,
-                 department=dep)
-    
+        # Create employee, a 1-hour schedule, then assign employee to schedule
+        department = create_department(user)                     
+        employee = create_employee(user)
+        start_dt = datetime(2017, 1, 1, 0, 0, 0)
+        end_dt = datetime(2017, 1, 1, 1, 0, 0)
+        schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                   department=department, employee=employee)
+                                   
     
     def test_no_conflicts(self):
         """Case where there are no conflicts in availability."""
