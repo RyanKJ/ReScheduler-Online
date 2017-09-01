@@ -1,8 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test import Client
-from .models import (Schedule, Department, DepartmentMembership, 
-                     Employee, Vacation, RepeatUnavailability)
+from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
+                     Employee, Vacation, RepeatUnavailability, BusinessData,
+                     Absence, DesiredTime, LiveSchedule, LiveCalendar)
 from .business_logic import get_availability
 from datetime import datetime, date, timedelta
 
@@ -23,12 +24,18 @@ def create_department(user, name='TestDep'):
     return Department.objects.create(user=user, name=name)
     
     
+def create_business_data(user):
+    """Creates a business data object for user."""
+    return BusinessData.objects.create(user=user)
+    
+    
 def create_schedule(user, start_dt, end_dt, department, hide_start_time=False, 
                     hide_end_time=False, employee=None):
     """Creates a schedule with optional customization."""
-    schedule = Schedule(user=user, start_datetime=start_dt, end_datetime=end_dt,
-                 hide_start_time=hide_start_time, hide_end_time=hide_end_time,
-                 department=department, employee=employee)      
+    schedule = Schedule.objects.create(user=user, start_datetime=start_dt, 
+                                       end_datetime=end_dt, hide_start_time=hide_start_time, 
+                                       hide_end_time=hide_end_time,
+                                       department=department, employee=employee)      
 
     return schedule
                      
@@ -44,6 +51,7 @@ class GetAvailabilityTest(TestCase):
         user.save()
         
         # Create employee, a 1-hour schedule, then assign employee to schedule
+        business_data = create_business_data(user)
         department = create_department(user)                     
         employee = create_employee(user)
         start_dt = datetime(2017, 1, 1, 0, 0, 0)
@@ -54,7 +62,19 @@ class GetAvailabilityTest(TestCase):
     
     def test_no_conflicts(self):
         """Case where there are no conflicts in availability."""
-        pass
+        test_avail = {'(S)': Schedule.objects.none(), 
+                      '(V)': Vacation.objects.none(), 
+                      '(A)': Absence.objects.none(), 
+                      '(U)': RepeatUnavailability.objects.none(), 
+                      'Desired Times': DesiredTime.objects.none(), 
+                      'Hours Scheduled': 2,
+                      '(O)': False} 
+                      
+        employee = Employee.objects.first()
+        schedule = Schedule.objects.first()
+        availability = get_availability(employee, schedule)
+        
+        self.assertEqual(availability, test_avail)
         
         
     def test_schedule_conflict(self):
