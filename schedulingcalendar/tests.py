@@ -61,25 +61,41 @@ class GetAvailabilityTest(TestCase):
                                    
     
     def test_no_conflicts(self):
-        """Case where there are no conflicts in availability."""
-        test_avail = {'(S)': Schedule.objects.none(), 
-                      '(V)': Vacation.objects.none(), 
-                      '(A)': Absence.objects.none(), 
-                      '(U)': RepeatUnavailability.objects.none(), 
-                      'Desired Times': DesiredTime.objects.none(), 
-                      'Hours Scheduled': 2,
-                      '(O)': False} 
-                      
+        """Case where there are no conflicts in availability."""          
         employee = Employee.objects.first()
         schedule = Schedule.objects.first()
         availability = get_availability(employee, schedule)
         
-        self.assertEqual(availability, test_avail)
+        self.assertEqual(list(availability['(S)']), [])
+        self.assertEqual(list(availability['(V)']), [])
+        self.assertEqual(list(availability['(A)']), [])
+        self.assertEqual(list(availability['(U)']), [])
+        self.assertEqual(list(availability['Desired Times']), [])
+        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['(O)'], False)
         
         
     def test_schedule_conflict(self):
         """Case where there is a schedule conflict in availability."""
-        pass
+        user = User.objects.first()
+        employee = Employee.objects.first()
+        department = Department.objects.first()
+        schedule_conflict = Schedule.objects.first()
+        
+        # Make an overlapping schedule to assign employee to:
+        start_dt = datetime(2017, 1, 1, 0, 59, 59)
+        end_dt = datetime(2017, 1, 1, 1, 0, 1)
+        schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                   department=department, employee=employee)
+        availability = get_availability(employee, schedule)          
+
+        self.assertEqual(list(availability['(S)']), [schedule_conflict])
+        self.assertEqual(list(availability['(V)']), [])
+        self.assertEqual(list(availability['(A)']), [])
+        self.assertEqual(list(availability['(U)']), [])
+        self.assertEqual(list(availability['Desired Times']), [])
+        self.assertEqual(availability['Hours Scheduled'], 1)
+        self.assertEqual(availability['(O)'], False)
     
     
     def test_vacation_conflict(self):
