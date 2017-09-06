@@ -63,14 +63,35 @@ def create_unav_repeat(user, employee, start, end, weekday):
                                                       employee=employee)      
 
     return unav_repeat
+    
+    
+def create_desired_time(user, employee, start, end, weekday):
+    """Creates a repeating desired time with optional customization."""
+    desired_time = DesiredTime.objects.create(user=user, start_time=start, 
+                                             end_time=end, weekday=weekday,
+                                             employee=employee)      
+
+    return desired_time
                      
                      
 class GetAvailabilityTest(TestCase):
+    """Test class for the get_availability function.
+
+    The get_availability function returns a dictionary of string keys that map
+    to querysets of conflicts, a boolean indicating if employee is in overtime, 
+    and a floating number of how many hours the employee will be working if 
+    assigned to the schedule supplied as an argument in the get_availability
+    function.
+    
+    These tests test each of these dictionary key values outputted by get_availability.
+    """
 
     def setUp(self):
-        """Create users, departments, employee and schedule objects necessary
+        """
+        Create users, departments, employee and schedule objects necessary
         to execute the get_availability function.
         """
+        
         user = User.objects.create(username='testuser')
         user.set_password('12345')
         user.save()
@@ -191,6 +212,87 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(availability['(O)'], False)
         
         
+    def test_desired_time_overlap(self):
+        """Case where employee's desired time overlaps with schedule"""
+        user = User.objects.first()
+        employee = Employee.objects.first()
+        department = Department.objects.first()
+        schedule_conflict = Schedule.objects.first()
+        
+        # Make an overlapping schedule to assign employee to:
+        start = time(6, 59, 59) # Set to 6 for UTC offset of CST
+        end = time(6, 0, 1) 
+        weekday = 0
+        desired_time = create_desired_time(user, start=start, end=end, 
+                                          weekday=weekday, employee=employee)
+        availability = get_availability(employee, schedule_conflict)      
+ 
+        self.assertEqual(list(availability['(S)']), [])
+        self.assertEqual(list(availability['(V)']), [])
+        self.assertEqual(list(availability['(A)']), [])
+        self.assertEqual(list(availability['(U)']), [])
+        self.assertEqual(list(availability['Desired Times']), [desired_time])
+        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['(O)'], False)
+        
+        
+    def test_hours_schedule(self):
+        """Test that get_availability outputs correct # hours assigned."""
+        user = User.objects.first()
+        employee = Employee.objects.first()
+        department = Department.objects.first()
+        schedule_conflict = Schedule.objects.first()
+        # Create four eight-hour schedules for week to put employee in overtime                    
+        for i in range(3, 7):    
+            start_dt = datetime(2017, 1, i, 0, 0, 0)
+            end_dt = datetime(2017, 1, i, 8, 0, 0)
+            t_delta = end_dt - start_dt
+            schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                       department=department, employee=employee)
+                                   
+        availability = get_availability(employee, schedule_conflict)
+        
+        self.assertEqual(list(availability['(S)']), [])
+        self.assertEqual(list(availability['(V)']), [])
+        self.assertEqual(list(availability['(A)']), [])
+        self.assertEqual(list(availability['(U)']), [])
+        self.assertEqual(list(availability['Desired Times']), [])
+        self.assertEqual(availability['Hours Scheduled'], 34)
+        self.assertEqual(availability['(O)'], False)
+        
+        
     def test_overtime_conflict(self):
         """Case where there is an overtime conflict in availability."""
-        pass
+        user = User.objects.first()
+        employee = Employee.objects.first()
+        department = Department.objects.first()
+        schedule_conflict = Schedule.objects.first()
+        # Create five ten-hour schedules for week to put employee in overtime                    
+        for i in range(3, 8):    
+            start_dt = datetime(2017, 1, i, 0, 0, 0)
+            end_dt = datetime(2017, 1, i, 10, 0, 0)
+            t_delta = end_dt - start_dt
+            schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                       department=department, employee=employee)
+                                   
+        availability = get_availability(employee, schedule_conflict)
+        
+        self.assertEqual(list(availability['(S)']), [])
+        self.assertEqual(list(availability['(V)']), [])
+        self.assertEqual(list(availability['(A)']), [])
+        self.assertEqual(list(availability['(U)']), [])
+        self.assertEqual(list(availability['Desired Times']), [])
+        self.assertEqual(availability['Hours Scheduled'], 52)
+        self.assertEqual(availability['(O)'], True)
+        
+
+class GetEligablesTest(TestCase):
+    """
+    get_eligables is a sorting method using the heuristic of 'availability', 
+    sorting all eligable employees and returning this sorted list. We test the 
+    method by returning a sorted list of employees that is large enough such 
+    that every flag that can affect eligablity is tested. For example, all
+    combinations of schedule conflicts, vacations, overtime, etc. are
+    calculated and tested to make sure employees are ranked accordingly.
+    """
+
