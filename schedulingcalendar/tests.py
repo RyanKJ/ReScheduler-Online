@@ -72,7 +72,28 @@ def create_desired_time(user, employee, start, end, weekday):
                                              employee=employee)      
 
     return desired_time
-                     
+    
+    
+def create_many_conflicts(employees, availability_properties):
+    """Create employees with conflicts to test get_eligable method."""
+    if employees = [] or availability_properties = []:
+        return
+        
+        
+    half =  math.floor(len(employees) / 2)
+    lower_half_emp = employees[0, half]
+    upper_half_emp = employees[half:]
+    
+    avail_prop = availability_properties.pop(0)
+    
+    # Case where we apply property to upper half of employees:
+    if not (avail_prop == 'Dep Priority' or 
+            avail_prop == 'Desired Times' or 
+            avail_prop == 'Desired Hours'):
+            
+        for employees in upper_half_emp:
+            if avail_prop == '(S)':
+                              
                      
 class GetAvailabilityTest(TestCase):
     """Test class for the get_availability function.
@@ -295,4 +316,36 @@ class GetEligablesTest(TestCase):
     combinations of schedule conflicts, vacations, overtime, etc. are
     calculated and tested to make sure employees are ranked accordingly.
     """
+    
+    def setUp(self):
+        """
+        Create users, departments, employee and schedule objects necessary
+        to execute the get_eligable
+        """
+        
+        user = User.objects.create(username='testuser')
+        user.set_password('12345')
+        user.save()
+        
+        # Create employee, a 1-hour schedule, then assign employee to schedule
+        business_data = create_business_data(user)
+        department_1 = create_department(user, "A")
+        department_2 = create_department(user, "B")
+        
+        employees = []
+        avail_prop = ['(S)', '(V)', '(A)', '(U)', '(O)', 'Dep Priority', 
+                      'Desired Times', 'Desired Hours']
+        
+        start_dt = datetime(2017, 1, 2, 0, 0, 0)
+        end_dt = datetime(2017, 1, 2, 1, 0, 0)
+        schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                   department=department, employee=employee)
+                                   
+        for i in range(1, 249):
+            employee = create_employee(user, first_name=str(i), last_name=str(i))
+            employees.append(employee)
+            
+        create_many_conflicts(employees, avail_prop)
+        
+        
 
