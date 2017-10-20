@@ -31,6 +31,7 @@
     background: #A4D5FF
 }
 
-.fc-center h2 {
-  
+span.fc-title {
+  display: block;
+  white-space: normal;
 }

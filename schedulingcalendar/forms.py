@@ -272,7 +272,8 @@ class BusinessDataForm(forms.ModelForm):
                                                 widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                                 min_value=0, max_value=6)
     workweek_time_start =  forms.TimeField(label='Workweek Start Time', 
-                                           input_formats=TIME_FORMATS)    
+                                           input_formats=TIME_FORMATS,
+                                           widget=forms.TimeInput(format='%I:%M %p'))
     display_am_pm = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
     display_minutes = forms.BooleanField(label="", required=False,
