@@ -200,6 +200,7 @@ class BusinessData(models.Model):
     # Calendar Display Settings
     display_am_pm = models.BooleanField(default=False)
     display_minutes = models.BooleanField(default=True)
+    display_nonzero_minutes = models.BooleanField(default=False)
     display_last_names = models.BooleanField(default=False)
     display_first_char_last_name = models.BooleanField(default=False)
     

@@ -28,6 +28,24 @@
               <span class="checkbox-custom-text">Display Minutes</span>
             </div>
           </div>
+          <!-- Display non-zero minutes form input -->
+          <p class="card-text small">Note: Setting display only non-zero minutes
+                               will overide the display minutes setting.</p>
+          <div class="form-group">
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.display_nonzero_minutes.errors }}
+                {{ form.display_nonzero_minutes }}
+                {{ form.display_nonzero_minutes.label_tag }}
+                {% if form.display_nonzero_minutes.help_text %}
+                  <p class="help">{{ form.display_nonzero_minutes.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">Display Only Non-Zero Minutes 
+                <span class="small">(8:00 Becomes 8, 8:30 stays the same)</span>
+              </span>
+            </div>
+          </div>
           <!-- Display AM/PM form input -->
           <div class="form-group">
             <div class="checkbox-custom-container">
@@ -53,10 +71,12 @@
                   <p class="help">{{ form.display_last_names.help_text|safe }}</p>
                 {% endif %}
               </div>
-              <span class="checkbox-custom-text">Display Last Names</span>
+              <span class="checkbox-custom-text">Display Full Last Name</span>
             </div>
           </div>
           <!-- Display character of last name only form input -->
+          <p class="card-text small">Note: Setting display only first character of last name
+                               will overide the display full last name setting.</p>
           <div class="form-group">
             <div class="checkbox-custom-container">
               <div class="checkbox-custom">

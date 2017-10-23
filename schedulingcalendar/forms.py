@@ -278,6 +278,8 @@ class BusinessDataForm(forms.ModelForm):
                                        widget=forms.CheckboxInput())
     display_minutes = forms.BooleanField(label="", required=False,
                                          widget=forms.CheckboxInput())
+    display_nonzero_minutes = forms.BooleanField(label="", required=False,
+                                                 widget=forms.CheckboxInput())
     display_last_names = forms.BooleanField(label="", required=False,
                                             widget=forms.CheckboxInput())                                     
     display_first_char_last_name = forms.BooleanField(label="", required=False,
@@ -288,8 +290,8 @@ class BusinessDataForm(forms.ModelForm):
         model = BusinessData
         fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
                   'workweek_time_start', 'min_time_for_break', 'break_time_in_min', 
-                  'display_am_pm', 'display_minutes', 'display_last_names', 
-                  'display_first_char_last_name']
+                  'display_am_pm', 'display_minutes', 'display_nonzero_minutes', 
+                  'display_last_names', 'display_first_char_last_name']
         
         
 class MonthlyRevenueForm(forms.ModelForm):
