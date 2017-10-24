@@ -202,11 +202,17 @@ $(document).ready(function() {
   var liveCalDate = new Date($calendarLoaderForm.data("date"));
   var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
   var y = liveCalDate.getFullYear();
-  var dep = $calendarLoaderForm.data("department");
+  var department = $calendarLoaderForm.data("department");
+  var version = $calendarLoaderForm.data("live-cal-version");
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
-  $("#id_department").val(dep);
+  $("#id_department").val(department);
+  $("#id_version").val(version);
+  
+  console.log("version is: ");
+  console.log(version);
+  
   $("#get-calendar-button").trigger("click"); 
     
   

@@ -110,8 +110,9 @@ class LiveCalendar(models.Model):
 class LiveSchedule(models.Model):
     """Copy of schedule used for displaying finished calendar to employees."""
     user = models.ForeignKey(User)
-    schedule = models.OneToOneField(Schedule, on_delete=models.SET_NULL, null=True)
+    schedule = models.ForeignKey(Schedule, on_delete=models.SET_NULL, null=True)
     calendar = models.ForeignKey(LiveCalendar)
+    version = models.IntegerField('Version', default=1)
 
     start_datetime = models.DateTimeField('start datetime')
     end_datetime = models.DateTimeField('end datetime')

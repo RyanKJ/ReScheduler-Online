@@ -1088,6 +1088,7 @@ def create_live_schedules(user, live_calendar):
         live_schedule = LiveSchedule(user=schedule.user,
                                      schedule=schedule,
                                      calendar=live_calendar,
+                                     version=live_calendar.version,
                                      start_datetime=schedule.start_datetime, 
                                      end_datetime=schedule.end_datetime,
                                      hide_start_time=schedule.hide_start_time,

@@ -18,42 +18,64 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-md">
-        <!-- Calendar Toolbar -->
         <aside class="calendar-page-toolbar">
-          <section class="calendar-loader no-print">
-            <div class="select-cal-loader">
-              <a href="{% url 'schedulingcalendar:calendar_page' %}">Go Back To Schedule Editor</a>
+          <div class="row">
+            <!-- Link back to schedule editing page -->
+            <div class="col-md-3">
+              <section class="calendar-loader no-print">
+                <div class="select-cal-loader return-to-schedule-editor">
+                  <a href="{% url 'schedulingcalendar:calendar_page' %}">Go Back To Schedule Editor</a>
+                </div>
+              </section>
             </div>
-          
-            <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_live_schedules' %}"
-                  onsubmit="return(validateGetCalendarForm())"
-                  data-date="{{ date|date:"Y-m-d" }}"
-                  data-department="{{ department }}"
-                  data-department-name="{{ department_name }}"
-                  method="get">
-              {% csrf_token %}
-              
-              {% for field in live_calendar_form %}
-                {{ field.errors }}
-                {{ field }}
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-              {% endfor %}
-              <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-            </form>
-          </section>
+            <!-- Version select -->
+            <div class="col-md-6">
+              <div class="text-center">
+                <section class="calendar-loader no-print">
+                  <div class="version-loader">
+                    <form id="load-calendar-form"
+                          action="{% url 'schedulingcalendar:get_live_schedules' %}"
+                          onsubmit="return(validateGetCalendarForm())"
+                          data-date="{{ date|date:"Y-m-d" }}"
+                          data-department="{{ department }}"
+                          data-department-name="{{ department_name }}"
+                          data-live-cal-version="{{ version }}"
+                          method="get">
+                      {% csrf_token %}
+                      {{ live_calendar_form.department }}
+                      {{ live_calendar_form.month }}
+                      {{ live_calendar_form.year }}
+                      
+                      {{ live_calendar_form.version.errors }}
+                      {{ live_calendar_form.version.label_tag }}
+                      <div class="select-cal-loader">
+                        {{ live_calendar_form.version }}
+                      </div>
+                      {% if live_calendar_form.version.help_text %}
+                        <p class="help">{{ live_calendar_form.version.help_text|safe }}</p>
+                      {% endif %}
+                      <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+                    </form>
+                  </div>
+                </section>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+            </div>
+          </div>
         </aside>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md">
-        <!-- Fullcalendar -->
-        <section class="live-cal-section">
-          <div id="calendar"></div>
-        </section>
+        <div class="live-cal-margin">
+          <!-- Fullcalendar -->
+          <section class="live-cal-section">
+            <div id="calendar"></div>
+          </section>
+        </div>
       </div>
     </div>
   </div>

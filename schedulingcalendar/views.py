@@ -225,7 +225,7 @@ def get_live_schedules(request):
         if user_is_manager:
             employee = None
             manager_user = logged_in_user
-            form = LiveCalendarManagerForm(manager_user, request.GET)
+            form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
                                     .get(employee_user=logged_in_user))
@@ -235,13 +235,6 @@ def get_live_schedules(request):
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
             month = form.cleaned_data['month']
-            # LiveCalendarManagerForm form does not have employee only option,
-            # so we set it to false so manager sees all schedules for calendar
-            if user_is_manager:
-                employee_only = False
-            else:
-                employee_only = form.cleaned_data['employee_only']
-
             # Get date month for calendar for queries
             cal_date = date(year, month, 1)
             
@@ -249,16 +242,27 @@ def get_live_schedules(request):
                 live_calendar = LiveCalendar.objects.get(user=manager_user, 
                                                          date=cal_date, 
                                                          department=department_id)
+                # LiveCalendarManagerForm form does not have employee only option,
+                # so we set it to false so manager sees all schedules for calendar
+                if user_is_manager:
+                    employee_only = False
+                    version = form.cleaned_data['version']
+                else:
+                    employee_only = form.cleaned_data['employee_only']
+                    version = live_calendar.version
+                    
                 # Get schedule and employee models from database appropriate for calendar
                 if employee_only:
                     live_schedules = (LiveSchedule.objects.select_related('employee')
                                                   .filter(user=manager_user,
                                                           employee=employee,
-                                                          calendar=live_calendar))
+                                                          calendar=live_calendar,
+                                                          version=version))
                 else: 
                     live_schedules = (LiveSchedule.objects.select_related('employee')
                                                   .filter(user=manager_user,
-                                                          calendar=live_calendar))      
+                                                          calendar=live_calendar,
+                                                          version=version))      
                 employees = set()
                 for s in live_schedules:
                     if s.employee:
@@ -283,7 +287,7 @@ def get_live_schedules(request):
                                  'department': department_id,
                                  'schedules': schedules_as_dicts,
                                  'employees': employees_as_dicts,
-                                 'version': live_calendar.version,
+                                 'version': version,
                                  'display_settings': business_dict}
                 combined_json = json.dumps(combined_dict, default=date_handler)
                 
@@ -429,13 +433,10 @@ def push_live(request):
             if created:
                 create_live_schedules(logged_in_user, live_calendar)
             else:
-                old_live_schedules = LiveSchedule.objects.filter(user=logged_in_user,
-                                                                 calendar=live_calendar)
-                old_live_schedules.delete()
-                create_live_schedules(logged_in_user, live_calendar)
                 live_calendar.active = True
                 live_calendar.version += 1
                 live_calendar.save()
+                create_live_schedules(logged_in_user, live_calendar)
                 
             json_info = json.dumps({'message': 'Successfully pushed calendar live!'})
             return JsonResponse(json_info, safe=False)
@@ -450,7 +451,7 @@ def push_live(request):
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def set_active_state(request):
-    """Deactivate the live_calendar for given month"""
+    """Deactivate or reactivate the live_calendar for given month"""
     logged_in_user = request.user
     if request.method == 'POST':
         form = SetActiveStateLiveCalForm(request.POST)
@@ -502,11 +503,13 @@ def view_live_schedules(request):
                 is_active = live_calendar.active
                 if is_active:
                     template = loader.get_template('schedulingcalendar/managerCalendar.html')
-                    live_calendar_form = LiveCalendarManagerForm(logged_in_user)
+                    live_calendar_form = LiveCalendarManagerForm(logged_in_user,
+                                                                 live_calendar.version)
                     department = Department.objects.get(pk=department_id)
                     context = {'live_calendar_form': live_calendar_form,
                                'date': date,
                                'department': department_id,
+                               'version': live_calendar.version,
                                'department_name': department.name}
                     return HttpResponse(template.render(context, request))
                 else:

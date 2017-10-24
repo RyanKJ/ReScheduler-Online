@@ -376,3 +376,7 @@ li:last-child.cost-list {
 .schedule-adder input[type="button"]:hover{
     background: #ffd480;
 }
+
+.live-cal-margin {
+  margin: 0px 10px 10px 10px;
+}

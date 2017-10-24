@@ -98,19 +98,21 @@ class LiveCalendarForm(forms.Form):
 class LiveCalendarManagerForm(forms.Form):
     """Form for manager to view a calendar given year, month, & department.
     
-    The fields will have hidden widgets because the manager does not interact
-    with the live calendar, only looks at it as a static slice of the calendar
-    they are editing.
+    The fields except version will have hidden widgets because the manager does 
+    not edit the live calendar, but can view previous versions of that year and
+    department.
     """
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, version, *args, **kwargs):
         super(LiveCalendarManagerForm, self).__init__(*args, **kwargs)
         
         # TODO: Add edge case where user has 0 departments
         dep_choices = get_department_tuple(user)
         year_choices = self.get_year_choices()
+        live_cal_version_choices = self.get_version_choices(version)
         
         self.fields['department'].widget.choices = dep_choices
         self.fields['year'].widget.choices = year_choices
+        self.fields['version'].widget.choices = live_cal_version_choices
         
         
     def get_year_choices(self):
@@ -120,6 +122,17 @@ class LiveCalendarManagerForm(forms.Form):
         
         return year_choices
         
+        
+    def get_version_choices(self, num_of_versions):
+        """Create tuple of versions for select widget."""
+        version_list = [] 
+        
+        for i in range(1, num_of_versions + 1):
+            version = str(i)
+            version_list.append((version, version))
+               
+        return tuple(version_list)
+            
 
     department = forms.IntegerField(label='Department', widget=forms.HiddenInput(),
                                     min_value=0, max_value=1000)
@@ -130,6 +143,10 @@ class LiveCalendarManagerForm(forms.Form):
                                
     year = forms.IntegerField(label='Year', widget=forms.HiddenInput(), 
                               min_value=1900, max_value=9999)
+                              
+    version = forms.IntegerField(label='Select Version', 
+                                 widget=forms.Select(choices=MONTH_CHOICES), 
+                                 min_value=1, max_value=9999)
                                        
                               
                                                         
