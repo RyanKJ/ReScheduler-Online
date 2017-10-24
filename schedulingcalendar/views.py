@@ -225,7 +225,7 @@ def get_live_schedules(request):
         if user_is_manager:
             employee = None
             manager_user = logged_in_user
-            form = LiveCalendarManagerForm(manager_user, 1, request.GET)
+            form = LiveCalendarManagerForm(manager_user, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
                                     .get(employee_user=logged_in_user))
@@ -242,8 +242,12 @@ def get_live_schedules(request):
                 live_calendar = LiveCalendar.objects.get(user=manager_user, 
                                                          date=cal_date, 
                                                          department=department_id)
+                if not live_calendar.active:
+                    raise ValueError('Live Calendar exists, but is not active.')
+                                                         
                 # LiveCalendarManagerForm form does not have employee only option,
                 # so we set it to false so manager sees all schedules for calendar
+                # Employees always get the latest version of the live calendar
                 if user_is_manager:
                     employee_only = False
                     version = form.cleaned_data['version']
@@ -293,7 +297,7 @@ def get_live_schedules(request):
                 
                 return JsonResponse(combined_json, safe=False)
                 
-            except LiveCalendar.DoesNotExist:
+            except (LiveCalendar.DoesNotExist, ValueError) as error:
                 department_name = Department.objects.get(pk=department_id).name
                 message = "No Schedules For " + department_name + " Calendar: " + cal_date.strftime("%B, %Y")
                 response = HttpResponseNotFound(message)

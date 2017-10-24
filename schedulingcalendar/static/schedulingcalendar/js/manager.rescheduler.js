@@ -119,6 +119,7 @@ $(document).ready(function() {
     console.log(info);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
+    $calendarLoaderForm.data("live-cal-version", info["version"]);
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";

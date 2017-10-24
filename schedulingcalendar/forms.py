@@ -102,13 +102,13 @@ class LiveCalendarManagerForm(forms.Form):
     not edit the live calendar, but can view previous versions of that year and
     department.
     """
-    def __init__(self, user, version, *args, **kwargs):
+    def __init__(self, user, num_of_versions=1, *args, **kwargs): 
         super(LiveCalendarManagerForm, self).__init__(*args, **kwargs)
         
         # TODO: Add edge case where user has 0 departments
         dep_choices = get_department_tuple(user)
         year_choices = self.get_year_choices()
-        live_cal_version_choices = self.get_version_choices(version)
+        live_cal_version_choices = self.get_version_choices(num_of_versions)
         
         self.fields['department'].widget.choices = dep_choices
         self.fields['year'].widget.choices = year_choices
@@ -145,7 +145,7 @@ class LiveCalendarManagerForm(forms.Form):
                               min_value=1900, max_value=9999)
                               
     version = forms.IntegerField(label='Select Version', 
-                                 widget=forms.Select(choices=MONTH_CHOICES), 
+                                 widget=forms.Select(), 
                                  min_value=1, max_value=9999)
                                        
                               
