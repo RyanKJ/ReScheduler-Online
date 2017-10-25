@@ -225,7 +225,7 @@ def get_live_schedules(request):
         if user_is_manager:
             employee = None
             manager_user = logged_in_user
-            form = LiveCalendarManagerForm(manager_user, request.GET)
+            form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
                                     .get(employee_user=logged_in_user))

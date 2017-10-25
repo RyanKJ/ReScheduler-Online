@@ -11,16 +11,16 @@ class Employee(models.Model):
                                          related_name='employee', 
                                          null=True, blank=True)
 
-    first_name = models.CharField(max_length=80)
-    last_name = models.CharField(max_length=80)
+    first_name = models.CharField(max_length=80, default="")
+    last_name = models.CharField(max_length=80, default="")
     email = models.EmailField()
-    employee_id = models.IntegerField('employee id')
-    wage = models.FloatField('employee wage')
-    desired_hours = models.IntegerField('desired weekly hours')
+    employee_id = models.IntegerField('employee id', default=0)
+    wage = models.FloatField('employee wage', default=0)
+    desired_hours = models.IntegerField('desired weekly hours', default=30)
     # Benefits costs
-    monthly_medical = models.IntegerField('monthly medical')
-    workmans_comp = models.IntegerField('workmans comp')
-    social_security = models.IntegerField('social security')
+    monthly_medical = models.FloatField('monthly medical', default=0)
+    workmans_comp = models.FloatField('workmans comp', default=0)
+    social_security = models.FloatField('social security', default=6.2)
 
     
     def __str__(self):             
@@ -31,7 +31,7 @@ class Department(models.Model):
     """Representation of business department."""
     user = models.ForeignKey(User)
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, default="")
     members = models.ManyToManyField(Employee, through='DepartmentMembership')
     
     def __str__(self):             
@@ -62,8 +62,8 @@ class Schedule(models.Model):
     start_datetime = models.DateTimeField('start datetime')
     end_datetime = models.DateTimeField('end datetime')
     
-    hide_start_time = models.BooleanField()
-    hide_end_time = models.BooleanField()
+    hide_start_time = models.BooleanField(default=False)
+    hide_end_time = models.BooleanField(default=False)
     
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee, null=True)
@@ -117,8 +117,8 @@ class LiveSchedule(models.Model):
     start_datetime = models.DateTimeField('start datetime')
     end_datetime = models.DateTimeField('end datetime')
     
-    hide_start_time = models.BooleanField()
-    hide_end_time = models.BooleanField()
+    hide_start_time = models.BooleanField(default=False)
+    hide_end_time = models.BooleanField(default=False)
     
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee)

@@ -124,6 +124,8 @@ class LiveCalendarManagerForm(forms.Form):
         
         
     def get_version_choices(self, num_of_versions):
+        print "*************|*|*|*| num_of_versions is:"
+        print num_of_versions
         """Create tuple of versions for select widget."""
         version_list = [] 
         

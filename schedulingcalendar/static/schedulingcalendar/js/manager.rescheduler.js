@@ -119,7 +119,6 @@ $(document).ready(function() {
     console.log(info);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
-    $calendarLoaderForm.data("live-cal-version", info["version"]);
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
@@ -240,40 +239,55 @@ $(document).ready(function() {
    * moment objects.
    */
   function getEventStr(start, end, hideStart, hideEnd, firstName, lastName) {
-    // Construct time format string based off of display settings
+    // Construct time string based off of display settings
     var displayMinutes = displaySettings["display_minutes"];
+    var displayNonzeroMinutes = displaySettings["display_nonzero_minutes"];
     var displayAMPM = displaySettings["display_am_pm"];
-    timeFormat = "h"
-    if (displayMinutes) { timeFormat += ":mm"; }
-    if (displayAMPM) { timeFormat += " a"; }
-    // Name display settings
-    var displayLastNames = displaySettings["display_last_names"]; 
-    var displayLastNameFirstChar = displaySettings["display_first_char_last_name"]; 
     
+    timeFormat = "h"
+    if (displayMinutes && !displayNonzeroMinutes) { timeFormat += ":mm"; }
+    if (displayAMPM) { timeFormat += " a"; }
+     
     // Construct time strings
     var startStr = "?";
     if (!hideStart) {
-       var startDateTime = moment(start);
-       startStr = startDateTime.format(timeFormat);
+      var startDateTime = moment(start);
+      if (displayNonzeroMinutes && startDateTime.minute() != 0) {
+        onlyNonZeroTimeFormat = "h:mm";
+        if (displayAMPM) { onlyNonZeroTimeFormat += " a"; }
+        startStr = startDateTime.format(onlyNonZeroTimeFormat);
+      } else {
+        startStr = startDateTime.format(timeFormat);
+      }
     }
     var endStr = "?";
     if (!hideEnd) {
        var endDateTime = moment(end);
-       endStr = endDateTime.format(timeFormat);
+       if (displayNonzeroMinutes && endDateTime.minute() != 0) {
+          onlyNonZeroTimeFormat = "h:mm";
+          if (displayAMPM) { onlyNonZeroTimeFormat += " a"; }
+          endStr = endDateTime.format(onlyNonZeroTimeFormat);
+       } else {
+          endStr = endDateTime.format(timeFormat);
+       }
     }
-    // Construct name string
+    
+    // Construct employee name string based off of display settings
+    var displayLastNames = displaySettings["display_last_names"]; 
+    var displayLastNameFirstChar = displaySettings["display_first_char_last_name"]; 
+    
     var employeeStr = "";
     if (firstName) {
       employeeStr = ": " + firstName;
-      if (displayLastNames && lastName) {
-        if (displayLastNameFirstChar) {
-          employeeStr += " " + lastName.charAt(0);
-        } else {
-          employeeStr += " " + lastName;
-        }
+      if (displayLastNameFirstChar && lastName) {
+        employeeStr += " " + lastName.charAt(0);
+      }
+      if (displayLastNames && lastName && !displayLastNameFirstChar) {
+        employeeStr += " " + lastName;
       }
     }
-      
+    
+    // Combine time and name strings to full construct event string title
     var str = startStr + " - " + endStr + employeeStr;
     return str;
   }
