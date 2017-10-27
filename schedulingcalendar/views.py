@@ -540,7 +540,7 @@ class EmployeeListView(UserIsManagerMixin, ListView):
         
     def get_queryset(self):
         return (Employee.objects.filter(user=self.request.user)
-                                .order_by('first_name', 'last_name'))
+                                .order_by('last_name', 'first_name'))
         
  
 @method_decorator(login_required, name='dispatch') 

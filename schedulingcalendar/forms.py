@@ -231,9 +231,9 @@ class DepartmentMembershipForm(forms.ModelForm):
                                   
 class VacationForm(forms.ModelForm):
     """Form for creating and editing vacations."""
-    start_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+    start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                      input_formats=DATETIME_FORMATS)
-    end_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+    end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                    input_formats=DATETIME_FORMATS)
 
     class Meta:
@@ -243,9 +243,9 @@ class VacationForm(forms.ModelForm):
         
 class AbsentForm(forms.ModelForm):
     """Form for creating and editing vacations."""
-    start_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+    start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                      input_formats=DATETIME_FORMATS)
-    end_datetime = forms.DateField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+    end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                    input_formats=DATETIME_FORMATS)
 
     class Meta:
@@ -259,9 +259,11 @@ class RepeatUnavailabilityForm(forms.ModelForm):
                                  widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                  min_value=0, max_value=6)
     start_time =  forms.TimeField(label='Start Time', 
-                                  input_formats=TIME_FORMATS)                           
-    end_time =  forms.TimeField(label='Start Time', 
-                                input_formats=TIME_FORMATS)                            
+                                  input_formats=TIME_FORMATS,
+                                  widget=forms.TimeInput(format='%I:%M %p'))                           
+    end_time =  forms.TimeField(label='End Time', 
+                                input_formats=TIME_FORMATS,
+                                widget=forms.TimeInput(format='%I:%M %p'))                            
 
                                 
     class Meta:
@@ -275,9 +277,11 @@ class DesiredTimeForm(forms.ModelForm):
                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                min_value=0, max_value=6)
     start_time =  forms.TimeField(label='Start Time', 
-                                  input_formats=TIME_FORMATS)                           
-    end_time =  forms.TimeField(label='Start Time', 
-                                input_formats=TIME_FORMATS)                            
+                                  input_formats=TIME_FORMATS,
+                                  widget=forms.TimeInput(format='%I:%M %p'))                           
+    end_time =  forms.TimeField(label='End Time', 
+                                input_formats=TIME_FORMATS,
+                                widget=forms.TimeInput(format='%I:%M %p'))                            
 
                                 
     class Meta:

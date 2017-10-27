@@ -14,16 +14,16 @@
 {% endblock stylesheets %}
 
 {% block content %}
-  <!-- Modals used for warnings -->
-  {% include "schedulingcalendar/_conflictModal.html" %}
-  {% include "schedulingcalendar/_printModal.html" %}
-  {% include "schedulingcalendar/_removeModal.html" %}
-  {% include "schedulingcalendar/_pushModal.html" %}
-  {% include "schedulingcalendar/_successfulPushModal.html" %}
-  {% include "schedulingcalendar/_deactivateModal.html" %}
-  {% include "schedulingcalendar/_reactivateModal.html" %}
-   
   <div class="container-fluid">
+    <!-- Modals used for warnings -->
+    {% include "schedulingcalendar/_conflictModal.html" %}
+    {% include "schedulingcalendar/_printModal.html" %}
+    {% include "schedulingcalendar/_removeModal.html" %}
+    {% include "schedulingcalendar/_pushModal.html" %}
+    {% include "schedulingcalendar/_successfulPushModal.html" %}
+    {% include "schedulingcalendar/_deactivateModal.html" %}
+    {% include "schedulingcalendar/_reactivateModal.html" %}
+    
     <div class="row">
       <div class="col-md">
         <!-- Calendar Toolbar -->
