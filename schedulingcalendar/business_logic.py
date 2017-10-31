@@ -217,6 +217,16 @@ def get_availability(employee, schedule):
     conflicts are used to weigh an employee's eligability. The more conflicts
     an employee has, the less eligable they are to be assigned to the schedule.
     
+    Note for repeating unavailabilities and desired times: 
+    
+    Because repeating times don't have a proper full datetime (Their datetimes
+    are merely used to record timezones in Django) we use the date of the the 
+    schedule itself, in addition to the repeating/desired time's time, to create
+    a full datetime coordinate that can be compared for any overlap. Without 
+    this, a schedule from 8 pm to 2 am with only a time coordinate in certain 
+    timezones would appear to end before they start, which would lead to errors
+    where an unavailability is not seen by the program but does actually exist.
+    
     The keys and the values held by the dictionary are:
       '(S)': A collection of schedule model objects that have any time overlap
              with the schedule employee may be assigned to.
@@ -257,6 +267,7 @@ def get_availability(employee, schedule):
     vacations = (Vacation.objects.filter(employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)) 
+                            
     availability['(V)'] = vacations
     
     # Get absences employee is assigned to that overlap with schedule
@@ -269,18 +280,30 @@ def get_availability(employee, schedule):
     sch_weekday = schedule.start_datetime.weekday()
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
-    unav_repeat = (RepeatUnavailability.objects.filter(employee=employee.id,
-                                                       weekday=sch_weekday,
-                                                       start_time__lt=end_time,
-                                                       end_time__gt=start_time))
-    availability['(U)'] = unav_repeat     
+    unav_repeat_naive = RepeatUnavailability.objects.filter(employee=employee.id,
+                                                            weekday=sch_weekday)
+    unav_repeat_aware = []
+    for un_av in unav_repeat_naive:
+        start_dt = schedule.start_datetime.replace(hour=un_av.start_time.hour, 
+                                                   minute=un_av.start_time.minute)
+        end_dt = schedule.end_datetime.replace(hour=un_av.end_time.hour, 
+                                               minute=un_av.end_time.minute)                                 
+        if start_dt < schedule.end_datetime and end_dt > schedule.start_datetime:
+            unav_repeat_aware.append(un_av)         
+    availability['(U)'] = unav_repeat_aware
 
     # Get desired times employee is assigned overlapping with schedule
-    desired_times = (DesiredTime.objects.filter(employee=employee.id,
-                                                weekday=sch_weekday,
-                                                start_time__lt=end_time,
-                                                end_time__gt=start_time))
-    availability['Desired Times'] = desired_times
+    desired_times_naive = DesiredTime.objects.filter(employee=employee.id,
+                                                     weekday=sch_weekday)
+    desired_times_aware = []
+    for desired_time in desired_times_naive:
+        start_dt = schedule.start_datetime.replace(hour=desired_time.start_time.hour, 
+                                                   minute=desired_time.start_time.minute)
+        end_dt = schedule.end_datetime.replace(hour=desired_time.end_time.hour, 
+                                               minute=desired_time.end_time.minute)                                 
+        if start_dt < schedule.end_datetime and end_dt > schedule.start_datetime:
+            desired_times_aware.append(desired_time)
+    availability['Desired Times'] = desired_times_aware
 
     # Check current hours worked for later evaluation of overtime       
     total_workweek_hours = calculate_weekly_hours_with_sch(employee, schedule)

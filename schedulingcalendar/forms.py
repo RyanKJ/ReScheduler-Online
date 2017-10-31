@@ -3,6 +3,7 @@ from datetime import datetime
 from .models import (Employee, Department, DepartmentMembership, 
                      Vacation, Absence, RepeatUnavailability, DesiredTime, 
                      MonthlyRevenue, BusinessData)
+from custom_formfields import TzAwareTimeField
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -258,10 +259,10 @@ class RepeatUnavailabilityForm(forms.ModelForm):
     weekday = forms.IntegerField(label='Weekday', 
                                  widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                  min_value=0, max_value=6)
-    start_time =  forms.TimeField(label='Start Time', 
+    start_time = TzAwareTimeField(label='Start Time', 
                                   input_formats=TIME_FORMATS,
                                   widget=forms.TimeInput(format='%I:%M %p'))                           
-    end_time =  forms.TimeField(label='End Time', 
+    end_time = TzAwareTimeField(label='End Time', 
                                 input_formats=TIME_FORMATS,
                                 widget=forms.TimeInput(format='%I:%M %p'))                            
 
@@ -276,10 +277,10 @@ class DesiredTimeForm(forms.ModelForm):
     weekday = forms.IntegerField(label='Weekday', 
                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                min_value=0, max_value=6)
-    start_time =  forms.TimeField(label='Start Time', 
-                                  input_formats=TIME_FORMATS,
-                                  widget=forms.TimeInput(format='%I:%M %p'))                           
-    end_time =  forms.TimeField(label='End Time', 
+    start_time = TzAwareTimeField(label='Start Time', 
+                                         input_formats=TIME_FORMATS,
+                                         widget=forms.TimeInput(format='%I:%M %p'))                           
+    end_time = TzAwareTimeField(label='End Time', 
                                 input_formats=TIME_FORMATS,
                                 widget=forms.TimeInput(format='%I:%M %p'))                            
 

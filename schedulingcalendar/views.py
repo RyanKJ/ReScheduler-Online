@@ -10,6 +10,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic import (ListView, FormView, CreateView, UpdateView, 
@@ -32,6 +33,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
+import pytz
 import json
 
 
@@ -324,9 +326,13 @@ def add_schedule(request):
             hide_start = form.cleaned_data['hide_start']
             hide_end = form.cleaned_data['hide_end']
             
+            # Construct start and end datetimes
+            time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
+            start_dt = pytz.timezone(time_zone).localize(start_dt)
             end_dt = datetime.combine(date, end_time)
-            
+            end_dt = pytz.timezone(time_zone).localize(end_dt)
+
             # TODO: Assert department belongs to user after form cleaning?
             dep = Department.objects.get(user=logged_in_user, pk=department)
             schedule = Schedule(user=logged_in_user,

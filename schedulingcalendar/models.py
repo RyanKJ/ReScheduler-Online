@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from datetime import datetime, date, time
 
 
@@ -59,8 +60,8 @@ class Schedule(models.Model):
     """Representation of a work schedule for a business."""
     user = models.ForeignKey(User)
 
-    start_datetime = models.DateTimeField('start datetime')
-    end_datetime = models.DateTimeField('end datetime')
+    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
     
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
@@ -114,8 +115,8 @@ class LiveSchedule(models.Model):
     calendar = models.ForeignKey(LiveCalendar)
     version = models.IntegerField('Version', default=1)
 
-    start_datetime = models.DateTimeField('start datetime')
-    end_datetime = models.DateTimeField('end datetime')
+    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
     
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
@@ -128,8 +129,8 @@ class Vacation(models.Model):
     """Representation of a vacation block of time for employee absentee."""
     user = models.ForeignKey(User)
     
-    start_datetime = models.DateTimeField('start datetime')
-    end_datetime = models.DateTimeField('end datetime')
+    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
     
     employee = models.ForeignKey(Employee)
     
@@ -138,8 +139,8 @@ class Absence(models.Model):
     """Representation of an absent block of time for employee."""
     user = models.ForeignKey(User)
     
-    start_datetime = models.DateTimeField('start datetime')
-    end_datetime = models.DateTimeField('end datetime')
+    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
     
     employee = models.ForeignKey(Employee)    
     
@@ -148,25 +149,38 @@ class RepeatUnavailability(models.Model):
     """Representation of repeating unavailability for employee absentee."""
     user = models.ForeignKey(User)
     
-    start_time = models.TimeField('start time')
-    end_time = models.TimeField('end time')
+    start_time = models.DateTimeField('start time', default=timezone.now)
+    end_time = models.DateTimeField('end time', default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
     weekday = models.IntegerField('weekday')
     
     employee = models.ForeignKey(Employee)
     
     
+    def __str__(self):             
+        return "Employee %s on weekday: %s, from %s until %s" % (self.employee, 
+                                                                 self.weekday, 
+                                                                 self.start_time.time(), 
+                                                                 self.end_time.time())
+
 class DesiredTime(models.Model):
     """Representation of repeating desired work time for employee."""
     user = models.ForeignKey(User)
     
-    start_time = models.TimeField('start time')
-    end_time = models.TimeField('end time')
+    start_time = models.DateTimeField('start time', default=timezone.now)
+    end_time = models.DateTimeField('end time', default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
     weekday = models.IntegerField('weekday')
     
     employee = models.ForeignKey(Employee)
     
+    
+    def __str__(self):             
+        return "Employee %s on weekday: %s, from %s until %s" % (self.employee, 
+                                                                 self.weekday, 
+                                                                 self.start_time.time(), 
+                                                                 self.end_time.time())
+                                                                 
     
 class MonthlyRevenue(models.Model):
     """Representation of total revenue for a business for given month & year."""
