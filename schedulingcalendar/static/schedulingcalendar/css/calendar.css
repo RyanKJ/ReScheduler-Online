@@ -199,6 +199,29 @@ a:active {
 /* Eligable list styling
 --------------------------------------------------------------------------------------------------*/
 
+.remove-btn-bg {
+  background: #F7F7F7;
+  height: 58px;
+  margin-top: 0px;
+  padding-top: 12px;
+}
+
+#remove-btn {
+    background: #f45c42;
+    border-bottom: 2px solid #ef7c69;
+    padding: 6px 3px 6px 3px;
+    margin: 0px 15px 0px 15px;
+    font-size: 120%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+}
+
+#remove-btn:hover {
+  background: #ef7c69;
+  cursor: pointer;
+}
+
 .schedule-adder h1{
   background: #ffc34d;
   padding: 12px 0;
@@ -210,7 +233,7 @@ a:active {
 }
 
 #schedule-info {
-  visibility: hidden;
+  display: none;
 }
 
 ul#eligable-list {
@@ -222,6 +245,7 @@ ul#eligable-list {
 #eligable-list-header {
     background: #0079D7;
     padding: 4px 0;
+    margin-top: 16px;
     margin-bottom: 0px;
     font-size: 140%;
     font-weight: 300;
@@ -231,6 +255,7 @@ ul#eligable-list {
 
 li.eligable-list {
   font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
+  padding-left: 5px;
   border-bottom: 1px solid #ccc;
   text-decoration: none;
   color: #000;
@@ -261,6 +286,7 @@ ul#cost-list {
 #cost-header {
     background: #0079D7;
     padding: 4px 0;
+    margin-top: 16px;
     margin-bottom: 0px;
     font-size: 140%;
     font-weight: 300;
@@ -298,7 +324,8 @@ li:last-child.cost-list {
 .schedule-adder{
     font: 95% Arial, Helvetica, sans-serif;
     margin: 10px auto;
-    padding: 16px;
+    margin-bottom: 0px;
+    padding: 16px 16px 16px 16px;
     background: #F7F7F7;
 }
 
@@ -370,6 +397,7 @@ li:last-child.cost-list {
     border-right-style: none;
     border-left-style: none;   
     color: #fff;
+    font-size: 120%;
 }
 
 .schedule-adder input[type="submit"]:hover,

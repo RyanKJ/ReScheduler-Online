@@ -23,7 +23,8 @@ $(document).ready(function() {
   var $eligableList = $("#eligable-list");
   var $calendarLoaderForm = $("#load-calendar-form");
   var $conflictAssignBtn = $("#conflict-assign-btn");
-  var $removeScheduleBtn = $("#remove-schedule-btn");
+  var $removeScheduleBtn = $("#remove-btn");
+  var $removeScheduleAfterWarningBtn = $("#remove-schedule-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
@@ -40,7 +41,8 @@ $(document).ready(function() {
   var $printLiveBtn = $("#print-live-calendar");
   
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
-  $removeScheduleBtn.click(_removeScheduleAfterWarning);
+  $removeScheduleBtn.click(removeSchedule);
+  $removeScheduleAfterWarningBtn.click(_removeScheduleAfterWarning);
   $pushLive.click(pushCalendarLive);
   $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
   $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
@@ -57,10 +59,6 @@ $(document).ready(function() {
     eventBorderColor: "transparent",
         
     customButtons: {
-      removeSchedule: {
-        text: "Remove Schedule",
-        click: removeSchedule
-      },
       printCalendar: {
         text: "Print Draft",
         click: printCalendar
@@ -70,7 +68,7 @@ $(document).ready(function() {
     header: {
       left: "",
       center: "title",
-      right: "removeSchedule printCalendar"
+      right: "printCalendar"
     },
     
     /**
@@ -88,8 +86,6 @@ $(document).ready(function() {
       $("td[data-date="+date+"]").addClass("fc-day-clicked");
       $addScheduleDate.val(date);
       
-      // Make remove button active since an event is clicked
-      $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
       var pk = calEvent.id;
       $.get("get_schedule_info", {pk: pk}, displayEligables);
     },
@@ -129,17 +125,9 @@ $(document).ready(function() {
             
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         clearEligables();
-        
-        
-        // Disable remove schedule button, no schedule selected if new day clicked
-        $(".fc-removeSchedule-button").addClass("fc-state-disabled");
       }
     }
   });
-      
-  // When calendar is first loaded no schedule is selected to be removed
-  // so we disable the remove button.
-  $(".fc-removeSchedule-button").addClass("fc-state-disabled");
     
   // Turn loadSchedules into a callback function for the load-calendar-form
   $("#load-calendar-form").ajaxForm(loadSchedules); 
@@ -151,6 +139,10 @@ $(document).ready(function() {
    * fullCalendar view, title, and events.
    */
   function loadSchedules(json_data) {
+    // Clear out eligable list incase previous calendar was loaded
+    $eligableList.empty();
+    $scheduleInfo.css("display", "none");
+    
     var info = JSON.parse(json_data);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
@@ -480,7 +472,7 @@ $(document).ready(function() {
    */    
   function displayEligables(data) {
     clearEligables();
-    $scheduleInfo.css("visibility", "visible");
+    $scheduleInfo.css("display", "block");
 
     var info = JSON.parse(data);
     var eligableList = info["eligable_list"];
@@ -491,6 +483,7 @@ $(document).ready(function() {
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
       var warningFlag = _compileConflictFlags(eligableList[i]['availability']);
+      var eligableColorClasses =  _compileColorClasses();
       var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;
       var $li = $("<li>", {
         "id": eligableList[i]['employee']['id'], 
@@ -584,6 +577,12 @@ $(document).ready(function() {
   }
   
   
+  /** Create string of classes that color an eligable li according to availability. */
+  function _compileConflictWarnings() {
+    // TODO: Implement function
+  }
+  
+  
   /** Helper function to translate a schedule into warning string. */ 
   function _scheduleConflictToStr(schedule) {
     var str = $("#id_department > option:nth-child("+schedule.department+")").text();
@@ -629,7 +628,7 @@ $(document).ready(function() {
   /** Clear out eligable list and hide the schedule info section */
   function clearEligables() {
     $eligableList.empty();
-    $scheduleInfo.css("visibility", "hidden");
+    $scheduleInfo.css("display", "none");
   }
     
     
@@ -762,8 +761,6 @@ $(document).ready(function() {
     $event_div.addClass("fc-event-clicked"); 
     // Get eligables for this new schedule
     $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
-    // Enable remove button, new schedule is selected
-    $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
   }
   
 
@@ -797,9 +794,7 @@ $(document).ready(function() {
     $fullCal.fullCalendar("removeEvents", schedulePk);
     // Clear out eligable list
     $eligableList.empty();
-    $scheduleInfo.css("visibility", "hidden");
-    // Disable remove button since no schedule will be selected after delete
-    $(".fc-removeSchedule-button").addClass("fc-state-disabled");
+    $scheduleInfo.css("display", "none");
     // Update cost display to reflect any cost changes
     addCostChange(info["cost_delta"]);
   }
