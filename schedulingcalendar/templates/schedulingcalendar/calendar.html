@@ -23,6 +23,7 @@
     {% include "schedulingcalendar/_successfulPushModal.html" %}
     {% include "schedulingcalendar/_deactivateModal.html" %}
     {% include "schedulingcalendar/_reactivateModal.html" %}
+    {% include "schedulingcalendar/_legendModal.html" %}
     
     <div class="row">
       <div class="col-md">
@@ -134,9 +135,13 @@
                 
           <section id="schedule-info">
             <div class="remove-btn-bg">
-            <h3 id="remove-btn">Remove Schedule</h3>
+              <h3 id="remove-btn">Remove Schedule</h3>
             </div>
-            <h3 id="eligable-list-header">Employees</h3>
+            
+            <div id="eligable-list-header">
+              <span title="Color Legend" id="legend-selector">?</span>
+              <span id="eligable-list-title">Employees</span>
+            </div>
             <ul id="eligable-list"></ul>
           </section>
           

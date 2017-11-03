@@ -20,7 +20,7 @@ from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar)
-from .business_logic import (get_eligables, eligable_list_to_dict,  
+from .business_logic import (get_eligibles, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules)
@@ -361,7 +361,7 @@ def get_schedule_info(request):
     schedule = (Schedule.objects.select_related('department', 'employee', 'user')
                                 .get(user=logged_in_user, pk=schedule_pk))
     
-    eligable_list = get_eligables(schedule)
+    eligable_list = get_eligibles(schedule)
     eligable_dict_list = eligable_list_to_dict(eligable_list)
     json_data = json.dumps(eligable_dict_list, default=date_handler)
     

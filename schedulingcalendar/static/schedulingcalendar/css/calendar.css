@@ -236,6 +236,22 @@ a:active {
   display: none;
 }
 
+#legend-selector {
+  float: left;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.legend-color {
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+}
+
+#eligable-list-title {
+  margin-left: -8px;
+}
+
 ul#eligable-list {
   list-style-type: none;
   margin: 0;
@@ -253,24 +269,49 @@ ul#eligable-list {
     color: #fff;
 }
 
-li.eligable-list {
+#eligable-list li {
   font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
   padding-left: 5px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #2d2400;
   text-decoration: none;
   color: #000;
+  cursor: pointer;
 }
 
-li.eligable-list.curr-assigned-employee {
-  background: #59bcff;
-}
-
-li:last-child.eligable-list {
+#eligable-list li:last-child {
   border: none;
 }
 
-li:hover.eligable-list:not(.curr-assigned-employee) {
-  background: #d1ecff;
+.blue-bg-eligible, #eligable-list li.curr-assigned-employee {
+  background: #59bcff;
+}
+
+.red-bg-eligible {
+  background: #ff8e8e;
+}
+
+.orange-bg-eligible {
+  background: #ffa968;
+}
+
+.green-bg-eligible {
+  background: #6ee261;
+}
+
+#eligable-list li:hover:not(.curr-assigned-employee) {
+  background: #e5e5e5;
+}
+
+#eligable-list li.red-bg-eligible:hover:not(.curr-assigned-employee) {
+  background: #ff6868;
+}
+
+#eligable-list li.orange-bg-eligible:hover:not(.curr-assigned-employee) {
+  background: #f28d65;
+}
+
+#eligable-list li.green-bg-eligible:hover:not(.curr-assigned-employee) {
+  background: #0cd123;
 }
 
 

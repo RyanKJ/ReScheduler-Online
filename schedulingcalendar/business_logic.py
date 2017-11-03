@@ -18,22 +18,22 @@ from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar)
 
 
-def get_eligables(schedule):
-    """Return a sorted list of eligable employees along with info.
+def get_eligibles(schedule):
+    """Return a sorted list of eligible employees along with info.
     
-    The eligable list is a sorted list of dictionaries containing an employee, 
-    a sub-dictionary containing any potential conflicts the eligable employee 
+    The eligible list is a sorted list of dictionaries containing an employee, 
+    a sub-dictionary containing any potential conflicts the eligible employee 
     has relative to the schedule, and a tuple of integers that represents 
     multiple criterion for sorting their 'eligability'.
     
     Eligability is determined by how few conflicts the employee has with the
     schedule. An employee that has no conflicting schedules, has no conflicting 
-    time off, is not in overtime, etc. is a more 'eligable' employee for the 
+    time off, is not in overtime, etc. is a more 'eligible' employee for the 
     schedule than, say, an employee who asks for time off that overlaps with 
     the schedule and is already working overtime. These conflicts are kept
     track of via the availability dictionary.
     
-    The eligability is sorted according to tiers. That is, the eligable list
+    The eligability is sorted according to tiers. That is, the eligible list
     is sorted multiple times. Each tier has a helper function that gives the
     desired integer value that 'scores' the employee's eligability. The list is
     sorted first according to the first tier, then each 'sub-list' demarcated 
@@ -51,8 +51,8 @@ def get_eligables(schedule):
     Args:
         schedule: schedule to calculate employee eligability for assignment. 
     Returns:
-        A dict containing the schedule pk and eligable list. The eligable list 
-        is a sorted list of eligable employees, along with their availability 
+        A dict containing the schedule pk and eligible list. The eligible list 
+        is a sorted list of eligible employees, along with their availability 
         dictionary (see get_availability) and their sorting score.
     """
     
@@ -132,7 +132,7 @@ def _calculate_desired_times_score(desired_times, schedule):
     
     Employees are able to set days and hours that they would prefer to work.
     If a schedule overlaps with these desired times, the employee is more
-    eligable for the schedule than those who don't have overlapping desired
+    eligible for the schedule than those who don't have overlapping desired
     time.
     
     The desired time's score is the negative value of the total number of
@@ -151,30 +151,25 @@ def _calculate_desired_times_score(desired_times, schedule):
         made negative due to python's built in sorting method sorting from
         smallest to largest.
     """
-    
-    sch_weekday = schedule.start_datetime.weekday()
-    start_time = schedule.start_datetime.time()
-    end_time = schedule.end_datetime.time()
-    today = date.today()
-                                                
+    # 1) Get proper intersection to get proper overlapping time, maybe just ABS?
+    # 2) Get it in seconds...
+    return 1;                                   
     total_overlapping_time = timedelta(0)
     
     for d_t in desired_times:
-        if d_t.end_time < end_time and d_t.start_time < start_time:
-            start = datetime.combine(today, start_time)
-            end = datetime.combine(today, d_t.end_time)
+        # Create desired time dates as schedule date, to compare times
+        start_dt = schedule.start_datetime.replace(hour=d_t.start_time.hour, 
+                                                   minute=d_t.start_time.minute)
+        end_dt = schedule.end_datetime.replace(hour=d_t.end_time.hour, 
+                                               minute=d_t.end_time.minute)
+        # Check for kind of intersection between schedule and desired time
+        if end_dt < schedule.end_datetime and start_dt < schedule.start_datetime:
             total_overlapping_time += end - start
-        elif d_t.end_time > end_time and d_t.start_time < start_time:
-            start = datetime.combine(today, start_time)
-            end = datetime.combine(today, end_time)
+        elif end_dt > schedule.end_datetime and start_dt < schedule.start_datetime:
             total_overlapping_time += end - start
-        elif d_t.end_time < end_time and d_t.start_time > start_time:
-            start = datetime.combine(today, d_t.start_time)
-            end = datetime.combine(today, d_t.end_time)
+        elif end_dt < schedule.end_datetime and start_dt > schedule.start_datetime:
             total_overlapping_time += end - start
         else:
-            start = datetime.combine(today, d_t.start_time)
-            end = datetime.combine(today, end_time)
             total_overlapping_time += end - start
         
     return -1 * total_overlapping_time.seconds
@@ -185,7 +180,7 @@ def _calculate_desired_hours_score(hours_scheduled, employee):
 
     The smaller the difference between current number of hours assigned to 
     employee (Including the schedule they may be assigned to.) the more
-    eligable the employee is to be assigned to the schedule. Thus, an employee
+    eligible the employee is to be assigned to the schedule. Thus, an employee
     who wishes to work 30 hours, who if assigned to schedule will then work 30
     hours will have a score of 0. If the number of hours they'll be working is
     32 or 28, they'll have an equivalent score of 2. 
@@ -215,7 +210,7 @@ def get_availability(employee, schedule):
     a schedule on that same Tuesday from 12 pm to 6 pm, this function will
     add this to the availability dictionary as a schedule conflict. These 
     conflicts are used to weigh an employee's eligability. The more conflicts
-    an employee has, the less eligable they are to be assigned to the schedule.
+    an employee has, the less eligible they are to be assigned to the schedule.
     
     Note for repeating unavailabilities and desired times: 
     
@@ -416,7 +411,7 @@ def eligable_list_to_dict(eligable_list):
         eligable_list: list of sorted eligables with an availability dict and
         a sorting score.
     Returns:
-        The eligable list formatted into dicts to be serialized by json.
+        The eligible list formatted into dicts to be serialized by json.
     """
     
     eligable_serialized_list = []

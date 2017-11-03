@@ -39,6 +39,7 @@ $(document).ready(function() {
   var $viewLive = $("#view-live");
   var $printDraftBtn = $("#print-draft-calendar");
   var $printLiveBtn = $("#print-live-calendar");
+  var $eligibleLegendSelector = $("#legend-selector");
   
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
@@ -50,6 +51,7 @@ $(document).ready(function() {
   $setActiveLive.click(SetActiveLiveCalendar);
   $printDraftBtn.click(_printAfterWarning);
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
+  $eligibleLegendSelector.click(showEligibleLegend);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -473,7 +475,7 @@ $(document).ready(function() {
   function displayEligables(data) {
     clearEligables();
     $scheduleInfo.css("display", "block");
-
+    
     var info = JSON.parse(data);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
@@ -483,12 +485,13 @@ $(document).ready(function() {
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
       var warningFlag = _compileConflictFlags(eligableList[i]['availability']);
-      var eligableColorClasses =  _compileColorClasses();
+      var eligableColorClasses = _compileColorClasses(eligableList[i]['employee'], 
+                                                      eligableList[i]['availability']);
       var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;
       var $li = $("<li>", {
         "id": eligableList[i]['employee']['id'], 
         "text": name,
-        "class": "eligable-list",
+        "class": eligableColorClasses,
         "data-employee-pk": eligableList[i]['employee'].id,
         "data-schedule-pk": schedulePk,
         "data-warning-str": warningStr,
@@ -578,8 +581,26 @@ $(document).ready(function() {
   
   
   /** Create string of classes that color an eligable li according to availability. */
-  function _compileConflictWarnings() {
-    // TODO: Implement function
+  function _compileColorClasses(employee, availability) {
+    console.log("Employee is: ");
+    console.log(employee);
+    console.log("availability is: ");
+    console.log(availability);
+    
+    var classes = "";
+    
+    // Select background color of eligible li corresponding to availability
+    if ((availability['(S)'].length > 0) || (availability['(V)'].length > 0) || 
+        (availability['(A)'].length > 0) || (availability['(U)'].length > 0)) {
+      classes += "red-bg-eligible";
+    } else if (availability['(O)'] || 
+               (availability['Hours Scheduled'] + 5 > employee['desired_hours'])) {
+      classes += "orange-bg-eligible";
+    } else if (availability['Desired Times'].length > 0) {
+      classes += "green-bg-eligible"
+    }
+    
+    return classes;
   }
   
   
@@ -822,6 +843,14 @@ $(document).ready(function() {
   /** Redirect user to live calendar to print most up to date live calendar. */
   function _goToLiveAfterPrintWarning(event) {
     $viewLive.click();
+  }
+  
+  
+  /** Callback function to show user the eligible legend */
+  function showEligibleLegend(event) {
+    $legendModal = $("#legendModal");
+    $legendModal.css("margin-top", Math.max(0, ($(window).height() - $legendModal.height()) / 2));
+    $legendModal.modal('show');
   }
   
     
