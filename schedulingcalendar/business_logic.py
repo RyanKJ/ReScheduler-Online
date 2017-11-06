@@ -150,27 +150,31 @@ def _calculate_desired_times_score(desired_times, schedule):
         employee wishes to work during and the schedule's time. The number is 
         made negative due to python's built in sorting method sorting from
         smallest to largest.
-    """
-    # 1) Get proper intersection to get proper overlapping time, maybe just ABS?
-    # 2) Get it in seconds...
-    return 1;                                   
+    """                       
+    s_start = schedule.start_datetime
+    s_end = schedule.end_datetime
+    
     total_overlapping_time = timedelta(0)
     
-    for d_t in desired_times:
+    for desired_t in desired_times:
         # Create desired time dates as schedule date, to compare times
-        start_dt = schedule.start_datetime.replace(hour=d_t.start_time.hour, 
-                                                   minute=d_t.start_time.minute)
-        end_dt = schedule.end_datetime.replace(hour=d_t.end_time.hour, 
-                                               minute=d_t.end_time.minute)
-        # Check for kind of intersection between schedule and desired time
-        if end_dt < schedule.end_datetime and start_dt < schedule.start_datetime:
-            total_overlapping_time += end - start
-        elif end_dt > schedule.end_datetime and start_dt < schedule.start_datetime:
-            total_overlapping_time += end - start
-        elif end_dt < schedule.end_datetime and start_dt > schedule.start_datetime:
-            total_overlapping_time += end - start
+        d_start = s_start.replace(hour=desired_t.start_time.hour, 
+                                  minute=desired_t.start_time.minute)
+        d_end = s_end.replace(hour=desired_t.end_time.hour, 
+                              minute=desired_t.end_time.minute)
+        
+        # Add up overlap of time between desired time and schedule
+        if d_end < s_end and d_start < s_start:
+            total_overlapping_time += d_end - s_start
+            
+        elif d_end > s_end and d_start < s_start:
+            total_overlapping_time += s_end - s_start
+            
+        elif d_end < s_end and d_start > s_start:
+            total_overlapping_time += d_end - d_start
+            
         else:
-            total_overlapping_time += end - start
+            total_overlapping_time += s_end - d_start
         
     return -1 * total_overlapping_time.seconds
     

@@ -90,9 +90,43 @@
               <span class="checkbox-custom-text">Display Only First Character Of Last Name</span>
             </div>
           </div>
+          <!-- Override eligible sort and sort by employee name -->
+          <p class="card-text small">Note: This will sort eligibles by last name 
+                                     and first name, instead of an employee's 
+                                     eligibility score. For more information
+                                     on an employee's eligibility score, go to 
+                                     <a href="#">help.</a></p>
+          <div class="form-group">
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.sort_by_names.errors }}
+                {{ form.sort_by_names }}
+                {{ form.sort_by_names.label_tag }}
+                {% if form.sort_by_names.help_text %}
+                  <p class="help">{{ form.sort_by_names.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">Sort Eligibles By Last & First Name
+              </span>
+            </div>
+          </div>
+          <!-- Desired Hours Overshoot Alert -->
+          <div class="form-group">
+            {{ form.desired_hours_overshoot_alert.errors }}
+            {{ form.desired_hours_overshoot_alert.label_tag }}
+            <p class="card-text small">This setting determines the margin by which you are alerted
+                                       about an employee working more hours than they want. For example, 
+                                       if an employee wants to work 30 hours per week, and the margin is
+                                       5, then the eligible list will be colored to inform you if
+                                       the employee is working any more than 35 hours per week.</p>
+            {{ form.desired_hours_overshoot_alert|add_class:'form-control' }}
+            {% if form.desired_hours_overshoot_alert.help_text %}
+              <p class="help">{{ form.desired_hours_overshoot_alert.help_text|safe }}</p>
+            {% endif %}
+          </div>
         </div>
       </div>
-      
+      <br>
       <!-- General Business Settings -->
       <div class="card">
         <div class="card-block">
@@ -115,14 +149,14 @@
               <p class="help">{{ form.overtime_multiplier.help_text|safe }}</p>
             {% endif %}
           </div>
-          <p class="card-text">Employers may decide when the start of the
-                               workweek will occur for scheduling purposes.
-                               This decision impacts how overtime will be 
-                               calculated.</p>
           <!-- Workweek weekday start form input -->
           <div class="form-group">
             {{ form.workweek_weekday_start.errors }}
             {{ form.workweek_weekday_start.label_tag }}
+            <p class="card-text">Employers may decide when the start of the
+                               workweek will occur for scheduling purposes.
+                               This decision impacts how overtime will be 
+                               calculated.</p>
             {{ form.workweek_weekday_start|add_class:'form-control' }}
             {% if form.workweek_weekday_start.help_text %}
               <p class="help">{{ form.workweek_weekday_start.help_text|safe }}</p>
@@ -138,7 +172,10 @@
             {% endif %}
           </div>
           <!-- Minimum Number Of Hours Of Schedule Needed For A Break Time -->
-          <p class="card-text">Minimum duration in hours for a schedule means
+          <div class="form-group">
+            {{ form.min_time_for_break.errors }}
+            {{ form.min_time_for_break.label_tag }}
+            <p class="card-text">Minimum duration in hours for a schedule means
                                that only schedules that are equal to or longer 
                                than the provided minimum duration will have 
                                the average break subtracted from assumed 
@@ -148,9 +185,6 @@
                                are used to make the calculation of scheduling 
                                costs more accurate by factoring in average 
                                break time per schedule.</p>
-          <div class="form-group">
-            {{ form.min_time_for_break.errors }}
-            {{ form.min_time_for_break.label_tag }}
             {{ form.min_time_for_break|add_class:'form-control' }}
             {% if form.min_time_for_break.help_text %}
               <p class="help">{{ form.min_time_for_break.help_text|safe }}</p>

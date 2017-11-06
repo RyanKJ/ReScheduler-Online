@@ -212,13 +212,22 @@ class BusinessData(models.Model):
                                            default=5)
     break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
                                             default=30)
+                                            
     # Calendar Display Settings
     display_am_pm = models.BooleanField(default=False)
     display_minutes = models.BooleanField(default=True)
     display_nonzero_minutes = models.BooleanField(default=False)
     display_last_names = models.BooleanField(default=False)
     display_first_char_last_name = models.BooleanField(default=False)
+    desired_hours_overshoot_alert = models.IntegerField('Desired Hours Overshoot Alert', default=5)
+    sort_by_names = models.BooleanField(default=False)
     
+    #Last schedule times/options selected
+    schedule_start = models.TimeField('start time', default=time(8, 0, 0))
+    schedule_end = models.TimeField('start time', default=time(17, 0, 0))
+    hide_start = models.BooleanField(default=False)
+    hide_end = models.BooleanField(default=False)
+
     # Last calendar loaded of manager user
     last_cal_date_loaded = models.DateField('last_cal_date', default=date.today, null=True)
     last_cal_department_loaded = models.ForeignKey(Department, default=None, on_delete=models.SET_NULL, null=True)

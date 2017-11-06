@@ -8,8 +8,10 @@ $(document).ready(function() {
   /**
    * Selectors And Variables
    */
+  // Constant variables
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"]
+                  
   // General state variables
   var calDate = null;
   var calDepartment = null;
@@ -17,6 +19,7 @@ $(document).ready(function() {
   var displaySettings = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
+  
   // Jquery object variables
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
@@ -40,7 +43,15 @@ $(document).ready(function() {
   var $printDraftBtn = $("#print-draft-calendar");
   var $printLiveBtn = $("#print-live-calendar");
   var $eligibleLegendSelector = $("#legend-selector");
+  var $startTimePicker = $("#start-timepicker").pickatime();
+  var $endTimePicker = $("#end-timepicker").pickatime();
+  var $hideStart = $("#start-checkbox");
+  var $hideEnd = $("#end-checkbox");
   
+  // Start and end schedule time pickers
+  var st_picker = $startTimePicker.pickatime("picker");
+  var et_picker = $endTimePicker.pickatime("picker");
+    
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
   $removeScheduleAfterWarningBtn.click(_removeScheduleAfterWarning);
@@ -149,6 +160,12 @@ $(document).ready(function() {
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
     
+    // Set default start and end time for time-pickers
+    st_picker.set("select", displaySettings["schedule_start"]);
+    et_picker.set("select", displaySettings["schedule_end"]);
+    $hideStart.prop('checked', displaySettings["hide_start"]);
+    $hideEnd.prop('checked', displaySettings["hide_end"]);
+    
     // Get new calendar month view via date
     var FORMAT = "YYYY-MM-DD";
     calDate = moment(info["date"], FORMAT);
@@ -171,8 +188,7 @@ $(document).ready(function() {
     var employeeNameDict = _employeePkToName(employees);
 
     // Collection of events to be rendered together
-    var events = [];
-        
+    var events = [];   
     for (var i=0;i<schedules.length;i++) {  
       var schedulePk = schedules[i]["id"];
       var startDateTime = schedules[i]["start_datetime"]; 
@@ -477,7 +493,20 @@ $(document).ready(function() {
     $scheduleInfo.css("display", "block");
     
     var info = JSON.parse(data);
+    
+    
+    console.log("eligibles are: ");
+    console.log(info);
+    console.log("display settings are: ");
+    console.log(displaySettings);
+    
+    
     var eligableList = info["eligable_list"];
+    if (displaySettings["sort_by_names"]) {
+      // Sort by last name, first name
+      console.log("Sort by names");
+    }
+    
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
    
@@ -582,19 +611,14 @@ $(document).ready(function() {
   
   /** Create string of classes that color an eligable li according to availability. */
   function _compileColorClasses(employee, availability) {
-    console.log("Employee is: ");
-    console.log(employee);
-    console.log("availability is: ");
-    console.log(availability);
-    
     var classes = "";
     
     // Select background color of eligible li corresponding to availability
     if ((availability['(S)'].length > 0) || (availability['(V)'].length > 0) || 
         (availability['(A)'].length > 0) || (availability['(U)'].length > 0)) {
       classes += "red-bg-eligible";
-    } else if (availability['(O)'] || 
-               (availability['Hours Scheduled'] + 5 > employee['desired_hours'])) {
+    } else if (availability['(O)'] || (availability['Hours Scheduled'] >
+                                       employee['desired_hours'] + displaySettings["desired_hours_overshoot_alert"])) {
       classes += "orange-bg-eligible";
     } else if (availability['Desired Times'].length > 0) {
       classes += "green-bg-eligible"
@@ -852,18 +876,6 @@ $(document).ready(function() {
     $legendModal.css("margin-top", Math.max(0, ($(window).height() - $legendModal.height()) / 2));
     $legendModal.modal('show');
   }
-  
-    
-  // Create start and end time-pickers for adding schedules
-  var $startTimePicker = $("#start-timepicker").pickatime();
-  var $endTimePicker = $("#end-timepicker").pickatime();
-    
-  // Set default start and end time for time-pickers
-  var st_picker = $startTimePicker.pickatime("picker");
-  st_picker.set("select", [8,0]);
-  var et_picker = $endTimePicker.pickatime("picker");
-  et_picker.set("select", [17,0]);
-    
 }); 
     
 

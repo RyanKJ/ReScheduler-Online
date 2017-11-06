@@ -326,7 +326,15 @@ def add_schedule(request):
             hide_start = form.cleaned_data['hide_start']
             hide_end = form.cleaned_data['hide_end']
             
-            # Construct start and end datetimes
+            # Save time and hide choices to business settings
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            business_data.schedule_start = start_time
+            business_data.schedule_end = end_time
+            business_data.hide_start = hide_start
+            business_data.hide_end = hide_end
+            business_data.save()
+            
+            # Construct start and end datetimes for schedule
             time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
             start_dt = pytz.timezone(time_zone).localize(start_dt)
