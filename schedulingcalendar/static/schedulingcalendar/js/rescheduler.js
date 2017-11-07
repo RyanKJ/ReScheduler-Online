@@ -161,8 +161,8 @@ $(document).ready(function() {
     displaySettings = info["display_settings"]
     
     // Set default start and end time for time-pickers
-    st_picker.set("select", displaySettings["schedule_start"]);
-    et_picker.set("select", displaySettings["schedule_end"]);
+    st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
+    et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
     $hideStart.prop('checked', displaySettings["hide_start"]);
     $hideEnd.prop('checked', displaySettings["hide_end"]);
     
@@ -503,10 +503,9 @@ $(document).ready(function() {
     
     var eligableList = info["eligable_list"];
     if (displaySettings["sort_by_names"]) {
-      // Sort by last name, first name
       console.log("Sort by names");
+      eligableList.sort(compareEmployeeName);
     }
-    
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];
    
@@ -516,21 +515,30 @@ $(document).ready(function() {
       var warningFlag = _compileConflictFlags(eligableList[i]['availability']);
       var eligableColorClasses = _compileColorClasses(eligableList[i]['employee'], 
                                                       eligableList[i]['availability']);
-      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;
+      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;  
       var $li = $("<li>", {
         "id": eligableList[i]['employee']['id'], 
-        "text": name,
         "class": eligableColorClasses,
         "data-employee-pk": eligableList[i]['employee'].id,
         "data-schedule-pk": schedulePk,
         "data-warning-str": warningStr,
+        "click": eligableClick,
         }
-      ).on("click", eligableClick
       ).appendTo("#eligable-list");
+      var liHTML = "<div class='eligible-name'>" + name + "</div><div class='eligible-hours'>" + eligableList[i]['availability']['Hours Scheduled'] + "</div>"
+      $li.html(liHTML);
     }
     
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(currAssignedEmployeeID);
+  }
+  
+  /** Comparator function for sorting employees by last name, then first name */
+  function compareEmployeeName(e1, e2) {
+    e1Name = e1['employee'].last_name.toLowerCase() + e1['employee'].first_name.toLowerCase()
+    e2Name = e2['employee'].last_name.toLowerCase() + e2['employee'].first_name.toLowerCase()
+    
+    return e1Name > e2Name
   }
   
   

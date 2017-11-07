@@ -282,6 +282,17 @@ ul#eligable-list {
   border: none;
 }
 
+.eligible-name {
+  display: inline-block;
+  max-width: 80%;
+}
+
+.eligible-hours {
+  display: inline-block;
+  float: right;
+  margin-right: 5px;
+}
+
 .blue-bg-eligible, #eligable-list li.curr-assigned-employee {
   background: #59bcff;
 }

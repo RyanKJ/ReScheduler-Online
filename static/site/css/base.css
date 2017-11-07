@@ -41,6 +41,12 @@ main {
 	font-size: 100px;
 }
 
+.fleft { float: left; }
+.fright { float: right; }
+
+.left { text-align: left;}
+.right { text: align: right; }
+
 
 /* Custom Checkboxes
 --------------------------------------------------------------------------------------------------*/
