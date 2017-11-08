@@ -525,7 +525,11 @@ $(document).ready(function() {
         "click": eligableClick,
         }
       ).appendTo("#eligable-list");
-      var liHTML = "<div class='eligible-name'>" + name + "</div><div class='eligible-hours'>" + eligableList[i]['availability']['Hours Scheduled'] + "</div>"
+      // Create content inside each eligible li
+      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours']
+      var liHTML = "<div class='eligible-name'>" + name + "</div>" +
+                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + 
+                   eligableList[i]['availability']['Hours Scheduled'] + "</div>"
       $li.html(liHTML);
     }
     
@@ -765,7 +769,12 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName);
-    // If employee assigned to schedule add highlight class to appropriate li
+    // Update the select eligible employee highlight and also update hours 
+    // worked by new employee, and previous assigned employee (if applicable).
+    var start = moment(startDateTime);
+    var end = moment(endDateTime);
+    var duration = moment.duration(end.diff(start));
+    var hours = duration.asHours();
     _highlightAssignedEmployee(info["employee"]["id"]);
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);

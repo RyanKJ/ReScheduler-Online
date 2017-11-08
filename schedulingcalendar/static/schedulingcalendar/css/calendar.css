@@ -248,6 +248,11 @@ a:active {
   width: 20px;
 }
 
+.legend-text {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
 #eligable-list-title {
   margin-left: -8px;
 }
