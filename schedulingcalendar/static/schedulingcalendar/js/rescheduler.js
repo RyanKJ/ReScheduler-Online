@@ -769,12 +769,7 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName);
-    // Update the select eligible employee highlight and also update hours 
-    // worked by new employee, and previous assigned employee (if applicable).
-    var start = moment(startDateTime);
-    var end = moment(endDateTime);
-    var duration = moment.duration(end.diff(start));
-    var hours = duration.asHours();
+    // Update the eligible list by highlighting newly selected employee
     _highlightAssignedEmployee(info["employee"]["id"]);
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);

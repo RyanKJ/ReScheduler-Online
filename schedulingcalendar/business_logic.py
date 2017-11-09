@@ -341,7 +341,10 @@ def calculate_weekly_hours_with_sch(employee, schedule):
     # TODO: Not count overlapping time of to be assigned schedule.
     
     curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, schedule.user)
-    return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
+    if schedule.employee == employee:
+        return curr_hours
+    else:
+        return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
     
     
 def calculate_weekly_hours(employee, dt, user):
