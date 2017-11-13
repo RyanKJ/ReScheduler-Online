@@ -506,9 +506,16 @@ $(document).ready(function() {
       console.log("Sort by names");
       eligableList.sort(compareEmployeeName);
     }
-    var schedulePk = info["schedule"]["id"];
-    var currAssignedEmployeeID = info["schedule"]["employee"];
-   
+    // Get schedule pk, employee, and schedule duration
+    var schedule = info["schedule"]
+    var schedulePk = schedule["id"];
+    var currAssignedEmployeeID = schedule["employee"];
+    var start = moment(schedule['start_datetime']);
+    var end = moment(schedule['end_datetime']);
+    var duration = moment.duration(end.diff(start));
+    var schedule_hours = duration.asHours();
+    console.log("Hours are....");
+    console.log(schedule_hours);
     // Create li corresponding to eligable employees for selected schedule
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
@@ -526,10 +533,13 @@ $(document).ready(function() {
         }
       ).appendTo("#eligable-list");
       // Create content inside each eligible li
-      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours']
+      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours'];
+      var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
+      if (currAssignedEmployeeID != eligableList[i]['employee']['id']) {
+        curr_hours -= schedule_hours;
+      }
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
-                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + 
-                   eligableList[i]['availability']['Hours Scheduled'] + "</div>"
+                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + curr_hours + "</div>"
       $li.html(liHTML);
     }
     
@@ -697,6 +707,26 @@ $(document).ready(function() {
     $(".curr-assigned-employee").removeClass("curr-assigned-employee");
     $("#" + employeeID).addClass("curr-assigned-employee");
   }
+  
+  
+  /** 
+   * Given an employee id and schedule length, add hours to newly selected
+   * employee, and if previously selected different employee, subtract hours
+   */ 
+  function _updateCurrHours(employeeID, scheduleLength) {
+    var $newlyAssignedEmployee = $("#" + employeeID + " .eligible-hours");
+    var oldHours = $newlyAssignedEmployee.text();
+    var newHours = parseInt(oldHours) + scheduleLength;
+    $newlyAssignedEmployee.text(newHours);
+    var $previousAssignedEmployee = $(".curr-assigned-employee");
+    if ($previousAssignedEmployee.length) {
+      // Do something
+      var $PreviousEmployeeHours = $previousAssignedEmployee.children(" .eligible-hours");
+      var oldHours = $PreviousEmployeeHours.text();
+      var newHours = parseInt(oldHours) - scheduleLength;
+      $PreviousEmployeeHours.text(newHours);
+    }
+  }
 
     
   /**
@@ -775,6 +805,7 @@ $(document).ready(function() {
     var end = moment(endDateTime);
     var duration = moment.duration(end.diff(start));
     var hours = duration.asHours();
+    _updateCurrHours(info["employee"]["id"], hours);
     _highlightAssignedEmployee(info["employee"]["id"]);
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
