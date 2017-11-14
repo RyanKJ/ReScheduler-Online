@@ -41,11 +41,11 @@ main {
 	font-size: 100px;
 }
 
-.fleft { float: left; }
-.fright { float: right; }
+.fleft { float: left !important; }
+.fright { float: right !important; }
 
-.left { text-align: left;}
-.right { text: align: right; }
+.left { text-align: left !important;}
+.right { text: align: right !important; }
 
 
 /* Custom Checkboxes

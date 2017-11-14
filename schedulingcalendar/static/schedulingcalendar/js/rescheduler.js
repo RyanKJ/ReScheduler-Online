@@ -229,6 +229,15 @@ $(document).ready(function() {
     calActive = info["is_active"];
     setCalLiveButtonStyles();
     
+    // TEST
+    var date = '2017-11-07'
+    var $dayHeader = $("thead td[data-date="+date+"]");
+    var dayNumber = $dayHeader.text();
+    
+    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
+               "<span class='fc-day-number fleft'>" + "Thanksgiving" + "</span>"
+    $dayHeader.html(HTML);
+    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
@@ -493,14 +502,6 @@ $(document).ready(function() {
     $scheduleInfo.css("display", "block");
     
     var info = JSON.parse(data);
-    
-    
-    console.log("eligibles are: ");
-    console.log(info);
-    console.log("display settings are: ");
-    console.log(displaySettings);
-    
-    
     var eligableList = info["eligable_list"];
     if (displaySettings["sort_by_names"]) {
       console.log("Sort by names");
@@ -514,8 +515,6 @@ $(document).ready(function() {
     var end = moment(schedule['end_datetime']);
     var duration = moment.duration(end.diff(start));
     var schedule_hours = duration.asHours();
-    console.log("Hours are....");
-    console.log(schedule_hours);
     // Create li corresponding to eligable employees for selected schedule
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
@@ -720,7 +719,6 @@ $(document).ready(function() {
     $newlyAssignedEmployee.text(newHours);
     var $previousAssignedEmployee = $(".curr-assigned-employee");
     if ($previousAssignedEmployee.length) {
-      // Do something
       var $PreviousEmployeeHours = $previousAssignedEmployee.children(" .eligible-hours");
       var oldHours = $PreviousEmployeeHours.text();
       var newHours = parseInt(oldHours) - scheduleLength;
