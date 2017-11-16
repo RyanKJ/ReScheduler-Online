@@ -47,6 +47,8 @@ main {
 .left { text-align: left !important;}
 .right { text: align: right !important; }
 
+.mright20 { margin-left: 20px; }
+
 
 /* Custom Checkboxes
 --------------------------------------------------------------------------------------------------*/

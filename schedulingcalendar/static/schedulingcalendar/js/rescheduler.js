@@ -40,7 +40,8 @@ $(document).ready(function() {
   var $successfulLiveCalMsg = $("#successful-live-cal-change");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
-  var $printDraftBtn = $("#print-draft-calendar");
+  var $printDraftBtn = $("#print-draft");
+  var $printDraftBtnWarning = $("#print-draft-calendar-warning");
   var $printLiveBtn = $("#print-live-calendar");
   var $eligibleLegendSelector = $("#legend-selector");
   var $startTimePicker = $("#start-timepicker").pickatime();
@@ -60,7 +61,8 @@ $(document).ready(function() {
   $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
   $reactivateLiveAfterWarning.click(_SetActivityAfterWarning);
   $setActiveLive.click(SetActiveLiveCalendar);
-  $printDraftBtn.click(_printAfterWarning);
+  $printDraftBtn.click(printCalendar);
+  $printDraftBtnWarning.click(_printAfterWarning);
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
   $eligibleLegendSelector.click(showEligibleLegend);
   
@@ -69,15 +71,7 @@ $(document).ready(function() {
     events: [],
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
-    eventBorderColor: "transparent",
-        
-    customButtons: {
-      printCalendar: {
-        text: "Print Draft",
-        click: printCalendar
-      }
-    },
-        
+    eventBorderColor: "transparent",  
     header: {
       left: "",
       center: "title",

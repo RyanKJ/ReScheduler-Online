@@ -25,60 +25,83 @@
     {% include "schedulingcalendar/_reactivateModal.html" %}
     {% include "schedulingcalendar/_legendModal.html" %}
     
-    <div class="row">
-      <div class="col-md">
-        <!-- Calendar Toolbar -->
-        <aside class="calendar-page-toolbar no-print">
-          <!-- Form for getting calendar to edit -->
-          <section class="calendar-loader">
-            <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_schedules' %}"
-                  onsubmit="return(validateGetCalendarForm())"
-                  data-date="{{ date|date:"Y-m-d" }}"
-                  data-department="{{ department }}"
-                  method="get">
-              {% csrf_token %}
+    <div class="row no-print calendar-toolbar">
+      <div class="col-md-6">
+        <!-- Form for getting calendar -->
+        <form id="load-calendar-form"
+              action="{% url 'schedulingcalendar:get_schedules' %}"
+              onsubmit="return(validateGetCalendarForm())"
+              data-date="{{ date|date:"Y-m-d" }}"
+              data-department="{{ department }}"
+              method="get">
+          {% csrf_token %}
               
-              {% for field in calendar_form %}
-                {{ field.errors }}
-                {{ field.label_tag }} 
-                <div class="select-cal-loader">
-                  {{ field }}
-                </div>
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-              {% endfor %}
-              <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-            </form>
-          </section>
+          <!-- Department Selector -->
+          {{ calendar_form.department.errors }}
+          {{ calendar_form.department.label_tag }} 
+          <div class="select-calendar select-calendar-department">
+            {{ calendar_form.department }}
+          </div>
+          {% if calendar_form.department.help_text %}
+            <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
+          {% endif %}
+             
+          <!-- Month Selector -->
+          {{ calendar_form.month.errors }}
+          {{ calendar_form.month.label_tag }} 
+          <div class="select-calendar select-calendar-month">
+            {{ calendar_form.month }}
+          </div>
+          {% if calendar_form.month.help_text %}
+            <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
+          {% endif %}
           
-          <!-- Buttons for live version of calendar that employees see -->
-          <section class="push-live">
-            <div id="push-live" class="calendar-push-btn">
-              Push Live
-            </div>
-            
-            <div id="active-live-set" class="calendar-push-btn unactive-live">
-              Deactivate Live
-            </div>
-            
-            <form id="view-live-form"
-                  action="{% url 'schedulingcalendar:view_live_schedules' %}"
-                  method="get">
-              {% csrf_token %}
+          <!-- Year Selector -->
+          {{ calendar_form.year.errors }}
+          {{ calendar_form.year.label_tag }} 
+          <div class="select-calendar select-calendar-year">
+            {{ calendar_form.year }}
+          </div>
+          {% if calendar_form.year.help_text %}
+            <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
+          {% endif %}
               
-              {% for field in view_live_form %}
-                {{ field.errors }} 
-                {{ field }}
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-              {% endfor %}
-              <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
-            </form>
-          </section>
-        </aside>
+          <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+        </form>
+      </div>
+        
+      <div class="col-md-6">
+        <!-- Buttons for live version of calendar that employees see -->
+        <div id="push-live" class="calendar-push-btn">
+          Push Live
+        </div>
+            
+        <div id="active-live-set" class="calendar-push-btn unactive-live">
+           Deactivate Live
+        </div>
+            
+        <form id="view-live-form"
+              action="{% url 'schedulingcalendar:view_live_schedules' %}"
+              method="get">
+          {% csrf_token %}
+              
+          {% for field in view_live_form %}
+            {{ field.errors }} 
+            {{ field }}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+          {% endfor %}
+          <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
+        </form>
+        
+        <!-- Misc Buttons -->
+        <div id="print-draft" class="calendar-push-btn">
+          Print Draft
+        </div>
+        <div id="day-note" class="calendar-push-btn">
+          Day Note
+        </div>
       </div>
     </div>
 
