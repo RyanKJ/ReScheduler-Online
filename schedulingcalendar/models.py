@@ -190,6 +190,22 @@ class MonthlyRevenue(models.Model):
     month_year = models.DateField('month and year')
     
     
+class DayNoteHeader(models.Model):
+    """Note for a given date that is rendered in a day's header near day number."""
+    user = models.ForeignKey(User)
+
+    date = models.DateField('Date', default=date.today)
+    text = models.CharField('Text', default="", max_length=140)
+    
+ 
+class DayNoteBody(models.Model):
+    """Note for a given date that is rendered in a day's body near schedules."""
+    user = models.ForeignKey(User)
+
+    date = models.DateField('Date', default=date.today)
+    text = models.CharField('Text', default="", max_length=280)
+    
+    
 class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
     user = models.ForeignKey(User)

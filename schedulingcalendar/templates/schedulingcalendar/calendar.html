@@ -24,6 +24,8 @@
     {% include "schedulingcalendar/_deactivateModal.html" %}
     {% include "schedulingcalendar/_reactivateModal.html" %}
     {% include "schedulingcalendar/_legendModal.html" %}
+    {% include "schedulingcalendar/_noteModal.html" %}
+    {% include "schedulingcalendar/_noteAlertModal.html" %}
     
     <div class="row no-print calendar-toolbar">
       <div class="col-md-6">
@@ -94,6 +96,9 @@
           {% endfor %}
           <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
         </form>
+        
+        <div class="toolbar-divider">
+        </div>
         
         <!-- Misc Buttons -->
         <div id="print-draft" class="calendar-push-btn">

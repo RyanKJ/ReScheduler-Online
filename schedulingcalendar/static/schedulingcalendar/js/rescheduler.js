@@ -48,6 +48,7 @@ $(document).ready(function() {
   var $endTimePicker = $("#end-timepicker").pickatime();
   var $hideStart = $("#start-checkbox");
   var $hideEnd = $("#end-checkbox");
+  var $dayNoteBtn = $("#day-note");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -64,6 +65,7 @@ $(document).ready(function() {
   $printDraftBtn.click(printCalendar);
   $printDraftBtnWarning.click(_printAfterWarning);
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
+  $dayNoteBtn.click(showDayNoteModal);
   $eligibleLegendSelector.click(showEligibleLegend);
   
   $fullCal.fullCalendar({
@@ -229,7 +231,7 @@ $(document).ready(function() {
     var dayNumber = $dayHeader.text();
     
     var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
-               "<span class='fc-day-number fleft'>" + "Thanksgiving" + "</span>"
+               "<span class='fc-day-number fleft'><b>" + "Thanksgiving" + "</b></span>"
     $dayHeader.html(HTML);
     
     // Ensure calendar is visible once fully loaded
@@ -916,6 +918,23 @@ $(document).ready(function() {
     $legendModal.css("margin-top", Math.max(0, ($(window).height() - $legendModal.height()) / 2));
     $legendModal.modal('show');
   }
+  
+  
+  /** Callback function to show user the date note modal */
+  function showDayNoteModal(event) {
+    $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
+    if ($prev_day_clicked.length) {
+      $dayNoteModal = $("#noteModal");
+      $dayNoteModal.css("margin-top", Math.max(0, ($(window).height() - $dayNoteModal.height()) / 2));
+      $dayNoteModal.modal('show');
+    } else {
+      $alertDayNoteModal = $("#noteAlertModal");
+      $alertDayNoteModal.css("margin-top", Math.max(0, ($(window).height() - $alertDayNoteModal.height()) / 2));
+      $alertDayNoteModal.modal('show');
+    }
+  }
+  
+  
 }); 
     
 

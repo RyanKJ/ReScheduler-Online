@@ -19,7 +19,8 @@ from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
                                        SetPasswordForm)
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
-                     Absence, BusinessData, LiveSchedule, LiveCalendar)
+                     Absence, BusinessData, LiveSchedule, LiveCalendar, 
+                     DayNoteHeader, DayNoteBody)
 from .business_logic import (get_eligibles, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
@@ -172,6 +173,9 @@ def get_schedules(request):
             for s in schedules:
                 if s.employee:
                     employees.add(s.employee)
+                    
+            # Get day notes to display for dates within range of month
+            day_note_header = []
             
             # Convert schedules and employees to dicts for json dump
             schedules_as_dicts = []

@@ -156,6 +156,18 @@ a:active {
 	transition: all .3s ease;
 }
 
+.toolbar-divider {
+  position: relative;
+  display: inline-block;
+  float: right;
+  top: 10px;
+  height: 36px;
+  width: 4px;
+  margin-left: 11px;
+  margin-right: 4px;
+  background: white;
+}
+
 .unactive-live {
   background: transparent !important;
   color: silver;
