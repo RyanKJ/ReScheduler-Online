@@ -175,17 +175,33 @@ def get_schedules(request):
                     employees.add(s.employee)
                     
             # Get day notes to display for dates within range of month
-            day_note_header = []
-            
-            # Convert schedules and employees to dicts for json dump
+            day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
+                                                           date__year=year,
+                                                           date__month__gte=month - 1,
+                                                           date__month__lte=month + 1)
+            day_note_body = DayNoteBody.objects.filter(user=logged_in_user,
+                                                       date__year=year,
+                                                       date__month__gte=month - 1,
+                                                       date__month__lte=month + 1)                                          
+                                                            
+            # Convert schedules, employees and notes to dicts for json dump
             schedules_as_dicts = []
             employees_as_dicts = []
+            day_note_header_as_dicts = []
+            day_note_body_as_dicts = []
+            
             for s in schedules:
                 schedule_dict = model_to_dict(s)
                 schedules_as_dicts.append(schedule_dict)
             for e in employees:
                 employee_dict = model_to_dict(e)
                 employees_as_dicts.append(employee_dict)
+            for day_hdr in day_note_header:
+                day_hdr_dict = model_to_dict(day_hdr)
+                day_note_header_as_dicts.append(day_hdr_dict)
+            for day_body in day_note_body:
+                day_body_dict = model_to_dict(day_body)
+                day_note_body_as_dicts.append(day_body_dict)
                 
             # Get calendar costs to display to user
             department_costs = all_calendar_costs(logged_in_user, month, year)
@@ -206,6 +222,8 @@ def get_schedules(request):
                              'department': department_id,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
+                             'day_note_header': day_note_header_as_dicts,
+                             'day_note_body': day_note_body_as_dicts,
                              'department_costs': department_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,

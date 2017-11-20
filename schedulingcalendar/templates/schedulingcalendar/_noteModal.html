@@ -28,6 +28,11 @@
         <div class="tab-content">
           <!-- Header Note -->
           <div class="tab-pane active" id="header-note-tab">
+            {% for day_hdr in day_note_header %}
+              <p>{{ day_hdr.date }} : {{ day_hdr.text }}</p>
+            {% endfor %}
+            
+            <p>{{ department }}</p>
           </div>
           
           <!-- Body Note -->

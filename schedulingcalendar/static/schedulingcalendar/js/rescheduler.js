@@ -74,6 +74,7 @@ $(document).ready(function() {
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
     eventBorderColor: "transparent",  
+    eventOrder: "customSort,title",
     header: {
       left: "",
       center: "title",
@@ -87,16 +88,18 @@ $(document).ready(function() {
      * highlighted day.
      */
     eventClick: function(calEvent, jsEvent, view) {
-      // Remove any previous highlight class before highlighting this event
-      $(".fc-event-clicked").removeClass("fc-event-clicked");
-      $(this).find("div").addClass("fc-event-clicked");
-      $(".fc-day-clicked").removeClass("fc-day-clicked");
-      var date = calEvent.start.format("YYYY-MM-DD");
-      $("td[data-date="+date+"]").addClass("fc-day-clicked");
-      $addScheduleDate.val(date);
-      
-      var pk = calEvent.id;
-      $.get("get_schedule_info", {pk: pk}, displayEligables);
+      if (calEvent.isSchedule) {
+        // Remove any previous highlight class before highlighting this event
+        $(".fc-event-clicked").removeClass("fc-event-clicked");
+        $(this).find("div").addClass("fc-event-clicked");
+        $(".fc-day-clicked").removeClass("fc-day-clicked");
+        var date = calEvent.start.format("YYYY-MM-DD");
+        $("td[data-date="+date+"]").addClass("fc-day-clicked");
+        $addScheduleDate.val(date);
+        
+        var pk = calEvent.id;
+        $.get("get_schedule_info", {pk: pk}, displayEligables);
+      }
     },
         
     /** Highlight event when mouse hovers over event. */
@@ -156,6 +159,10 @@ $(document).ready(function() {
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
     
+    
+    console.log("load schedules data is: ");
+    console.log(info);
+    
     // Set default start and end time for time-pickers
     st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
     et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
@@ -178,13 +185,15 @@ $(document).ready(function() {
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
         
-    // Get schedules and employees for loading into calendar
+    // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     var employees = info["employees"];
     var employeeNameDict = _employeePkToName(employees);
-
-    // Collection of events to be rendered together
+    var dayHeaderNotes = info["day_note_header"];
+    var dayBodyNotes = info["day_note_body"];
     var events = [];   
+    
+    // Create fullcalendar event corresponding to schedule
     for (var i=0;i<schedules.length;i++) {  
       var schedulePk = schedules[i]["id"];
       var startDateTime = schedules[i]["start_datetime"]; 
@@ -203,18 +212,37 @@ $(document).ready(function() {
       var str = getEventStr(startDateTime, endDateTime, 
                             hideStart, hideEnd,
                             firstName, lastName); 
-      // Create fullcalendar event corresponding to schedule
       var event = {
         id: schedulePk,
         title: str,
         start: startDateTime,
         end: endDateTime,
-        allDay: true
-        }       
+        allDay: true,
+        isSchedule: true,
+        customSort: 1
+      }       
+      events.push(event);
+    }
+    // Collection of day body notes to be rendered as fullcalendar events
+    for (var i=0;i<dayBodyNotes.length;i++) { 
+      var eventTime = dayBodyNotes[i]["date"] + "T:00:00:00";
+      var event = {
+        title: dayBodyNotes[i]["text"],
+        start: dayBodyNotes[i]["date"],
+        textColor: "#2859a8",
+        allDay: true,
+        isSchedule: false,
+        customSort: 0
+      }
       events.push(event);
     }
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
+    
+    // Collection of day header notes to be rendered manually
+    for (var i=0;i<dayHeaderNotes.length;i++) { 
+      _dayNoteHeaderRender(dayHeaderNotes[i]);
+    }
     
     //Calculate and display calendar costs
     departmentCosts = info["department_costs"];
@@ -224,18 +252,20 @@ $(document).ready(function() {
     //Set activate/deactivate to state of live_calendar
     calActive = info["is_active"];
     setCalLiveButtonStyles();
-    
-    // TEST
-    var date = '2017-11-07'
-    var $dayHeader = $("thead td[data-date="+date+"]");
-    var dayNumber = $dayHeader.text();
-    
-    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
-               "<span class='fc-day-number fleft'><b>" + "Thanksgiving" + "</b></span>"
-    $dayHeader.html(HTML);
-    
+   
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
+  }
+  
+  
+   /** Helper function for rendering day not headers for the full calendar */
+  function _dayNoteHeaderRender(dayHeaderObj) {
+    var date = dayHeaderObj["date"];
+    var $dayHeader = $("thead td[data-date="+date+"]");
+    var dayNumber = $dayHeader.text();
+    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
+               "<span class='fc-day-number fleft'><b>" + dayHeaderObj["text"] + "</b></span>"
+    $dayHeader.html(HTML);
   }
 
 
