@@ -30,7 +30,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
-                    DepartmentMembershipForm)
+                    DepartmentMembershipForm, DayNoteHeaderForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -98,7 +98,8 @@ def calendar_page(request):
     
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
-    view_live_form = ViewLiveCalendarForm
+    view_live_form = ViewLiveCalendarForm()
+    day_note_header_form = DayNoteHeaderForm()
     # If user has previously loaded a calendar, load that calendar. Otherwise,
     # load the current date and first department found in query
     business_data = BusinessData.objects.get(user=logged_in_user)
@@ -115,6 +116,7 @@ def calendar_page(request):
     context = {'calendar_form': calendar_form, 
                'add_sch_form': add_schedule_form,
                'view_live_form': view_live_form,
+               'day_note_header_form': day_note_header_form,
                'date': date,
                'department': department.id}
 
@@ -565,7 +567,30 @@ def view_live_schedules(request):
     else:
         pass
         #TODO: Implement reponse for non-POST requests     
-                   
+        
+        
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def add_edit_day_note_header(request): 
+    """Add or edit a day note header."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = DayNoteHeaderForm(request.POST)
+        if form.is_valid():
+            text = form.cleaned_data['header_text']
+            date = form.cleaned_data['date']
+            day_note_header, created = DayNoteHeader.objects.get_or_create(user=logged_in_user,
+                                                                           date=date)
+            day_note_header.header_text = text
+            day_note_header.save(update_fields=['header_text'])
+            day_note_header_dict = model_to_dict(day_note_header)
+            day_note_header_json = json.dumps(day_note_header_dict, default=date_handler)
+            
+            return JsonResponse(day_note_header_json, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests     
+           
                   
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(UserIsManagerMixin, ListView):

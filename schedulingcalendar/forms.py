@@ -2,7 +2,7 @@ from django import forms
 from datetime import datetime
 from .models import (Employee, Department, DepartmentMembership, 
                      Vacation, Absence, RepeatUnavailability, DesiredTime, 
-                     MonthlyRevenue, BusinessData)
+                     MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody)
 from custom_formfields import TzAwareTimeField
 
 DATE_FORMAT = '%Y, %B'
@@ -125,8 +125,6 @@ class LiveCalendarManagerForm(forms.Form):
         
         
     def get_version_choices(self, num_of_versions):
-        print "*************|*|*|*| num_of_versions is:"
-        print num_of_versions
         """Create tuple of versions for select widget."""
         version_list = [] 
         
@@ -329,6 +327,14 @@ class MonthlyRevenueForm(forms.ModelForm):
     class Meta:
         model = MonthlyRevenue
         fields = ['monthly_total', 'month_year']
+        
+        
+class DayNoteHeaderForm(forms.ModelForm):
+    """Form for creating and editing day note headers."""                                                    
+                                
+    class Meta:
+        model = DayNoteHeader
+        fields = ['date', 'header_text']
     
     
 def get_department_tuple(logged_user):

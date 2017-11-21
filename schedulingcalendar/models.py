@@ -195,7 +195,7 @@ class DayNoteHeader(models.Model):
     user = models.ForeignKey(User)
 
     date = models.DateField('Date', default=date.today)
-    text = models.CharField('Text', default="", max_length=140)
+    header_text = models.CharField('Note', default="", max_length=140)
     
  
 class DayNoteBody(models.Model):
@@ -203,7 +203,7 @@ class DayNoteBody(models.Model):
     user = models.ForeignKey(User)
 
     date = models.DateField('Date', default=date.today)
-    text = models.CharField('Text', default="", max_length=280)
+    body_text = models.CharField('Note', default="", max_length=280)
     
     
 class BusinessData(models.Model):

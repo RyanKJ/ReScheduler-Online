@@ -49,6 +49,8 @@ $(document).ready(function() {
   var $hideStart = $("#start-checkbox");
   var $hideEnd = $("#end-checkbox");
   var $dayNoteBtn = $("#day-note");
+  var $dayNoteHeaderBtn = $("#day-note-header-btn");
+  var $dayNoteHeaderText = $("#id_header_text");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -67,6 +69,7 @@ $(document).ready(function() {
   $printLiveBtn.click(_goToLiveAfterPrintWarning);
   $dayNoteBtn.click(showDayNoteModal);
   $eligibleLegendSelector.click(showEligibleLegend);
+  $dayNoteHeaderBtn.click(postDayNoteHeader);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -225,16 +228,18 @@ $(document).ready(function() {
     }
     // Collection of day body notes to be rendered as fullcalendar events
     for (var i=0;i<dayBodyNotes.length;i++) { 
-      var eventTime = dayBodyNotes[i]["date"] + "T:00:00:00";
-      var event = {
-        title: dayBodyNotes[i]["text"],
-        start: dayBodyNotes[i]["date"],
-        textColor: "#2859a8",
-        allDay: true,
-        isSchedule: false,
-        customSort: 0
+      if (dayBodyNotes[i]["body_text"]) { // Don't Display blank notes
+        var eventTime = dayBodyNotes[i]["date"] + "T:00:00:00";
+        var event = {
+          title: dayBodyNotes[i]["body_text"],
+          start: dayBodyNotes[i]["date"],
+          textColor: "#2859a8",
+          allDay: true,
+          isSchedule: false,
+          customSort: 0
+        }
+        events.push(event);
       }
-      events.push(event);
     }
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
@@ -262,9 +267,9 @@ $(document).ready(function() {
   function _dayNoteHeaderRender(dayHeaderObj) {
     var date = dayHeaderObj["date"];
     var $dayHeader = $("thead td[data-date="+date+"]");
-    var dayNumber = $dayHeader.text();
+    var dayNumber = $dayHeader.children().first().text();
     var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
-               "<span class='fc-day-number fleft'><b>" + dayHeaderObj["text"] + "</b></span>"
+               "<span class='fc-day-number fleft'><b>" + dayHeaderObj["header_text"] + "</b></span>"
     $dayHeader.html(HTML);
   }
 
@@ -964,6 +969,21 @@ $(document).ready(function() {
     }
   }
   
+  
+  /** Callback to push changes to date's header note to database */
+  function postDayNoteHeader(event) {
+    var text_val = $dayNoteHeaderText.val();
+    $.post("add_edit_day_note_header",
+           {date: $addScheduleDate.val(), header_text: text_val},
+            _updateDayNoteHeader);
+  }
+  
+  
+  /** Callback function to update the current selected date's header note */
+  function _updateDayNoteHeader(dayNoteHeaderJSON) {
+    var dayNoteHeader = JSON.parse(dayNoteHeaderJSON);
+    _dayNoteHeaderRender(dayNoteHeader);
+  }
   
 }); 
     

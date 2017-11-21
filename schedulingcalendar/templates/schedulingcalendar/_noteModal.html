@@ -1,3 +1,5 @@
+{% load widget_tweaks %}
+
 <!-- Modal -->
 <div id="noteModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -22,21 +24,30 @@
       
         <ul class="nav nav-tabs">
           <li class="active"><a href="#header-note-tab" data-toggle="tab">Header Note</a></li>
-          <li><a href="#body-notes-tab" data-toggle="tab">Body Notes</a></li>
+          <li><a href="#body-note-tab" data-toggle="tab">Body Note</a></li>
         </ul>
       
         <div class="tab-content">
           <!-- Header Note -->
-          <div class="tab-pane active" id="header-note-tab">
-            {% for day_hdr in day_note_header %}
-              <p>{{ day_hdr.date }} : {{ day_hdr.text }}</p>
-            {% endfor %}
-            
-            <p>{{ department }}</p>
+          <div class="tab-pane text-center active" id="header-note-tab">
+            <br>
+            <!-- Text editor -->
+            <div class="form-group">
+            {{ day_note_header_form.header_text.errors }}
+            {{ day_note_header_form.header_text.label_tag }} 
+            {{ day_note_header_form.header_text|add_class:'form-control' }}
+            {% if day_note_header_form.header_text.help_text %}
+              <p class="help">{{ day_note_header_form.header_text.help_text|safe }}</p>
+            {% endif %}
+            <br>
+            <button id="day-note-header-btn"
+                    type="button" 
+                    class="btn btn-info text-center"   
+                    data-dismiss="modal">Save Changes</button>
+            </div>
           </div>
-          
           <!-- Body Note -->
-          <div class="tab-pane" id="body-notes-tab">
+          <div class="tab-pane text-center" id="body-note-tab">
           </div>
         </div>
       
@@ -58,9 +69,10 @@
       
       <div class="modal-footer">
         <div class="text-center">
+          <br>
           <button type="button" 
-                  class="btn btn-info text-center"   
-                  data-dismiss="modal">Okay</button>
+                  class="btn btn-danger text-center"   
+                  data-dismiss="modal">Close Without Saving</button>
         </div>
       </div>
     </div>
