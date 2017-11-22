@@ -11,22 +11,12 @@
           <h4 class="modal-title">Day Notes</h4>
         </div>
       </div>
-      
-      
-      
-      
-      
-      
-      
-      
+
       <div class="modal-body">
-      
-      
         <ul class="nav nav-tabs">
           <li class="active"><a href="#header-note-tab" data-toggle="tab">Header Note</a></li>
           <li><a href="#body-note-tab" data-toggle="tab">Body Note</a></li>
         </ul>
-      
         <div class="tab-content">
           <!-- Header Note -->
           <div class="tab-pane text-center active" id="header-note-tab">
@@ -48,24 +38,24 @@
           </div>
           <!-- Body Note -->
           <div class="tab-pane text-center" id="body-note-tab">
+            <br>
+            <!-- Text editor -->
+            <div class="form-group">
+            {{ day_note_body_form.body_text.errors }}
+            {{ day_note_body_form.body_text.label_tag }} 
+            {{ day_note_body_form.body_text|add_class:'form-control' }}
+            {% if day_note_body_form.body_text.help_text %}
+              <p class="help">{{ day_note_body_form.body_text.help_text|safe }}</p>
+            {% endif %}
+            <br>
+            <button id="day-note-body-btn"
+                    type="button" 
+                    class="btn btn-info text-center"   
+                    data-dismiss="modal">Save Changes</button>
+            </div>
           </div>
         </div>
-      
-      
-      
       </div>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       
       <div class="modal-footer">
         <div class="text-center">

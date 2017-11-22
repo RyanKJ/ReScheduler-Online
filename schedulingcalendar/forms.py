@@ -335,6 +335,14 @@ class DayNoteHeaderForm(forms.ModelForm):
     class Meta:
         model = DayNoteHeader
         fields = ['date', 'header_text']
+        
+        
+class DayNoteBodyForm(forms.ModelForm):
+    """Form for creating and editing day note's for a day body."""                                                    
+                                
+    class Meta:
+        model = DayNoteBody
+        fields = ['date', 'body_text']
     
     
 def get_department_tuple(logged_user):

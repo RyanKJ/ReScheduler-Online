@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^calendar/get_live_schedules$', views.get_live_schedules, name='get_live_schedules'),
     url(r'^calendar/view_live_schedules$', views.view_live_schedules, name='view_live_schedules'),
     url(r'^calendar/add_edit_day_note_header$', views.add_edit_day_note_header, name='add_edit_day_note_header'),
+    url(r'^calendar/add_edit_day_note_body$', views.add_edit_day_note_body, name='add_edit_day_note_body'),
     url(r'^employees/$', views.EmployeeListView.as_view(), name='employee_list'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/info/$', views.EmployeeUpdateView.as_view(), name='employee_info'),
     url(r'^employees/employee_create$', views.EmployeeCreateView.as_view(), name='employee_create'),

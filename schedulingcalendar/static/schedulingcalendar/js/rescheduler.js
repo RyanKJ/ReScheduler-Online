@@ -19,6 +19,8 @@ $(document).ready(function() {
   var displaySettings = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
+  var dayNoteHeaders = {};
+  var dayNoteBodies = {};
   
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -51,6 +53,8 @@ $(document).ready(function() {
   var $dayNoteBtn = $("#day-note");
   var $dayNoteHeaderBtn = $("#day-note-header-btn");
   var $dayNoteHeaderText = $("#id_header_text");
+  var $dayNoteBodyBtn = $("#day-note-body-btn");
+  var $dayNoteBodyText = $("#id_body_text");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -70,6 +74,7 @@ $(document).ready(function() {
   $dayNoteBtn.click(showDayNoteModal);
   $eligibleLegendSelector.click(showEligibleLegend);
   $dayNoteHeaderBtn.click(postDayNoteHeader);
+  $dayNoteBodyBtn.click(postDayNoteBody);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -91,14 +96,29 @@ $(document).ready(function() {
      * highlighted day.
      */
     eventClick: function(calEvent, jsEvent, view) {
+      $(".fc-day-clicked").removeClass("fc-day-clicked");
+      var date = calEvent.start.format("YYYY-MM-DD");
+      $("td[data-date="+date+"]").addClass("fc-day-clicked");
+      $addScheduleDate.val(date);
+      
       if (calEvent.isSchedule) {
         // Remove any previous highlight class before highlighting this event
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         $(this).find("div").addClass("fc-event-clicked");
-        $(".fc-day-clicked").removeClass("fc-day-clicked");
-        var date = calEvent.start.format("YYYY-MM-DD");
-        $("td[data-date="+date+"]").addClass("fc-day-clicked");
-        $addScheduleDate.val(date);
+        
+        // Update text field for editing day note
+        if (dayNoteHeaders.hasOwnProperty(date)) {
+          dayNoteHeaderText = dayNoteHeaders[date]["header_text"];
+          $dayNoteHeaderText.val(dayNoteHeaderText);
+        } else {
+          $dayNoteHeaderText.val(""); // No note exists, reset text field
+        }
+        if (dayNoteBodies.hasOwnProperty(date)) {
+          dayNoteBodyText = dayNoteBodies[date]["body_text"];
+          $dayNoteBodyText.val(dayNoteBodyText);
+        } else {
+          $dayNoteBodyText.val(""); // No note exists, reset text field
+        }
         
         var pk = calEvent.id;
         $.get("get_schedule_info", {pk: pk}, displayEligables);
@@ -129,17 +149,32 @@ $(document).ready(function() {
      * has just been clicked.
      */
     dayClick: function(date, jsEvent, view) {
-      $curr_day_clicked = $("td[data-date="+date.format('YYYY-MM-DD')+"]");
+      var formatted_date = date.format('YYYY-MM-DD')
+      $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
           
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
         $curr_day_clicked.addClass("fc-day-clicked");
         
-        $addScheduleDate.val(date.format("YYYY-MM-DD"));
+        $addScheduleDate.val(formatted_date);
             
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         clearEligables();
+        
+        // Update text field for editing day notes
+        if (dayNoteHeaders.hasOwnProperty(formatted_date)) {
+          dayNoteHeaderText = dayNoteHeaders[formatted_date]["header_text"];
+          $dayNoteHeaderText.val(dayNoteHeaderText);
+        } else {
+          $dayNoteHeaderText.val(""); // No note exists, reset text field
+        }
+        if (dayNoteBodies.hasOwnProperty(formatted_date)) {
+          dayNoteBodyText = dayNoteBodies[formatted_date]["body_text"];
+          $dayNoteBodyText.val(dayNoteBodyText);
+        } else {
+          $dayNoteBodyText.val(""); // No note exists, reset text field
+        }
       }
     }
   });
@@ -161,7 +196,6 @@ $(document).ready(function() {
     var info = JSON.parse(json_data);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
-    
     
     console.log("load schedules data is: ");
     console.log(info);
@@ -228,12 +262,12 @@ $(document).ready(function() {
     }
     // Collection of day body notes to be rendered as fullcalendar events
     for (var i=0;i<dayBodyNotes.length;i++) { 
+      dayNoteBodies[dayBodyNotes[i]["date"]] = dayBodyNotes[i];
       if (dayBodyNotes[i]["body_text"]) { // Don't Display blank notes
-        var eventTime = dayBodyNotes[i]["date"] + "T:00:00:00";
         var event = {
+          id:"body-note-" + dayBodyNotes[i]["id"],
           title: dayBodyNotes[i]["body_text"],
           start: dayBodyNotes[i]["date"],
-          textColor: "#2859a8",
           allDay: true,
           isSchedule: false,
           customSort: 0
@@ -246,6 +280,7 @@ $(document).ready(function() {
     
     // Collection of day header notes to be rendered manually
     for (var i=0;i<dayHeaderNotes.length;i++) { 
+      dayNoteHeaders[dayHeaderNotes[i]["date"]] = dayHeaderNotes[i];
       _dayNoteHeaderRender(dayHeaderNotes[i]);
     }
     
@@ -535,7 +570,6 @@ $(document).ready(function() {
     var info = JSON.parse(data);
     var eligableList = info["eligable_list"];
     if (displaySettings["sort_by_names"]) {
-      console.log("Sort by names");
       eligableList.sort(compareEmployeeName);
     }
     // Get schedule pk, employee, and schedule duration
@@ -982,9 +1016,42 @@ $(document).ready(function() {
   /** Callback function to update the current selected date's header note */
   function _updateDayNoteHeader(dayNoteHeaderJSON) {
     var dayNoteHeader = JSON.parse(dayNoteHeaderJSON);
+    dayNoteHeaders[dayNoteHeader["date"]] = dayNoteHeader;
     _dayNoteHeaderRender(dayNoteHeader);
   }
   
+
+  /** Callback to push changes to date's body note to database */
+  function postDayNoteBody(event) {
+    var text_val = $dayNoteBodyText.val();
+    $.post("add_edit_day_note_body",
+           {date: $addScheduleDate.val(), body_text: text_val},
+            _updateDayNoteBody);
+  }
+  
+  
+  /** Callback function to update the current selected date's body note */
+  function _updateDayNoteBody(dayNoteBodyJSON) {
+    var dayNoteBody = JSON.parse(dayNoteBodyJSON);
+    // Update body note if it already exists or create new event if not
+    if (dayNoteBodies.hasOwnProperty(dayNoteBody["date"])) {
+      var eventID = "body-note-" + dayNoteBody["id"];
+      $event = $fullCal.fullCalendar("clientEvents", eventID);
+      $event[0].title = dayNoteBody["body_text"];
+      // Update then rehighlight edited schedule
+      $fullCal.fullCalendar("updateEvent", $event[0]);
+    } else if (dayNoteBody["body_text"]) { // Don't Display blank note
+        var event = {
+          title: dayNoteBody["body_text"],
+          start: dayNoteBody["date"],
+          allDay: true,
+          isSchedule: false,
+          customSort: 0
+        }
+        $fullCal.fullCalendar("renderEvent", event);
+    }
+    dayNoteBodies[dayNoteBody["date"]] = dayNoteBody;
+  }
 }); 
     
 
