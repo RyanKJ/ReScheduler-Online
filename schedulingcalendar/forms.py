@@ -343,6 +343,11 @@ class DayNoteBodyForm(forms.ModelForm):
     class Meta:
         model = DayNoteBody
         fields = ['date', 'body_text']
+        
+        
+class ScheduleNoteForm(forms.Form):
+    schedule_pk = forms.IntegerField(label='schedule id')
+    schedule_text = forms.CharField(label='Note', max_length=280)
     
     
 def get_department_tuple(logged_user):

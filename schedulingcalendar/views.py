@@ -31,7 +31,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
-                    DayNoteBodyForm)
+                    DayNoteBodyForm, ScheduleNoteForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -102,6 +102,7 @@ def calendar_page(request):
     view_live_form = ViewLiveCalendarForm()
     day_note_header_form = DayNoteHeaderForm()
     day_note_body_form = DayNoteBodyForm()
+    schedule_note_form = ScheduleNoteForm()
     # If user has previously loaded a calendar, load that calendar. Otherwise,
     # load the current date and first department found in query
     business_data = BusinessData.objects.get(user=logged_in_user)
@@ -120,6 +121,7 @@ def calendar_page(request):
                'view_live_form': view_live_form,
                'day_note_header_form': day_note_header_form,
                'day_note_body_form': day_note_body_form,
+               'schedule_note_form': schedule_note_form,
                'date': date,
                'department': department.id}
 
@@ -257,7 +259,7 @@ def get_live_schedules(request):
             form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
-                                    .get(employee_user=logged_in_user))
+                                .get(employee_user=logged_in_user))
             manager_user = employee.user
             form = LiveCalendarForm(manager_user, request.GET)
         if form.is_valid():
@@ -300,16 +302,35 @@ def get_live_schedules(request):
                 for s in live_schedules:
                     if s.employee:
                         employees.add(s.employee)
+                        
+                # Get day notes to display for dates within range of month
+                day_note_header = DayNoteHeader.objects.filter(user=manager_user,
+                                                               date__year=year,
+                                                               date__month__gte=month - 1,
+                                                               date__month__lte=month + 1)
+                day_note_body = DayNoteBody.objects.filter(user=manager_user,
+                                                           date__year=year,
+                                                           date__month__gte=month - 1,
+                                                           date__month__lte=month + 1)  
                 
                 # Convert live_schedules and employees to dicts for json dump
                 schedules_as_dicts = []
                 employees_as_dicts = []
+                day_note_header_as_dicts = []
+                day_note_body_as_dicts = []
+                
                 for s in live_schedules:
                     schedule_dict = model_to_dict(s)
                     schedules_as_dicts.append(schedule_dict)
                 for e in employees:
                     employee_dict = model_to_dict(e)
                     employees_as_dicts.append(employee_dict)
+                for day_hdr in day_note_header:
+                    day_hdr_dict = model_to_dict(day_hdr)
+                    day_note_header_as_dicts.append(day_hdr_dict)
+                for day_body in day_note_body:
+                    day_body_dict = model_to_dict(day_body)
+                    day_note_body_as_dicts.append(day_body_dict)
                 
                 # Get business data for display settings on calendar
                 business_data = (BusinessData.objects.get(user=manager_user))
@@ -320,6 +341,8 @@ def get_live_schedules(request):
                                  'department': department_id,
                                  'schedules': schedules_as_dicts,
                                  'employees': employees_as_dicts,
+                                 'day_note_header': day_note_header_as_dicts,
+                                 'day_note_body': day_note_body_as_dicts,
                                  'version': version,
                                  'display_settings': business_dict}
                 combined_json = json.dumps(combined_dict, default=date_handler)
@@ -613,6 +636,38 @@ def add_edit_day_note_body(request):
             day_note_body_json = json.dumps(day_note_body_dict, default=date_handler)
             
             return JsonResponse(day_note_body_json, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests    
+        
+        
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def edit_schedule_note(request): 
+    """Add or edit a day note body."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ScheduleNoteForm(request.POST)
+        if form.is_valid():
+            id = form.cleaned_data['schedule_pk']
+            text = form.cleaned_data['schedule_text']
+            schedule = Schedule.objects.get(user=logged_in_user, pk=id)
+            schedule.schedule_note = text
+            schedule.save(update_fields=['schedule_note'])
+            
+            # If a corresponding live schedule exists, update that as well
+            try:
+                live_schedule = LiveSchedule.objects.get(user=logged_in_user, 
+                                                         schedule=id)
+                live_schedule.schedule_note = text
+                live_schedule.save(update_fields=['schedule_note'])
+            except ObjectDoesNotExist:
+                live_schedule = None
+            
+            schedule_dict = model_to_dict(schedule)
+            schedule_json = json.dumps(schedule_dict, default=date_handler)
+            
+            return JsonResponse(schedule_json, safe=False)
     else:
         pass
         #TODO: Implement reponse for non-POST requests    

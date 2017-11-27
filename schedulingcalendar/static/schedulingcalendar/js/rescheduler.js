@@ -10,7 +10,8 @@ $(document).ready(function() {
    */
   // Constant variables
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
-                  "Friday", "Saturday", "Sunday"]
+                  "Friday", "Saturday", "Sunday"];
+  var DATE_FORMAT = "YYYY-MM-DD";
                   
   // General state variables
   var calDate = null;
@@ -21,6 +22,7 @@ $(document).ready(function() {
   var avgMonthlyRev = -1;
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
+  var scheduleNotes = {};
   
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -55,6 +57,8 @@ $(document).ready(function() {
   var $dayNoteHeaderText = $("#id_header_text");
   var $dayNoteBodyBtn = $("#day-note-body-btn");
   var $dayNoteBodyText = $("#id_body_text");
+  var $scheduleNoteBtn = $("#schedule-note-btn");
+  var $scheduleNoteText = $("#id_schedule_text");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -75,6 +79,7 @@ $(document).ready(function() {
   $eligibleLegendSelector.click(showEligibleLegend);
   $dayNoteHeaderBtn.click(postDayNoteHeader);
   $dayNoteBodyBtn.click(postDayNoteBody);
+  $scheduleNoteBtn.click(postScheduleNote);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -97,43 +102,46 @@ $(document).ready(function() {
      */
     eventClick: function(calEvent, jsEvent, view) {
       $(".fc-day-clicked").removeClass("fc-day-clicked");
-      var date = calEvent.start.format("YYYY-MM-DD");
+      var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-day-clicked");
       $addScheduleDate.val(date);
+      
+      // Update text field for editing day note
+      if (dayNoteHeaders.hasOwnProperty(date)) {
+        dayNoteHeaderText = dayNoteHeaders[date]["header_text"];
+        $dayNoteHeaderText.val(dayNoteHeaderText);
+      } else {
+        $dayNoteHeaderText.val(""); // No note exists, reset text field
+      }
+      if (dayNoteBodies.hasOwnProperty(date)) {
+        dayNoteBodyText = dayNoteBodies[date]["body_text"];
+        $dayNoteBodyText.val(dayNoteBodyText);
+      } else {
+        $dayNoteBodyText.val(""); // No note exists, reset text field
+      }
       
       if (calEvent.isSchedule) {
         // Remove any previous highlight class before highlighting this event
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         $(this).find("div").addClass("fc-event-clicked");
-        
-        // Update text field for editing day note
-        if (dayNoteHeaders.hasOwnProperty(date)) {
-          dayNoteHeaderText = dayNoteHeaders[date]["header_text"];
-          $dayNoteHeaderText.val(dayNoteHeaderText);
-        } else {
-          $dayNoteHeaderText.val(""); // No note exists, reset text field
-        }
-        if (dayNoteBodies.hasOwnProperty(date)) {
-          dayNoteBodyText = dayNoteBodies[date]["body_text"];
-          $dayNoteBodyText.val(dayNoteBodyText);
-        } else {
-          $dayNoteBodyText.val(""); // No note exists, reset text field
-        }
-        
         var pk = calEvent.id;
+        // Set text field for this schedule in schedule note form
+        var scheduleNote = scheduleNotes[pk];
+        $scheduleNoteText.val(scheduleNote);
+        // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
       }
     },
         
     /** Highlight event when mouse hovers over event. */
     eventMouseover: function(calEvent, jsEvent, view) {
-      var date = calEvent.start.format("YYYY-MM-DD");
+      var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-days-event-mouseover");
     },
         
     /** De-highlight event when mouse stops hovering over event. */
     eventMouseout: function(calEvent, jsEvent, view) {
-      var date = calEvent.start.format("YYYY-MM-DD");
+      var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").removeClass("fc-days-event-mouseover");
     },
         
@@ -149,7 +157,7 @@ $(document).ready(function() {
      * has just been clicked.
      */
     dayClick: function(date, jsEvent, view) {
-      var formatted_date = date.format('YYYY-MM-DD')
+      var formatted_date = date.format(DATE_FORMAT)
       $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
           
@@ -207,10 +215,9 @@ $(document).ready(function() {
     $hideEnd.prop('checked', displaySettings["hide_end"]);
     
     // Get new calendar month view via date
-    var FORMAT = "YYYY-MM-DD";
-    calDate = moment(info["date"], FORMAT);
+    calDate = moment(info["date"], DATE_FORMAT);
     $fullCal.fullCalendar("gotoDate", calDate);
-    $viewLiveDate.val(calDate.format(FORMAT));
+    $viewLiveDate.val(calDate.format(DATE_FORMAT));
     
     // Change calendar title and schedule adding form title to new department
     calDepartment = info['department']
@@ -237,18 +244,21 @@ $(document).ready(function() {
       var endDateTime = schedules[i]["end_datetime"];
       var hideStart = schedules[i]["hide_start_time"]; 
       var hideEnd = schedules[i]["hide_end_time"];
+      var note = schedules[i]["schedule_note"];
+      scheduleNotes[schedulePk] = note; // For loading schedule note form field
           
       // Get employee name for event title string
       var firstName = "";
       var lastName = "";
-      var schEmployePk = schedules[i]["employee"]
+      var schEmployePk = schedules[i]["employee"];
       if (schEmployePk != null) {
         firstName = employeeNameDict[schEmployePk]["firstName"];
         lastName = employeeNameDict[schEmployePk]["lastName"];
       }
       var str = getEventStr(startDateTime, endDateTime, 
                             hideStart, hideEnd,
-                            firstName, lastName); 
+                            firstName, lastName,
+                            note); 
       var event = {
         id: schedulePk,
         title: str,
@@ -265,7 +275,7 @@ $(document).ready(function() {
       dayNoteBodies[dayBodyNotes[i]["date"]] = dayBodyNotes[i];
       if (dayBodyNotes[i]["body_text"]) { // Don't Display blank notes
         var event = {
-          id:"body-note-" + dayBodyNotes[i]["id"],
+          id:"body-note-" + dayBodyNotes[i]["date"],
           title: dayBodyNotes[i]["body_text"],
           start: dayBodyNotes[i]["date"],
           allDay: true,
@@ -292,13 +302,16 @@ $(document).ready(function() {
     //Set activate/deactivate to state of live_calendar
     calActive = info["is_active"];
     setCalLiveButtonStyles();
+    
+    //Make other month days displayed not gray'd out
+    $(".fc-other-month").removeClass("fc-other-month");
    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
   
   
-   /** Helper function for rendering day not headers for the full calendar */
+  /** Helper function for rendering day not headers for the full calendar */
   function _dayNoteHeaderRender(dayHeaderObj) {
     var date = dayHeaderObj["date"];
     var $dayHeader = $("thead td[data-date="+date+"]");
@@ -331,9 +344,8 @@ $(document).ready(function() {
   
   /** Tell server to make current calendar state live for employee queries */
   function _pushCalendarAfterWarning(event) {
-    var FORMAT = "YYYY-MM-DD";
     $.post("push_live",
-           {department: calDepartment, date: calDate.format(FORMAT)},
+           {department: calDepartment, date: calDate.format(DATE_FORMAT)},
             successfulCalendarPush);
   }
   
@@ -387,9 +399,8 @@ $(document).ready(function() {
       if (calActive) {
         newCalActive = false;
       }
-      var FORMAT = "YYYY-MM-DD";
       $.post("set_active_state",
-             {department: calDepartment, date: calDate.format(FORMAT), active: newCalActive},
+             {department: calDepartment, date: calDate.format(DATE_FORMAT), active: newCalActive},
               successfulActiveStateSet);
     }
   }
@@ -503,7 +514,7 @@ $(document).ready(function() {
    * the schedule has an employee assigned). start and end are javascript 
    * moment objects.
    */
-  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName) {
+  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName, note) {
     // Construct time string based off of display settings
     var displayMinutes = displaySettings["display_minutes"];
     var displayNonzeroMinutes = displaySettings["display_nonzero_minutes"];
@@ -554,6 +565,9 @@ $(document).ready(function() {
     
     // Combine time and name strings to full construct event string title
     var str = startStr + " - " + endStr + employeeStr;
+    if (note) {
+      str += " " + note;
+    }
     return str;
   }
       
@@ -859,9 +873,11 @@ $(document).ready(function() {
     var hideEnd = info["schedule"]["hide_end_time"];
     var firstName = info["employee"]["first_name"];
     var lastName = info["employee"]["last_name"];
+    var note = info["employee"]["schedule_note"];
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
-                          firstName, lastName);
+                          firstName, lastName,
+                          note);
     // Update the select eligible employee highlight and also update hours 
     // worked by new employee, and previous assigned employee (if applicable).
     var start = moment(startDateTime);
@@ -1033,15 +1049,19 @@ $(document).ready(function() {
   /** Callback function to update the current selected date's body note */
   function _updateDayNoteBody(dayNoteBodyJSON) {
     var dayNoteBody = JSON.parse(dayNoteBodyJSON);
+    var eventID = "body-note-" + dayNoteBody["date"];
+    console.log("Day note body is: ");
+    console.log(dayNoteBody);
+    
     // Update body note if it already exists or create new event if not
     if (dayNoteBodies.hasOwnProperty(dayNoteBody["date"])) {
-      var eventID = "body-note-" + dayNoteBody["id"];
       $event = $fullCal.fullCalendar("clientEvents", eventID);
       $event[0].title = dayNoteBody["body_text"];
       // Update then rehighlight edited schedule
       $fullCal.fullCalendar("updateEvent", $event[0]);
-    } else if (dayNoteBody["body_text"]) { // Don't Display blank note
+    } else {
         var event = {
+          id: eventID,
           title: dayNoteBody["body_text"],
           start: dayNoteBody["date"],
           allDay: true,
@@ -1051,6 +1071,37 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", event);
     }
     dayNoteBodies[dayNoteBody["date"]] = dayNoteBody;
+  }
+  
+  
+  /** Callback to push changes to date's body note to database */
+  function postScheduleNote(event) {
+    var schedule_pk = $(".fc-event-clicked").parent().data("event-id");
+    var text_val = $ScheduleNoteText.val();
+    $.post("edit_schedule_note",
+           {schedule_pk: schedule_pk, schedule_text: text_val},
+            _updateScheduleNote);
+  }
+  
+  
+  /** Callback function to update the current selected schedule's note */
+  function _updateScheduleNote(scheduleJSON) {
+    var schedule = JSON.parse(scheduleJSON);
+    var schedulePk = schedule["id"];
+    var startDateTime = schedule["start_datetime"]; 
+    var endDateTime = schedule["end_datetime"];
+    var hideStart = schedule["hide_start_time"];
+    var hideEnd = schedule["hide_end_time"];
+    var firstName = schedule["first_name"];
+    var lastName = schedule["last_name"];
+    var note = schedule["schedule_note"];
+    var str = getEventStr(startDateTime, endDateTime,
+                          hideStart, hideEnd,
+                          firstName, lastName, 
+                          schedule_note);
+    // Update title string to reflect changes to schedule
+    $event = $fullCal.fullCalendar("clientEvents", schedulePk);
+    $event[0].title = str;
   }
 }); 
     

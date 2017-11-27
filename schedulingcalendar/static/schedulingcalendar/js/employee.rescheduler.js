@@ -8,14 +8,19 @@ $(document).ready(function() {
   /**
    * Selectors And Variables
    */
+  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday", "Sunday"];
+  var displaySettings = {};
+  var dayNoteHeaders = {};
+  var dayNoteBodies = {};
+   
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
-  var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
-                  "Friday", "Saturday", "Sunday"]
-  var displaySettings = {};
+  var $printDraftBtn = $("#print-live");
+  $printDraftBtn.click(printCalendar);
   
   $fullCal.fullCalendar({
     editable: false,
@@ -23,22 +28,12 @@ $(document).ready(function() {
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
     eventBorderColor: "transparent",
-        
-    customButtons: {
-      swapSchedule: {
-        text: "Swap Schedule",
-        click: swap_schedule
-      },
-      printCalendar: {
-        text: "Print",
-        click: print_calendar
-      }
-    },
+    eventOrder: "customSort,title",
         
     header: {
       left: "",
       center: "title",
-      right: "swapSchedule printCalendar"
+      right: ""
     },
     
     /**
@@ -136,11 +131,13 @@ $(document).ready(function() {
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
         
-    // Get schedules and employees for loading into calendar
+    // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     var employees = info["employees"];
     var employeeNameDict = _employeePkToName(employees);
-
+    var dayHeaderNotes = info["day_note_header"];
+    var dayBodyNotes = info["day_note_body"];
+    
     // Collection of events to be rendered together
     var events = [];
         
@@ -172,11 +169,46 @@ $(document).ready(function() {
         }       
       events.push(event);
     }
+    // Collection of day body notes to be rendered as fullcalendar events
+    for (var i=0;i<dayBodyNotes.length;i++) { 
+      dayNoteBodies[dayBodyNotes[i]["date"]] = dayBodyNotes[i];
+      if (dayBodyNotes[i]["body_text"]) { // Don't Display blank notes
+        var event = {
+          id:"body-note-" + dayBodyNotes[i]["date"],
+          title: dayBodyNotes[i]["body_text"],
+          start: dayBodyNotes[i]["date"],
+          allDay: true,
+          isSchedule: false,
+          customSort: 0
+        }
+        events.push(event);
+      }
+    }
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
+    
+    // Collection of day header notes to be rendered manually
+    for (var i=0;i<dayHeaderNotes.length;i++) { 
+      dayNoteHeaders[dayHeaderNotes[i]["date"]] = dayHeaderNotes[i];
+      _dayNoteHeaderRender(dayHeaderNotes[i]);
+    }
+    
+    //Make other month days displayed not gray'd out
+    $(".fc-other-month").removeClass("fc-other-month");
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
+  }
+  
+  
+  /** Helper function for rendering day not headers for the full calendar */
+  function _dayNoteHeaderRender(dayHeaderObj) {
+    var date = dayHeaderObj["date"];
+    var $dayHeader = $("thead td[data-date="+date+"]");
+    var dayNumber = $dayHeader.children().first().text();
+    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
+               "<span class='fc-day-number fleft'><b>" + dayHeaderObj["header_text"] + "</b></span>"
+    $dayHeader.html(HTML);
   }
   
   
@@ -186,6 +218,11 @@ $(document).ready(function() {
   function calendarNotFoundError(jqXHR, exception) {
     // Clear any events to indicate no calendar for this date
     $fullCal.fullCalendar("removeEvents");
+    
+    // Get new calendar month view via date
+    var format = "YYYY-MM-DDThh:mm:ss";
+    var now = moment();
+    $fullCal.fullCalendar("gotoDate", now);
     
     // Ensure calendar is visible
     $fullCal.css("visibility", "visible");
@@ -289,7 +326,7 @@ $(document).ready(function() {
     
   
   /** Callback function for user to print calendar via print button on page */
-  function print_calendar() {
+  function printCalendar() {
     window.print();
   } 
 }); 

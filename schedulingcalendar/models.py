@@ -66,6 +66,8 @@ class Schedule(models.Model):
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
     
+    schedule_note = models.CharField(default="", max_length=280)
+    
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee, null=True)
     
@@ -120,6 +122,8 @@ class LiveSchedule(models.Model):
     
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
+    
+    schedule_note = models.CharField(default="", max_length=280)
     
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee)

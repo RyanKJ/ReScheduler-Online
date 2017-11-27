@@ -16,50 +16,60 @@
   {% include "schedulingcalendar/_noCalendarModal.html" %}
 
   <div class="container-fluid">
-    <div class="row">
-      <div class="col-md">
-        <!-- Calendar Toolbar -->
-        <aside class="calendar-page-toolbar">
-          <section class="calendar-loader no-print">
-            <form id="load-calendar-form"
-                  action="{% url 'schedulingcalendar:get_live_schedules' %}"
-                  onsubmit="return(validateGetCalendarForm())"
-                  method="get">
-              {% csrf_token %}
-              {{ live_calendar_form.department.errors }}
-              {{ live_calendar_form.department.label_tag }}
-              <div class="select-cal-loader">
-                {{ live_calendar_form.department }}
-              </div>
+    <div class="row no-print calendar-toolbar">
+      <div class="col-md-9">
+  
+        <form id="load-calendar-form"
+              action="{% url 'schedulingcalendar:get_live_schedules' %}"
+              onsubmit="return(validateGetCalendarForm())"
+              method="get">
+          {% csrf_token %}
+          {{ live_calendar_form.department.errors }}
+          {{ live_calendar_form.department.label_tag }}
+          <div class="select-calendar select-calendar-department">
+            {{ live_calendar_form.department }}
+          </div>
               
-              {{ live_calendar_form.month.errors }}
-              {{ live_calendar_form.month.label_tag }}
-              <div class="select-cal-loader">
-                {{ live_calendar_form.month }}
-              </div>
+          {{ live_calendar_form.month.errors }}
+          {{ live_calendar_form.month.label_tag }}
+          <div class="select-calendar select-calendar-month">
+            {{ live_calendar_form.month }}
+          </div>
               
-              {{ live_calendar_form.year.errors }}
-              {{ live_calendar_form.year.label_tag }}
-              <div class="select-cal-loader">
-                {{ live_calendar_form.year }}
-              </div>
+          {{ live_calendar_form.year.errors }}
+          {{ live_calendar_form.year.label_tag }}
+          <div class="select-calendar select-calendar-year">
+            {{ live_calendar_form.year }}
+          </div>
               
-              <div class="select-cal-loader-checkbox">
-                <div class="checkbox-custom-container">
-                  <div class="checkbox-custom">
-                    {{ live_calendar_form.employee_only.errors }}
-                    {{ live_calendar_form.employee_only }}
-                    {{ live_calendar_form.employee_only.label_tag }}
-                  </div>
-                  <span class="checkbox-custom-text">Display Only My Schedules</span>
-                </div>
+          <div class="select-cal-loader-checkbox">
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ live_calendar_form.employee_only.errors }}
+                {{ live_calendar_form.employee_only }}
+                {{ live_calendar_form.employee_only.label_tag }}
               </div>
-              <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-            </form>
-          </section>
-        </aside>
+              <span class="checkbox-custom-text">Show Only My Schedules</span>
+            </div>
+          </div>
+          <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+        </form>
       </div>
+  
+      <div class="col-md-3">
+        <!-- Misc Buttons -->
+        <div id="swap-schedule-btn" class="calendar-push-btn">
+          Swap Schedule
+        </div>
+        <div id="print-live" class="calendar-push-btn">
+          Print Calendar
+        </div>
+      
+      </div>
+      
     </div>
+  
+  
 
     <div class="row">
       <div class="col-md">

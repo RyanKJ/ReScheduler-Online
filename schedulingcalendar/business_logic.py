@@ -1118,6 +1118,7 @@ def create_live_schedules(user, live_calendar):
                                      end_datetime=schedule.end_datetime,
                                      hide_start_time=schedule.hide_start_time,
                                      hide_end_time=schedule.hide_end_time,
+                                     schedule_note=schedule.schedule_note,
                                      department=schedule.department,
                                      employee=schedule.employee)
         live_schedule.save()
