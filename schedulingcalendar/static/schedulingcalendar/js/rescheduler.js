@@ -130,6 +130,8 @@ $(document).ready(function() {
         $scheduleNoteText.val(scheduleNote);
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
+      } else { //Non-schedule fc-event was clicked
+        $scheduleNoteText.val("");
       }
     },
         
@@ -183,6 +185,7 @@ $(document).ready(function() {
         } else {
           $dayNoteBodyText.val(""); // No note exists, reset text field
         }
+        $scheduleNoteText.val("");
       }
     }
   });
@@ -1076,8 +1079,9 @@ $(document).ready(function() {
   
   /** Callback to push changes to date's body note to database */
   function postScheduleNote(event) {
+    console.log("postScheduleNote");
     var schedule_pk = $(".fc-event-clicked").parent().data("event-id");
-    var text_val = $ScheduleNoteText.val();
+    var text_val = $scheduleNoteText.val();
     $.post("edit_schedule_note",
            {schedule_pk: schedule_pk, schedule_text: text_val},
             _updateScheduleNote);
