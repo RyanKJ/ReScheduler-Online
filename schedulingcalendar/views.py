@@ -656,15 +656,6 @@ def edit_schedule_note(request):
             schedule.schedule_note = text
             schedule.save(update_fields=['schedule_note'])
             
-            # If a corresponding live schedule exists, update that as well
-            try:
-                live_schedule = LiveSchedule.objects.get(user=logged_in_user, 
-                                                         schedule=id)
-                live_schedule.schedule_note = text
-                live_schedule.save(update_fields=['schedule_note'])
-            except ObjectDoesNotExist:
-                live_schedule = None
-            
             schedule_dict = model_to_dict(schedule)
             schedule_json = json.dumps(schedule_dict, default=date_handler)
             

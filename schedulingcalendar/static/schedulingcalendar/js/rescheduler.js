@@ -18,6 +18,7 @@ $(document).ready(function() {
   var calDepartment = null;
   var calActive = null;
   var displaySettings = {};
+  var employeeNameDict = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
   var dayNoteHeaders = {};
@@ -119,10 +120,9 @@ $(document).ready(function() {
       } else {
         $dayNoteBodyText.val(""); // No note exists, reset text field
       }
+      $(".fc-event-clicked").removeClass("fc-event-clicked");
       
       if (calEvent.isSchedule) {
-        // Remove any previous highlight class before highlighting this event
-        $(".fc-event-clicked").removeClass("fc-event-clicked");
         $(this).find("div").addClass("fc-event-clicked");
         var pk = calEvent.id;
         // Set text field for this schedule in schedule note form
@@ -131,6 +131,7 @@ $(document).ready(function() {
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
       } else { //Non-schedule fc-event was clicked
+        clearEligables();
         $scheduleNoteText.val("");
       }
     },
@@ -159,7 +160,7 @@ $(document).ready(function() {
      * has just been clicked.
      */
     dayClick: function(date, jsEvent, view) {
-      var formatted_date = date.format(DATE_FORMAT)
+      var formatted_date = date.format(DATE_FORMAT);
       $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
           
@@ -223,7 +224,7 @@ $(document).ready(function() {
     $viewLiveDate.val(calDate.format(DATE_FORMAT));
     
     // Change calendar title and schedule adding form title to new department
-    calDepartment = info['department']
+    calDepartment = info['department'];
     var depName = $("#id_department option[value='"+calDepartment+"']").text();
     $addScheduleDep.val(calDepartment);
     $viewLiveDep.val(calDepartment);
@@ -235,7 +236,7 @@ $(document).ready(function() {
     // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     var employees = info["employees"];
-    var employeeNameDict = _employeePkToName(employees);
+    employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"];
     var events = [];   
@@ -1055,6 +1056,7 @@ $(document).ready(function() {
     var eventID = "body-note-" + dayNoteBody["date"];
     console.log("Day note body is: ");
     console.log(dayNoteBody);
+    var selectedScheduleEventID = $(".fc-event-clicked:parent").attr('id')
     
     // Update body note if it already exists or create new event if not
     if (dayNoteBodies.hasOwnProperty(dayNoteBody["date"])) {
@@ -1074,12 +1076,15 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", event);
     }
     dayNoteBodies[dayNoteBody["date"]] = dayNoteBody;
+    var $event_div = $("#" + selectedScheduleEventID).find(".fc-content");
+    console.log("Event div: ");
+    console.log($event_div);
+    $event_div.addClass("fc-event-clicked");
   }
   
   
   /** Callback to push changes to date's body note to database */
   function postScheduleNote(event) {
-    console.log("postScheduleNote");
     var schedule_pk = $(".fc-event-clicked").parent().data("event-id");
     var text_val = $scheduleNoteText.val();
     $.post("edit_schedule_note",
@@ -1091,21 +1096,31 @@ $(document).ready(function() {
   /** Callback function to update the current selected schedule's note */
   function _updateScheduleNote(scheduleJSON) {
     var schedule = JSON.parse(scheduleJSON);
+    console.log("schedule is: ");
+    console.log(schedule);
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
     var hideStart = schedule["hide_start_time"];
     var hideEnd = schedule["hide_end_time"];
-    var firstName = schedule["first_name"];
-    var lastName = schedule["last_name"];
+    var employeePk = schedule["employee"];
+    var firstName = "";
+    var lastName = "";
+    if (employeePk != null) {
+      var firstName = employeeNameDict[employeePk]["firstName"];
+      var lastName = employeeNameDict[employeePk]["lastName"];
+    }
     var note = schedule["schedule_note"];
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName, 
-                          schedule_note);
+                          note);
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
+    $fullCal.fullCalendar("updateEvent", $event[0]);
+    // Update the collection of schedule notes for updating form text field
+    scheduleNotes[schedulePk] = note;
   }
 }); 
     
