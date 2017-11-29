@@ -60,6 +60,7 @@ $(document).ready(function() {
   var $dayNoteBodyText = $("#id_body_text");
   var $scheduleNoteBtn = $("#schedule-note-btn");
   var $scheduleNoteText = $("#id_schedule_text");
+  var $scheduleNoteWarning = $("schedule-note-warning");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -128,11 +129,15 @@ $(document).ready(function() {
         // Set text field for this schedule in schedule note form
         var scheduleNote = scheduleNotes[pk];
         $scheduleNoteText.val(scheduleNote);
+        $scheduleNoteWarning.hide();
+        $scheduleNoteBtn.prop('disabled', false);
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
       } else { //Non-schedule fc-event was clicked
         clearEligables();
         $scheduleNoteText.val("");
+        $scheduleNoteWarning.show()
+        $scheduleNoteBtn.prop('disabled', true);
       }
     },
         
@@ -187,6 +192,8 @@ $(document).ready(function() {
           $dayNoteBodyText.val(""); // No note exists, reset text field
         }
         $scheduleNoteText.val("");
+        $scheduleNoteWarning.show();
+        $scheduleNoteBtn.prop('disabled', true);
       }
     }
   });
@@ -1054,10 +1061,7 @@ $(document).ready(function() {
   function _updateDayNoteBody(dayNoteBodyJSON) {
     var dayNoteBody = JSON.parse(dayNoteBodyJSON);
     var eventID = "body-note-" + dayNoteBody["date"];
-    console.log("Day note body is: ");
-    console.log(dayNoteBody);
-    var selectedScheduleEventID = $(".fc-event-clicked:parent").attr('id')
-    
+    var $selectedScheduleEvent = $(".fc-event-clicked").parent();
     // Update body note if it already exists or create new event if not
     if (dayNoteBodies.hasOwnProperty(dayNoteBody["date"])) {
       $event = $fullCal.fullCalendar("clientEvents", eventID);
@@ -1076,12 +1080,14 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", event);
     }
     dayNoteBodies[dayNoteBody["date"]] = dayNoteBody;
-    var $event_div = $("#" + selectedScheduleEventID).find(".fc-content");
-    console.log("Event div: ");
-    console.log($event_div);
-    $event_div.addClass("fc-event-clicked");
+    
+    // If schedule was previously clicked, rehighlight it
+    if ($selectedScheduleEvent.length > 0) {
+      var selectedScheduleEventID = $selectedScheduleEvent.attr('id');
+      var $event_div = $("#" + selectedScheduleEventID).find(".fc-content");
+      $event_div.addClass("fc-event-clicked");
+    }
   }
-  
   
   /** Callback to push changes to date's body note to database */
   function postScheduleNote(event) {
@@ -1096,8 +1102,6 @@ $(document).ready(function() {
   /** Callback function to update the current selected schedule's note */
   function _updateScheduleNote(scheduleJSON) {
     var schedule = JSON.parse(scheduleJSON);
-    console.log("schedule is: ");
-    console.log(schedule);
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
@@ -1115,13 +1119,23 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           firstName, lastName, 
                           note);
-    // Update title string to reflect changes to schedule
+    // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
     $fullCal.fullCalendar("updateEvent", $event[0]);
+    var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
+    $event_div.addClass("fc-event-clicked"); 
     // Update the collection of schedule notes for updating form text field
     scheduleNotes[schedulePk] = note;
   }
+  
+  
+  /** Display  */
+  function clearEligables() {
+    $eligableList.empty();
+    $scheduleInfo.css("display", "none");
+  }
+  
 }); 
     
 
