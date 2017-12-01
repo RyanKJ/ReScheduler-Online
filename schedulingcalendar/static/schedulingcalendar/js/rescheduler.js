@@ -60,7 +60,6 @@ $(document).ready(function() {
   var $dayNoteBodyText = $("#id_body_text");
   var $scheduleNoteBtn = $("#schedule-note-btn");
   var $scheduleNoteText = $("#id_schedule_text");
-  var $scheduleNoteWarning = $("schedule-note-warning");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -129,14 +128,13 @@ $(document).ready(function() {
         // Set text field for this schedule in schedule note form
         var scheduleNote = scheduleNotes[pk];
         $scheduleNoteText.val(scheduleNote);
-        $scheduleNoteWarning.hide();
+        $scheduleNoteWarning.text("");
         $scheduleNoteBtn.prop('disabled', false);
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
       } else { //Non-schedule fc-event was clicked
         clearEligables();
-        $scheduleNoteText.val("");
-        $scheduleNoteWarning.show()
+        $scheduleNoteText.val("Please Select A Schedule First");
         $scheduleNoteBtn.prop('disabled', true);
       }
     },
@@ -191,8 +189,7 @@ $(document).ready(function() {
         } else {
           $dayNoteBodyText.val(""); // No note exists, reset text field
         }
-        $scheduleNoteText.val("");
-        $scheduleNoteWarning.show();
+        $scheduleNoteText.val("Please Select A Schedule First");
         $scheduleNoteBtn.prop('disabled', true);
       }
     }
