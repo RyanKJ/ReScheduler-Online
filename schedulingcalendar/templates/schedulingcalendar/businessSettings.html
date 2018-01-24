@@ -106,8 +106,26 @@
                   <p class="help">{{ form.sort_by_names.help_text|safe }}</p>
                 {% endif %}
               </div>
-              <span class="checkbox-custom-text">Sort Eligibles By Last & First Name
-              </span>
+              <span class="checkbox-custom-text">Sort Eligibles By Last & First Name</span>
+            </div>
+          </div>
+          <!-- Give each assigned employee a unique row in calendar -->
+          <p class="card-text small">Note: Each assigned employee will have their
+                                     own row on the calendar. So when they are
+                                     assigned to a schedule, their schedule/name
+                                     will always appear on that row.
+                                     <a href="#">help.</a></p>
+          <div class="form-group">
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.unique_row_per_employee.errors }}
+                {{ form.unique_row_per_employee }}
+                {{ form.unique_row_per_employee.label_tag }}
+                {% if form.unique_row_per_employee.help_text %}
+                  <p class="help">{{ form.unique_row_per_employee.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">Unique Row Per Employee</span>
             </div>
           </div>
           <!-- Desired Hours Overshoot Alert -->

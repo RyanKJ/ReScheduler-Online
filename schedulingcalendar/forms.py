@@ -307,7 +307,9 @@ class BusinessDataForm(forms.ModelForm):
     display_first_char_last_name = forms.BooleanField(label="", required=False,
                                                       widget=forms.CheckboxInput())
     sort_by_names = forms.BooleanField(label="", required=False,
-                                       widget=forms.CheckboxInput())                                         
+                                       widget=forms.CheckboxInput())    
+    unique_row_per_employee = forms.BooleanField(label="", required=False,
+                                                 widget=forms.CheckboxInput())                                     
 
     class Meta:
         model = BusinessData
@@ -315,7 +317,8 @@ class BusinessDataForm(forms.ModelForm):
                   'workweek_time_start', 'min_time_for_break', 'break_time_in_min', 
                   'display_am_pm', 'display_minutes', 'display_nonzero_minutes', 
                   'display_last_names', 'display_first_char_last_name', 
-                  'desired_hours_overshoot_alert', 'sort_by_names']
+                  'desired_hours_overshoot_alert', 'sort_by_names',
+                  'unique_row_per_employee']
         
         
 class MonthlyRevenueForm(forms.ModelForm):

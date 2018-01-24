@@ -88,7 +88,7 @@ $(document).ready(function() {
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
     eventBorderColor: "transparent",  
-    eventOrder: "customSort,title",
+    eventOrder: "customSort,eventRowSort,title",
     header: {
       left: "",
       center: "title",
@@ -121,14 +121,12 @@ $(document).ready(function() {
         $dayNoteBodyText.val(""); // No note exists, reset text field
       }
       $(".fc-event-clicked").removeClass("fc-event-clicked");
-      
       if (calEvent.isSchedule) {
         $(this).find("div").addClass("fc-event-clicked");
         var pk = calEvent.id;
         // Set text field for this schedule in schedule note form
         var scheduleNote = scheduleNotes[pk];
         $scheduleNoteText.val(scheduleNote);
-        $scheduleNoteWarning.text("");
         $scheduleNoteBtn.prop('disabled', false);
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
@@ -242,42 +240,11 @@ $(document).ready(function() {
     var employees = info["employees"];
     employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
-    var dayBodyNotes = info["day_note_body"];
-    var events = [];   
+    var dayBodyNotes = info["day_note_body"]; 
     
-    // Create fullcalendar event corresponding to schedule
-    for (var i=0;i<schedules.length;i++) {  
-      var schedulePk = schedules[i]["id"];
-      var startDateTime = schedules[i]["start_datetime"]; 
-      var endDateTime = schedules[i]["end_datetime"];
-      var hideStart = schedules[i]["hide_start_time"]; 
-      var hideEnd = schedules[i]["hide_end_time"];
-      var note = schedules[i]["schedule_note"];
-      scheduleNotes[schedulePk] = note; // For loading schedule note form field
-          
-      // Get employee name for event title string
-      var firstName = "";
-      var lastName = "";
-      var schEmployePk = schedules[i]["employee"];
-      if (schEmployePk != null) {
-        firstName = employeeNameDict[schEmployePk]["firstName"];
-        lastName = employeeNameDict[schEmployePk]["lastName"];
-      }
-      var str = getEventStr(startDateTime, endDateTime, 
-                            hideStart, hideEnd,
-                            firstName, lastName,
-                            note); 
-      var event = {
-        id: schedulePk,
-        title: str,
-        start: startDateTime,
-        end: endDateTime,
-        allDay: true,
-        isSchedule: true,
-        customSort: 1
-      }       
-      events.push(event);
-    }
+    // Create fullcalendar events corresponding to schedule
+    var events = _schedulesToEvents(schedules, employeeNameDict);
+    
     // Collection of day body notes to be rendered as fullcalendar events
     for (var i=0;i<dayBodyNotes.length;i++) { 
       dayNoteBodies[dayBodyNotes[i]["date"]] = dayBodyNotes[i];
@@ -288,7 +255,8 @@ $(document).ready(function() {
           start: dayBodyNotes[i]["date"],
           allDay: true,
           isSchedule: false,
-          customSort: 0
+          customSort: 1,
+          eventRowSort: 1
         }
         events.push(event);
       }
@@ -317,6 +285,152 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
+  
+  
+  /** Helper function to create fullcalendar events given schedules */
+  function _schedulesToEvents(schedules, employeeNameDict) {
+    var scheduleEvents = [];
+    
+    if (displaySettings["unique_row_per_employee"]) { 
+      var schedulesToDates = {};
+      var employeeRowList = [];
+      
+      for (var i=0;i<schedules.length;i++) {
+        // Create dict of schedules where dates are the keys, schedules as values
+        var startDateTime = moment(schedules[i]["start_datetime"]);
+        var startDate = startDateTime.format('YYYY-MM-DD');
+        if (schedulesToDates.hasOwnProperty(startDate)) {
+          schedulesToDates[startDate].push(schedules[i]);
+        } else {
+          schedulesToDates[startDate] = [];
+          schedulesToDates[startDate].push(schedules[i]);
+        }
+        // Create a employeeRowList mapping row numbers to employee pks
+        var employeePK = schedules[i].employee;
+        if (employeePK && !employeeRowList.includes(employeePK)) {
+          employeeRowList.push(employeePK);
+        }
+      }
+      for (var date in schedulesToDates) {
+        if(schedulesToDates.hasOwnProperty(date)) {
+          var employeeAssignedOnDate = employeeRowList.slice(0);
+          var schedules = schedulesToDates[date];
+          var employelessSchedules = [];
+          for (var i=0;i<schedules.length;i++) {
+            var schedulePk = schedules[i]["id"];
+            if (schEmployePk != null) {
+              var startDateTime = schedules[i]["start_datetime"]; 
+              var endDateTime = schedules[i]["end_datetime"];
+              var hideStart = schedules[i]["hide_start_time"]; 
+              var hideEnd = schedules[i]["hide_end_time"];
+              var note = schedules[i]["schedule_note"];
+              scheduleNotes[schedulePk] = note; // For loading schedule note form field
+                  
+              // Get employee name for event title string
+              var schEmployePk = schedules[i]["employee"];
+              var firstName = employeeNameDict[schEmployePk]["firstName"];
+              var lastName = employeeNameDict[schEmployePk]["lastName"];
+              var eventRow = employeeRowList.indexOf(schEmployePk);
+              var employeeRowIndex = employeeAssignedOnDate.indexOf(schEmployePk);
+              if (employeeRowIndex > -1) {
+                employeeAssignedOnDate.splice(employeeRowIndex, 1);
+              }
+              var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
+                                    firstName, lastName, note); 
+                                                      
+              var event = {
+                id: schedulePk,
+                title: str,
+                start: startDateTime,
+                end: endDateTime,
+                allDay: true,
+                isSchedule: true,
+                customSort: 0,
+                eventRowSort: eventRow
+              }
+              scheduleEvents.push(event);
+            } else {
+              employelessSchedules.push(schedules[i]);
+            }
+          }
+          for (var i=0;i<employelessSchedules.length;i++) {
+            var eventRow = 1000;
+            if (employeeAssignedOnDate.length>0) {
+              var eventRowEmployeePK = employeeAssignedOnDate[0];
+              eventRow = employeeRowList.indexOf(eventRowEmployeePK);
+            }
+            var startDateTime = employelessSchedules[i]["start_datetime"]; 
+            var endDateTime = employelessSchedules[i]["end_datetime"];
+              var hideStart = employelessSchedules[i]["hide_start_time"]; 
+              var hideEnd = employelessSchedules[i]["hide_end_time"];
+              var note = employelessSchedules[i]["schedule_note"];
+              scheduleNotes[schedulePk] = note; // For loading schedule note form field
+                  
+              // Get employee name for event title string
+              var firstName = "";
+              var lastName = "";
+              var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
+                                    firstName, lastName, note); 
+                                                      
+              var event = {
+                id: schedulePk,
+                title: str,
+                start: startDateTime,
+                end: endDateTime,
+                allDay: true,
+                isSchedule: true,
+                customSort: 0,
+                eventRowSort: eventRow
+              }
+              scheduleEvents.push(event);
+          }
+          
+        }
+      }
+      
+
+    } else {
+    
+    // Create fullcalendar event corresponding to schedule
+    for (var i=0;i<schedules.length;i++) {
+      var schedulePk = schedules[i]["id"];
+      var startDateTime = schedules[i]["start_datetime"]; 
+      var endDateTime = schedules[i]["end_datetime"];
+      var hideStart = schedules[i]["hide_start_time"]; 
+      var hideEnd = schedules[i]["hide_end_time"];
+      var note = schedules[i]["schedule_note"];
+      scheduleNotes[schedulePk] = note; // For loading schedule note form field
+          
+      // Get employee name for event title string
+      var firstName = "";
+      var lastName = "";
+      var schEmployePk = schedules[i]["employee"];
+      if (schEmployePk != null) {
+        firstName = employeeNameDict[schEmployePk]["firstName"];
+        lastName = employeeNameDict[schEmployePk]["lastName"];
+      }
+      var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
+                            firstName, lastName, note); 
+                            
+      var eventRow = 1;                   
+      var event = {
+        id: schedulePk,
+        title: str,
+        start: startDateTime,
+        end: endDateTime,
+        allDay: true,
+        isSchedule: true,
+        customSort: 0,
+        eventRowSort: eventRow
+      }       
+      scheduleEvents.push(event);
+    }
+    
+    }
+    
+    return scheduleEvents;
+  }
+  
   
   
   /** Helper function for rendering day not headers for the full calendar */
@@ -932,7 +1046,9 @@ $(document).ready(function() {
       title: str,
       start: startDateTime,
       end: endDateTime,
-      allDay: true
+      allDay: true,
+      customSort: 0,
+      eventRowSort: 1
     }       
     $fullCal.fullCalendar("renderEvent", event);
     //Highlight newly created event
@@ -1072,7 +1188,8 @@ $(document).ready(function() {
           start: dayNoteBody["date"],
           allDay: true,
           isSchedule: false,
-          customSort: 0
+          customSort: 0,
+          eventRowSort: 1
         }
         $fullCal.fullCalendar("renderEvent", event);
     }
