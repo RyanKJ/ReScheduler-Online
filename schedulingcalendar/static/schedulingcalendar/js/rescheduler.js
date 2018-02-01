@@ -1009,9 +1009,12 @@ $(document).ready(function() {
     if (oldEventRowValue != EMPLOYEELESS_EVENT_ROW) {
       var eventRowEmployeePk = employeeRowList[oldEventRowValue];
       var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, oldEventRowValue);
+      $fullCal.fullCalendar('renderEvent', fullCalEvent);
     }
+    // If blank event exists, query it from fullcalendar and delete it
     var blankId = date + "-" + schEmployeePk;
     $fullCal.fullCalendar('removeEvents', blankId);
+    // Click newly updated event
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
     // Update cost display to reflect any cost changes
@@ -1039,7 +1042,23 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           null, null);
-      
+    var eventRow = 1;
+    if (displaySettings["unique_row_per_employee"]) { 
+      eventRow = EMPLOYEELESS_EVENT_ROW 
+      // If no blank events exist for day without events, create them
+      var start = moment(startDateTime);
+      var date = start.format(DATE_FORMAT);
+      var eventsExistForDate = _checkIfAnyEventsOnDate(date);
+      if (!eventsExistForDate) {
+        blankEvents = [];
+        for (var i=0; i<employeeRowList.length; i++) {
+          var eventRowEmployeePk = employeeRowList[i];
+          var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, i);
+          blankEvents.push(fullCalEvent);
+        }
+        $fullCal.fullCalendar("renderEvents", blankEvents);
+      }
+    }
     var event = {
       id: schedulePk,
       title: str,
@@ -1048,7 +1067,7 @@ $(document).ready(function() {
       allDay: true,
       isSchedule: true,
       customSort: 0,
-      eventRowSort: EMPLOYEELESS_EVENT_ROW
+      eventRowSort: eventRow
     }       
     $fullCal.fullCalendar("renderEvent", event);
     //Highlight newly created event
@@ -1057,6 +1076,18 @@ $(document).ready(function() {
     $event_div.addClass("fc-event-clicked"); 
     // Get eligables for this new schedule
     $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
+  }
+  
+  
+  /** Helper function that returns boolean if any events for a date exist */ 
+  function _checkIfAnyEventsOnDate(date) {
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    for (var i=0; i<fullCalEvents.length; i++) {
+      var start = moment(fullCalEvents[i].start);
+      var eventDate = start.format(DATE_FORMAT);
+      if (date == eventDate) { return true; }
+    }
+    return false;
   }
   
 
@@ -1089,15 +1120,18 @@ $(document).ready(function() {
     var schedulePk = info["schedule_pk"];
     // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
-    $event[0].id = -1; // TODO: Change this to reflect blank schedule id's...
-    $event[0].title = "";
-    $event[0].isSchedule = false;
-    console.log("event[0] is: ");
-    console.log($event[0]);
-    $fullCal.fullCalendar("updateEvent", $event[0]);
-    
-    
-    
+    if (!displaySettings["unique_row_per_employee"] || $event[0].eventRowSort == EMPLOYEELESS_EVENT_ROW) {
+      $fullCal.fullCalendar("removeEvents", schedulePk);
+    } else {
+      $event[0].id = -1; // TODO: Change this to reflect blank schedule id's...
+      $event[0].title = "";
+      $event[0].isSchedule = false;
+      console.log("event[0] is: ");
+      console.log($event[0]);
+      $fullCal.fullCalendar("updateEvent", $event[0]);
+      
+      //_createBlankEvent(date, employeePk, eventRow)
+    }
     // Clear out eligable list
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
