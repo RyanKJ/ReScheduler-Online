@@ -66,7 +66,7 @@ class Schedule(models.Model):
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
     
-    schedule_note = models.CharField(default="", max_length=280)
+    schedule_note = models.CharField(default="", blank=True, max_length=280)
     
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee, null=True)
@@ -123,7 +123,7 @@ class LiveSchedule(models.Model):
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
     
-    schedule_note = models.CharField(default="", max_length=280)
+    schedule_note = models.CharField(default="", blank=True, max_length=280)
     
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee)
@@ -199,7 +199,7 @@ class DayNoteHeader(models.Model):
     user = models.ForeignKey(User)
 
     date = models.DateField('Date', default=date.today)
-    header_text = models.CharField('Note', default="", max_length=140)
+    header_text = models.CharField('Note', default="", blank=True, max_length=140)
     
  
 class DayNoteBody(models.Model):
@@ -207,7 +207,7 @@ class DayNoteBody(models.Model):
     user = models.ForeignKey(User)
 
     date = models.DateField('Date', default=date.today)
-    body_text = models.CharField('Note', default="", max_length=280)
+    body_text = models.CharField('Note', default="", blank=True, max_length=280)
     
     
 class BusinessData(models.Model):

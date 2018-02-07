@@ -393,7 +393,8 @@ $(document).ready(function() {
       allDay: true,
       isSchedule: true,
       customSort: 0,
-      eventRowSort: eventRow
+      eventRowSort: eventRow,
+      employeePk: schEmployePk
     } 
     return fullCalEvent;
   }
@@ -409,7 +410,8 @@ $(document).ready(function() {
       allDay: true,
       isSchedule: false,
       customSort: 0,
-      eventRowSort: eventRow
+      eventRowSort: eventRow,
+      employeePk: -1
     }
     return fullCalEvent;
   }
@@ -969,8 +971,6 @@ $(document).ready(function() {
    * assigned employee.
    */
   function updateScheduleView(data) {
-    console.log("Updating schedule, eventRowList is: ");
-    console.log(employeeRowList);
     var info = JSON.parse(data);
     var schedulePk = info["schedule"]["id"];
     var schEmployeePk = info["schedule"]["employee"];
@@ -985,11 +985,6 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           firstName, lastName,
                           note);
-    var eventRow = employeeRowList.indexOf(schEmployeePk);
-    if (eventRow == -1) {
-      employeeRowList.push(schEmployeePk);
-      eventRow = employeeRowList.length - 1;
-    }
     // Update the select eligible employee highlight and also update hours 
     // worked by new employee, and previous assigned employee (if applicable).
     var start = moment(startDateTime);
@@ -999,21 +994,34 @@ $(document).ready(function() {
     var hours = duration.asHours();
     _updateCurrHours(info["employee"]["id"], hours);
     _highlightAssignedEmployee(info["employee"]["id"]);
-    // Update title string and event row to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
-    var oldEventRowValue = $event[0].eventRowSort;
-    $event[0].title = str;
-    $event[0].eventRowSort = eventRow;
-    $fullCal.fullCalendar("updateEvent", $event[0]);
-    // Create/delete blank schedules to keep row order
-    if (oldEventRowValue != EMPLOYEELESS_EVENT_ROW) {
-      var eventRowEmployeePk = employeeRowList[oldEventRowValue];
-      var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, oldEventRowValue);
-      $fullCal.fullCalendar('renderEvent', fullCalEvent);
+    if (displaySettings["unique_row_per_employee"]) {
+      var oldEventRow = $event[0].eventRowSort;
+      var newEventRow = employeeRowList.indexOf(schEmployeePk);
+      if (newEventRow == -1) { // Employee has never been assigned this month
+        employeeRowList.push(schEmployeePk);
+        newEventRow = employeeRowList.length - 1;
+      }
+      $event[0].eventRowSort = newEventRow;
+      // Create/delete blank schedules to keep row order
+      if (oldEventRow != EMPLOYEELESS_EVENT_ROW) {
+        var eventRowEmployeePk = employeeRowList[oldEventRow];
+        var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, oldEventRow);
+        $fullCal.fullCalendar('renderEvent', fullCalEvent);
+        console.log("event-id is:");
+        console.log("#event-id-" + date + "-" + eventRowEmployeePk);
+        var $blankEventDiv = $("#event-id-" + date + "-" + eventRowEmployeePk).find(".fc-content");
+        console.log("$blankEventDiv is:");
+        console.log($blankEventDiv);
+        $blankEventDiv.addClass("blank-event"); 
+      }
+      // If blank event exists, query it from fullcalendar and delete it
+      var blankId = date + "-" + schEmployeePk;
+      $fullCal.fullCalendar('removeEvents', blankId);
     }
-    // If blank event exists, query it from fullcalendar and delete it
-    var blankId = date + "-" + schEmployeePk;
-    $fullCal.fullCalendar('removeEvents', blankId);
+    $event[0].title = str;
+    $event[0].employeePk = schEmployeePk;
+    $fullCal.fullCalendar("updateEvent", $event[0]);
     // Click newly updated event
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
@@ -1067,7 +1075,8 @@ $(document).ready(function() {
       allDay: true,
       isSchedule: true,
       customSort: 0,
-      eventRowSort: eventRow
+      eventRowSort: eventRow,
+      employeePk: -1
     }       
     $fullCal.fullCalendar("renderEvent", event);
     //Highlight newly created event
@@ -1123,20 +1132,42 @@ $(document).ready(function() {
     if (!displaySettings["unique_row_per_employee"] || $event[0].eventRowSort == EMPLOYEELESS_EVENT_ROW) {
       $fullCal.fullCalendar("removeEvents", schedulePk);
     } else {
-      $event[0].id = -1; // TODO: Change this to reflect blank schedule id's...
-      $event[0].title = "";
-      $event[0].isSchedule = false;
-      console.log("event[0] is: ");
-      console.log($event[0]);
-      $fullCal.fullCalendar("updateEvent", $event[0]);
-      
-      //_createBlankEvent(date, employeePk, eventRow)
+      var start = moment($event[0].start);
+      var date = start.format(DATE_FORMAT);
+      var eventRow = $event[0].eventRowSort;
+      var employeePk = employeeRowList[eventRow];
+      // Check if employee is assigned more than once per day, if not, create 
+      // a blank event to maintain row sort integrity
+      if (!_employeeAssignedMoreThanOnceOnDate(date, employeePk)) {
+        var blankEvent = _createBlankEvent(date, employeePk, eventRow);
+        $fullCal.fullCalendar("renderEvent", blankEvent);
+      }
+      $fullCal.fullCalendar("removeEvents", schedulePk);
     }
     // Clear out eligable list
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
     // Update cost display to reflect any cost changes
     addCostChange(info["cost_delta"]);
+  }
+  
+  
+  /** Helper function that returns true if employee assigned more than once on date */ 
+  function _employeeAssignedMoreThanOnceOnDate(date, employeePk) {
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    var assignmentCount = 0;
+    for (var i=0; i<fullCalEvents.length; i++) {
+      var start = moment(fullCalEvents[i].start);
+      var eventDate = start.format(DATE_FORMAT);
+      if (date == eventDate && fullCalEvents[i].employeePk == employeePk) { 
+        assignmentCount += 1;
+      }
+    }
+    if (assignmentCount > 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
     
   

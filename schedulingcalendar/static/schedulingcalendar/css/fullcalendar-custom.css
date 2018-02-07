@@ -27,8 +27,8 @@
     border-color: #59bcff;
 }
 
-.fc-content:hover:not(.fc-event-clicked) {
-    background: #A4D5FF
+.fc-content:hover:not(.fc-event-clicked):not(.blank-event) {
+    background: #A4D5FF;
 }
 
 span.fc-title {
