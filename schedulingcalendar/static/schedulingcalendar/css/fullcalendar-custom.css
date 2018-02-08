@@ -31,6 +31,10 @@
     background: #A4D5FF;
 }
 
+.blank-event .fc-content { /* Blank events should not highlight */
+  background: transparent !important;
+}
+
 span.fc-title {
   display: block;
   white-space: normal;

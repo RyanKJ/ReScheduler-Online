@@ -263,7 +263,8 @@ $(document).ready(function() {
           allDay: true,
           isSchedule: false,
           customSort: 1,
-          eventRowSort: 1
+          eventRowSort: 1,
+          className: "blank-event"
         }
         events.push(event);
       }
@@ -411,7 +412,8 @@ $(document).ready(function() {
       isSchedule: false,
       customSort: 0,
       eventRowSort: eventRow,
-      employeePk: -1
+      employeePk: -1,
+      className: "blank-event"
     }
     return fullCalEvent;
   }
@@ -1008,12 +1010,6 @@ $(document).ready(function() {
         var eventRowEmployeePk = employeeRowList[oldEventRow];
         var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, oldEventRow);
         $fullCal.fullCalendar('renderEvent', fullCalEvent);
-        console.log("event-id is:");
-        console.log("#event-id-" + date + "-" + eventRowEmployeePk);
-        var $blankEventDiv = $("#event-id-" + date + "-" + eventRowEmployeePk).find(".fc-content");
-        console.log("$blankEventDiv is:");
-        console.log($blankEventDiv);
-        $blankEventDiv.addClass("blank-event"); 
       }
       // If blank event exists, query it from fullcalendar and delete it
       var blankId = date + "-" + schEmployeePk;

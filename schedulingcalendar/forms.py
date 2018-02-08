@@ -350,7 +350,7 @@ class DayNoteBodyForm(forms.ModelForm):
         
 class ScheduleNoteForm(forms.Form):
     schedule_pk = forms.IntegerField(label='schedule id')
-    schedule_text = forms.CharField(label='Note', max_length=280)
+    schedule_text = forms.CharField(label='Note', required=False, max_length=280)
     
     
 def get_department_tuple(logged_user):

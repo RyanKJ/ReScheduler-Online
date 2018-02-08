@@ -649,8 +649,6 @@ def edit_schedule_note(request):
     logged_in_user = request.user
     if request.method == 'POST':
         form = ScheduleNoteForm(request.POST)
-        print "!!!!!!!!!!!!! form for schedule note is valid? !!!!!!!!!!!!!!"
-        print form.is_valid()
         if form.is_valid():
             id = form.cleaned_data['schedule_pk']
             text = form.cleaned_data['schedule_text']
