@@ -980,13 +980,18 @@ $(document).ready(function() {
     var endDateTime = info["schedule"]["end_datetime"];
     var hideStart = info["schedule"]["hide_start_time"];
     var hideEnd = info["schedule"]["hide_end_time"];
+    var note = info["schedule"]["schedule_note"];
     var firstName = info["employee"]["first_name"];
     var lastName = info["employee"]["last_name"];
-    var note = info["employee"]["schedule_note"];
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName,
                           note);
+    // Add employee to name dictionary if not already in dict                   
+    if (!employeeNameDict.hasOwnProperty(schEmployeePk)) {
+      employeeNameDict[schEmployeePk] = {"firstName": firstName,
+                                      "lastName": lastName};
+    }
     // Update the select eligible employee highlight and also update hours 
     // worked by new employee, and previous assigned employee (if applicable).
     var start = moment(startDateTime);
@@ -1079,6 +1084,9 @@ $(document).ready(function() {
     $(".fc-event-clicked").removeClass("fc-event-clicked");
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
+    // Update schedule note form field
+    $scheduleNoteText.val("");
+    $scheduleNoteBtn.prop('disabled', false);
     // Get eligables for this new schedule
     $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
   }
@@ -1139,12 +1147,18 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", blankEvent);
       }
       $fullCal.fullCalendar("removeEvents", schedulePk);
+      // Delete employee from employeeRowList and any blank events if this was
+      // the last schedule that employee was assigned to (To avoid row bloat)
+      //_removeEmployeeFromRow(employeePk, eventRow);
     }
     // Clear out eligable list
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
     // Update cost display to reflect any cost changes
     addCostChange(info["cost_delta"]);
+    // Disable schedule note
+    $scheduleNoteText.val("Please Select A Schedule First");
+    $scheduleNoteBtn.prop('disabled', true);
   }
   
   
@@ -1164,6 +1178,25 @@ $(document).ready(function() {
     } else {
       return false;
     }
+  }
+  
+  
+  /** Helper function removes employee from row & blank events if the employee
+      is no longer assigned to any schedules for the current selected month */ 
+  function _removeEmployeeFromRow(employeePk, eventRow) {
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    var blankEventsWithSameRowNumber = [];
+    for (var i=0; i<fullCalEvents.length; i++) {
+      if (fullCalEvents[i].eventRowSort == eventRow) {
+        if (fullCalEvents[i].isSchedule) { return false; }
+        blankEventsWithSameRowNumber.push(fullCalEvents[i]);
+      }
+    }
+    for (var i=0; i<blankEventsWithSameRowNumber.length; i++) {
+      var blankEventId = blankEventsWithSameRowNumber[i].id
+      $fullCal.fullCalendar("removeEvents", blankEventId);
+    }
+    employeeRowList.splice(eventRow, 1);
   }
     
   
