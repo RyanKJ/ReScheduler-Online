@@ -8,12 +8,20 @@ $(document).ready(function() {
   /**
    * Selectors And Variables
    */
+  // Constant variables
   var WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
                   "Friday", "Saturday", "Sunday"];
+  var DATE_FORMAT = "YYYY-MM-DD";
+  var EMPLOYEELESS_EVENT_ROW = 1000;  
+
+  // General state variables
   var displaySettings = {};
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
+  var scheduleNotes = {};
+  var employeeRowList = [];
    
+  // Jquery object variables
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $addScheduleDate = $("#add-date");
@@ -29,7 +37,7 @@ $(document).ready(function() {
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
     eventBorderColor: "transparent",
-    eventOrder: "customSort,title",
+    eventOrder: "customSort,eventRowSort,title",
         
     header: {
       left: "",
@@ -115,7 +123,7 @@ $(document).ready(function() {
   function loadSchedules(json_data) {
     console.log("successful response")
     var info = JSON.parse(json_data);
-    console.log(info);
+    employeeRowList = [];
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
     
@@ -139,38 +147,13 @@ $(document).ready(function() {
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"];
 
-    // Collection of events to be rendered together
-    var events = [];
-        
-    for (var i=0;i<schedules.length;i++) {  
-      var schedulePk = schedules[i]["id"];
-      var startDateTime = schedules[i]["start_datetime"]; 
-      var endDateTime = schedules[i]["end_datetime"];
-      var hideStart = schedules[i]["hide_start_time"]; 
-      var hideEnd = schedules[i]["hide_end_time"];
-      var note = schedules[i]["schedule_note"];
-      // Get employee name for event title string
-      var firstName = "";
-      var lastName = "";
-      var schEmployePk = schedules[i]["employee"]
-      if (schEmployePk != null) {
-        firstName = employeeNameDict[schEmployePk]["firstName"];
-        lastName = employeeNameDict[schEmployePk]["lastName"];
-      }
-      var str = getEventStr(startDateTime, endDateTime, 
-                            hideStart, hideEnd,
-                            firstName, lastName,
-                            note); 
-      // Create fullcalendar event corresponding to schedule
-      var event = {
-        id: schedulePk,
-        title: str,
-        start: startDateTime,
-        end: endDateTime,
-        allDay: true
-        }       
-      events.push(event);
+    // Create fullcalendar events corresponding to schedule
+    if (displaySettings["unique_row_per_employee"]) {
+      var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
+    } else {
+      var events = _schedulesToEvents(schedules, employeeNameDict);
     }
+    
     // Collection of day body notes to be rendered as fullcalendar events
     for (var i=0;i<dayBodyNotes.length;i++) { 
       dayNoteBodies[dayBodyNotes[i]["date"]] = dayBodyNotes[i];
@@ -181,7 +164,7 @@ $(document).ready(function() {
           start: dayBodyNotes[i]["date"],
           allDay: true,
           isSchedule: false,
-          customSort: 0
+          customSort: 1
         }
         events.push(event);
       }
@@ -200,6 +183,134 @@ $(document).ready(function() {
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
+  }
+  
+  
+  /** Helper function to create fullcalendar events with unique rows */
+  function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
+    var scheduleEvents = [];
+    var schedulesToDates = {};
+    
+    // Create dict of schedules where dates are the keys, schedules as values
+    // Also create a list of employee pks that map index (row) to employee pk
+    for (var i=0;i<schedules.length;i++) {
+      var startDateTime = moment(schedules[i]["start_datetime"]);
+      var startDate = startDateTime.format(DATE_FORMAT);
+      if (schedulesToDates.hasOwnProperty(startDate)) {
+        schedulesToDates[startDate].push(schedules[i]);
+      } else {
+        schedulesToDates[startDate] = [];
+        schedulesToDates[startDate].push(schedules[i]);
+      }
+      // Create a employeeRowList mapping row numbers to employee pks
+      var employeePk = schedules[i].employee;
+      if (employeePk&& !employeeRowList.includes(employeePk)) {
+        employeeRowList.push(employeePk);
+      }
+    }
+    // Iterate thru each date's schedules and create appropriate events
+    for (var date in schedulesToDates) {
+      if(schedulesToDates.hasOwnProperty(date)) {
+        var employeeAssignedOnDate = employeeRowList.slice(0);
+        var schedules = schedulesToDates[date];
+        var employelessSchedules = [];
+        // Create events for schedules with employees
+        for (var i=0;i<schedules.length;i++) {
+          var schedulePk = schedules[i]["id"];
+          var schEmployePk = schedules[i]["employee"];
+          if (schEmployePk != null) {
+            var eventRow = employeeRowList.indexOf(schEmployePk);
+            var employeeRowIndex = employeeAssignedOnDate.indexOf(schEmployePk);
+            if (employeeRowIndex > -1) {
+              employeeAssignedOnDate.splice(employeeRowIndex, 1);
+            }
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, eventRow)                    
+            scheduleEvents.push(fullCalEvent);
+          } else { // Create events for employeeless schedules
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, EMPLOYEELESS_EVENT_ROW)                    
+            scheduleEvents.push(fullCalEvent);
+          }
+        }
+        // Create blank events for any empty employee rows for given date
+        for (var i=0;i<employeeAssignedOnDate.length;i++) {
+          var eventRowEmployeePk = employeeAssignedOnDate[i];
+          eventRow = employeeRowList.indexOf(eventRowEmployeePk);
+          var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
+          scheduleEvents.push(fullCalEvent);
+        }  
+      }
+    }
+    return scheduleEvents;
+  }
+  
+  
+  /** Helper function to create fullcalendar events given schedules */
+  function _schedulesToEvents(schedules, employeeNameDict) {
+    var scheduleEvents = [];
+    // Create fullcalendar event corresponding to schedule
+    for (var i=0;i<schedules.length;i++) {
+      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, 1);
+      scheduleEvents.push(fullCalEvent);
+    }
+    return scheduleEvents;
+  }
+  
+  
+  /** Helper function to create a single full calendar event given schedule */
+  function _scheduleToFullCalendarEvent(schedule, employeeNameDict, eventRow) {
+    var schedulePk = schedule["id"];
+    var startDateTime = schedule["start_datetime"]; 
+    var endDateTime = schedule["end_datetime"];
+    var hideStart = schedule["hide_start_time"]; 
+    var hideEnd = schedule["hide_end_time"];
+    var note = schedule["schedule_note"];
+    scheduleNotes[schedulePk] = note; // For loading schedule note form field
+       
+    // Get employee name for event title string
+    var firstName = "";
+    var lastName = "";
+    var isEmployeeAssigned = false;
+    var schEmployePk = schedule["employee"];
+    if (schEmployePk != null) {
+      firstName = employeeNameDict[schEmployePk]["firstName"];
+      lastName = employeeNameDict[schEmployePk]["lastName"];
+      isEmployeeAssigned = true;
+    }
+    var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
+                          firstName, lastName, note); 
+                                             
+    var fullCalEvent = {
+      id: schedulePk,
+      title: str,
+      start: startDateTime,
+      end: endDateTime,
+      allDay: true,
+      isSchedule: true,
+      employeeAssigned: isEmployeeAssigned,
+      customSort: 0,
+      eventRowSort: eventRow,
+      employeePk: schEmployePk
+    } 
+    return fullCalEvent;
+  }
+  
+  
+  /** Helper function to create a blank full calendar event */
+  function _createBlankEvent(date, employeePk, eventRow) {
+    var fullCalEvent = {
+      id: date + "-" + employeePk,
+      title: "",
+      start: date,
+      end: date,
+      allDay: true,
+      isSchedule: false,
+      employeeAssigned: false,
+      customSort: 0,
+      eventRowSort: eventRow,
+      employeePk: -1,
+      className: "blank-event"
+    }
+    return fullCalEvent;
   }
   
   
@@ -246,10 +357,6 @@ $(document).ready(function() {
   $("#id_year").val(y);
   $("#id_department").val(department);
   $("#id_version").val(version);
-  
-  console.log("version is: ");
-  console.log(version);
-  
   $("#get-calendar-button").trigger("click"); 
     
   

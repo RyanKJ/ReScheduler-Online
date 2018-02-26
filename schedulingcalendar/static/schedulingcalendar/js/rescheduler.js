@@ -262,8 +262,10 @@ $(document).ready(function() {
           start: dayBodyNotes[i]["date"],
           allDay: true,
           isSchedule: false,
+          isNote: true,
+          employeeAssigned: false,
           customSort: 1,
-          eventRowSort: 1,
+          eventRowSort: 2000,
           className: "blank-event"
         }
         events.push(event);
@@ -378,10 +380,12 @@ $(document).ready(function() {
     // Get employee name for event title string
     var firstName = "";
     var lastName = "";
+    var isEmployeeAssigned = false;
     var schEmployePk = schedule["employee"];
     if (schEmployePk != null) {
       firstName = employeeNameDict[schEmployePk]["firstName"];
       lastName = employeeNameDict[schEmployePk]["lastName"];
+      isEmployeeAssigned = true;
     }
     var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
                           firstName, lastName, note); 
@@ -393,6 +397,8 @@ $(document).ready(function() {
       end: endDateTime,
       allDay: true,
       isSchedule: true,
+      isNote: false,
+      employeeAssigned: isEmployeeAssigned,
       customSort: 0,
       eventRowSort: eventRow,
       employeePk: schEmployePk
@@ -410,6 +416,8 @@ $(document).ready(function() {
       end: date,
       allDay: true,
       isSchedule: false,
+      isNote: false,
+      employeeAssigned: false,
       customSort: 0,
       eventRowSort: eventRow,
       employeePk: -1,
@@ -990,7 +998,7 @@ $(document).ready(function() {
     // Add employee to name dictionary if not already in dict                   
     if (!employeeNameDict.hasOwnProperty(schEmployeePk)) {
       employeeNameDict[schEmployeePk] = {"firstName": firstName,
-                                      "lastName": lastName};
+                                         "lastName": lastName};
     }
     // Update the select eligible employee highlight and also update hours 
     // worked by new employee, and previous assigned employee (if applicable).
@@ -1008,6 +1016,7 @@ $(document).ready(function() {
       if (newEventRow == -1) { // Employee has never been assigned this month
         employeeRowList.push(schEmployeePk);
         newEventRow = employeeRowList.length - 1;
+        _createBlankEventsForNewRow(newEventRow, schEmployeePk, date);
       }
       $event[0].eventRowSort = newEventRow;
       // Create/delete blank schedules to keep row order
@@ -1022,12 +1031,40 @@ $(document).ready(function() {
     }
     $event[0].title = str;
     $event[0].employeePk = schEmployeePk;
+    $event[0].employeeAssigned = true;
     $fullCal.fullCalendar("updateEvent", $event[0]);
     // Click newly updated event
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
     // Update cost display to reflect any cost changes
     addCostChange(info["cost_delta"]);
+  }
+  
+  
+  /** Helper function that creates blank events for each date for row */ 
+  function _createBlankEventsForNewRow(newEventRow, eventRowEmployeePk, date) {
+    // TO DO: 
+    // 1) Collect all dates that have events
+    // 2) For each date (except given date), create blank event with row for employee
+    // 3) Render events
+    console.log("We got here")
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    var datesWithEvents = [];
+    var blankEvents = [];
+    for (var i=0; i<fullCalEvents.length; i++) {
+      var start = moment(fullCalEvents[i].start);
+      var eventDate = start.format(DATE_FORMAT);
+      if (date != eventDate && fullCalEvents[i].isSchedule && !datesWithEvents.includes(eventDate)) {
+        datesWithEvents.push(eventDate);
+      }
+    }
+    console.log("create blank events for new row dates are: ");
+    console.log(datesWithEvents);
+    for (var i=0; i<datesWithEvents.length; i++) {
+      var blankEvent = _createBlankEvent(datesWithEvents[i], eventRowEmployeePk, newEventRow);
+      blankEvents.push(blankEvent);
+    }
+    $fullCal.fullCalendar("renderEvents", blankEvents);  
   }
     
     
@@ -1065,7 +1102,7 @@ $(document).ready(function() {
           var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, i);
           blankEvents.push(fullCalEvent);
         }
-        $fullCal.fullCalendar("renderEvents", blankEvents);
+        $fullCal.fullCalendar("renderEvents", blankEvents);   
       }
     }
     var event = {
@@ -1075,10 +1112,12 @@ $(document).ready(function() {
       end: endDateTime,
       allDay: true,
       isSchedule: true,
+      isNote: false,
+      employeeAssigned: false,
       customSort: 0,
       eventRowSort: eventRow,
       employeePk: -1
-    }       
+    }
     $fullCal.fullCalendar("renderEvent", event);
     //Highlight newly created event
     $(".fc-event-clicked").removeClass("fc-event-clicked");
@@ -1098,7 +1137,7 @@ $(document).ready(function() {
     for (var i=0; i<fullCalEvents.length; i++) {
       var start = moment(fullCalEvents[i].start);
       var eventDate = start.format(DATE_FORMAT);
-      if (date == eventDate) { return true; }
+      if (date == eventDate && !fullCalEvents[i].isNote) { return true; }
     }
     return false;
   }
@@ -1147,9 +1186,8 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", blankEvent);
       }
       $fullCal.fullCalendar("removeEvents", schedulePk);
-      // Delete employee from employeeRowList and any blank events if this was
-      // the last schedule that employee was assigned to (To avoid row bloat)
-      //_removeEmployeeFromRow(employeePk, eventRow);
+      // If employee not assigned anymore, remove row from calendar
+      _removeEmployeeFromRow(employeePk, eventRow);
     }
     // Clear out eligable list
     $eligableList.empty();
@@ -1188,7 +1226,7 @@ $(document).ready(function() {
     var blankEventsWithSameRowNumber = [];
     for (var i=0; i<fullCalEvents.length; i++) {
       if (fullCalEvents[i].eventRowSort == eventRow) {
-        if (fullCalEvents[i].isSchedule) { return false; }
+        if (fullCalEvents[i].employeeAssigned) { return; }
         blankEventsWithSameRowNumber.push(fullCalEvents[i]);
       }
     }
@@ -1292,8 +1330,10 @@ $(document).ready(function() {
           start: dayNoteBody["date"],
           allDay: true,
           isSchedule: false,
-          customSort: 0,
-          eventRowSort: 1
+          isNote: true,
+          customSort: 1,
+          eventRowSort: 2000,
+          className: "blank-event"
         }
         $fullCal.fullCalendar("renderEvent", event);
     }
