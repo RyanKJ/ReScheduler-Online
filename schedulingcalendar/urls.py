@@ -53,4 +53,5 @@ urlpatterns = [
     url(r'^monthly_revenue/(?P<pk>[0-9]+)/monthly_revenue_delete$', views.MonthlyRevenueDeleteView.as_view(), name='monthly_revenue_delete'),
     url(r'^business_settings$', views.BusinessDataUpdateView.as_view(), name='business_update'),
     url(r'^live_calendar/$', views.employee_calendar_page, name='employee_calendar_page'),
+    url(r'^.well-known/pki-validation/$', views.ssl_http, name='ssl_http'),
 ]

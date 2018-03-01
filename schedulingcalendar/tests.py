@@ -68,15 +68,15 @@ def create_unav_repeat(user, employee, start, end, weekday):
 def create_desired_time(user, employee, start, end, weekday):
     """Creates a repeating desired time with optional customization."""
     desired_time = DesiredTime.objects.create(user=user, start_time=start, 
-                                             end_time=end, weekday=weekday,
-                                             employee=employee)      
+                                              end_time=end, weekday=weekday,
+                                              employee=employee)      
 
     return desired_time
     
     
 def create_many_conflicts(employees, availability_properties):
     """Create employees with conflicts to test get_eligable method."""
-    if employees = [] or availability_properties = []:
+    if employees == [] or availability_properties == []:
         return
         
         
@@ -93,6 +93,7 @@ def create_many_conflicts(employees, availability_properties):
             
         for employees in upper_half_emp:
             if avail_prop == '(S)':
+               return
                               
                      
 class GetAvailabilityTest(TestCase):
@@ -138,7 +139,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['Hours Scheduled'], 1)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -183,7 +184,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['Hours Scheduled'], 1)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -205,7 +206,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [absence])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['Hours Scheduled'], 1)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -229,7 +230,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [unav_repeat])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['Hours Scheduled'], 1)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -253,7 +254,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [desired_time])
-        self.assertEqual(availability['Hours Scheduled'], 2)
+        self.assertEqual(availability['Hours Scheduled'], 1)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -278,7 +279,7 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 34)
+        self.assertEqual(availability['Hours Scheduled'], 33)
         self.assertEqual(availability['(O)'], False)
         
         
@@ -303,10 +304,12 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(list(availability['(A)']), [])
         self.assertEqual(list(availability['(U)']), [])
         self.assertEqual(list(availability['Desired Times']), [])
-        self.assertEqual(availability['Hours Scheduled'], 52)
+        self.assertEqual(availability['Hours Scheduled'], 51)
         self.assertEqual(availability['(O)'], True)
         
 
+        
+        
 class GetEligablesTest(TestCase):
     """
     get_eligables is a sorting method using the heuristic of 'availability', 
@@ -317,7 +320,7 @@ class GetEligablesTest(TestCase):
     calculated and tested to make sure employees are ranked accordingly.
     """
     
-    def setUp(self):
+    def setUp2(self):
         """
         Create users, departments, employee and schedule objects necessary
         to execute the get_eligable
@@ -345,7 +348,7 @@ class GetEligablesTest(TestCase):
             employee = create_employee(user, first_name=str(i), last_name=str(i))
             employees.append(employee)
             
-        create_many_conflicts(employees, avail_prop)
+        #create_many_conflicts(employees, avail_prop)
         
         
 

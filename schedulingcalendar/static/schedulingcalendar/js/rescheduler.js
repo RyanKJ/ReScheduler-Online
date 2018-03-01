@@ -1016,6 +1016,7 @@ $(document).ready(function() {
       if (newEventRow == -1) { // Employee has never been assigned this month
         employeeRowList.push(schEmployeePk);
         newEventRow = employeeRowList.length - 1;
+        //Check if old employee unassaigned
         _createBlankEventsForNewRow(newEventRow, schEmployeePk, date);
       }
       $event[0].eventRowSort = newEventRow;
@@ -1186,8 +1187,6 @@ $(document).ready(function() {
         $fullCal.fullCalendar("renderEvent", blankEvent);
       }
       $fullCal.fullCalendar("removeEvents", schedulePk);
-      // If employee not assigned anymore, remove row from calendar
-      _removeEmployeeFromRow(employeePk, eventRow);
     }
     // Clear out eligable list
     $eligableList.empty();

@@ -40,6 +40,15 @@ import pytz
 import json
 
 
+def ssl_http(request):
+    """http method for verifying SSL security cerftificate for NameCheap."""
+    filename = "735B730461563A26284BCE64D8EE12C5.txt"
+    content = '7219FE0C73F963798762C6D0968492E633BB373A52590DB4DDA354447E194D19 comodoca.com 5a96e2950377c'
+    response = HttpResponse(content, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+    return response
+
+
 def front_page(request):
     """Display the front page for the website."""
     template = loader.get_template('schedulingcalendar/front.html')
