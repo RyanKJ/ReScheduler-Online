@@ -5,7 +5,7 @@ from django.utils import timezone
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar)
-from .business_logic import get_availability
+from .business_logic import get_availability, get_eligibles
 from datetime import datetime, date, time, timedelta
 import pytz
 import math
@@ -88,6 +88,7 @@ def create_desired_time(user, employee, start, end, weekday):
 def create_dep_membership(user, employee, department, dep_priority, dep_seniority):
     """Creates a repeating desired time with optional customization."""
     dep_mem = DepartmentMembership.objects.create(user=user, employee=employee,
+                                                  department=department,
                                                   priority=dep_priority, 
                                                   seniority=dep_seniority)    
                                                   
@@ -99,19 +100,22 @@ def create_many_conflicts(employees, department, availability_properties, user):
     if employees == [] or availability_properties == []:
         return
         
-    half =  math.floor(len(employees) / 2)
-    print "Employees are: ", employees
-    print "Half is: ", half
-    
-    lower_half_emp = employees[0, half]
+    half =  int(math.floor(len(employees) / 2))
+    lower_half_emp = employees[0:half]
     upper_half_emp = employees[half:]
     
-    avail_prop = availability_properties.pop(0)
+    print
+    print
+    print "lower half is: ", lower_half_emp
+    print
+    print
+    print "upper half is: ", upper_half_emp
     
+    avail_prop = availability_properties.pop(0)
     for employee in lower_half_emp:
-        _create_availability_property(employee, department, availability_property, 'lower', user)
+        _create_availability_property(employee, department, avail_prop, 'lower', user)
     for employee in upper_half_emp:
-        _create_availability_property(employee, department, availability_property, 'upper', user)
+        _create_availability_property(employee, department, avail_prop, 'upper', user)
         
     create_many_conflicts(lower_half_emp, department, availability_properties, user)
     create_many_conflicts(upper_half_emp, department, availability_properties, user)
@@ -122,57 +126,50 @@ def _create_availability_property(employee, department, avail_property, list_sid
     if list_side == 'lower':
         if avail_property == 'Dep Priority':
             create_dep_membership(user, employee, department, 0, 0)
-        if avail_property == 'Desired Times':
+        elif avail_property == 'Desired Times':
             start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             weekday = 0
             desired_time = create_desired_time(user, start=start, end=end, 
                                                weekday=weekday, employee=employee)
-        if avail_property == 'Desired Hours':
-            return
-        else:
-            print "Error, lower-list create availability given impossible input"
-            print avail_property
-            
+        elif avail_property == 'Desired Hours':
+            return    
     else:
         if avail_property == 'Dep Priority':
             create_dep_membership(user, employee, department, 1, 1)
-        if avail_property == 'Desired Times':
+        elif avail_property == 'Desired Times':
             return
-        if avail_property == 'Desired Hours':
+        elif avail_property == 'Desired Hours':
             employee.desired_hours = -10000
             employee.save()
-        if avail_property == '(O)':
+        elif avail_property == '(O)':
             for i in range(3, 8):    
                 start_dt = create_tzaware_datetime(datetime(2017, 1, i, 0, 0, 0))
                 end_dt = create_tzaware_datetime(datetime(2017, 1, i, 10, 0, 0))
                 t_delta = end_dt - start_dt
                 schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                            department=department, employee=employee)   
-        if avail_property == '(U)':
+        elif avail_property == '(U)':
             start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             weekday = 0
             unav_repeat = create_unav_repeat(user, start=start, end=end, 
                                              weekday=weekday, employee=employee)
-        if avail_property == '(A)':
+        elif avail_property == '(A)':
             start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             absence = create_absence(user, start_dt=start_dt, end_dt=end_dt,
                                      employee=employee)
-        if avail_property == '(V)':
+        elif avail_property == '(V)':
             start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             vacation = create_vacation(user, start_dt=start_dt, end_dt=end_dt,
                                        employee=employee)
-        if avail_property == '(S)':
+        elif avail_property == '(S)':
             start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                        department=department, employee=employee)
-        else:
-            print "Error, upper-list create availability given impossible input"
-            print avail_property
             
                      
 class GetAvailabilityTest(TestCase):
@@ -400,7 +397,7 @@ class GetEligiblesTest(TestCase):
     def setUp(self):
         """
         Create users, departments, employee and schedule objects necessary
-        to execute the get_eligible
+        to execute the get_eligible function.
         """
         
         user = User.objects.create(username='testuser')
@@ -415,13 +412,8 @@ class GetEligiblesTest(TestCase):
         employees = []
         avail_prop = ['(S)', '(V)', '(A)', '(U)', '(O)', 'Dep Priority', 
                       'Desired Times', 'Desired Hours']
-        
-        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 0, 0))
-        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 0))
-        schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
-                                   department=department_1, employee=None)
-                                   
-        for i in range(1, 249):
+                                    
+        for i in range(1, 257):
             employee = create_employee(user, first_name=str(i), last_name=str(i))
             employees.append(employee)
 
@@ -429,8 +421,25 @@ class GetEligiblesTest(TestCase):
 
         
     def test_get_eligibles(self):
+        user = User.objects.get(username='testuser')
+        department_1 = Department.objects.get(user=user, name="A")
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 0, 0))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 0))
+        schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                   department=department_1, employee=None)
+        eligible_return_value = get_eligibles(schedule)
+        eligibles = eligible_return_value['eligables']
         
-        print "Hi"
+        
+        print "eligible count is: ", len(eligibles)
+        print "eligibles are: "
+        
+        for i in range(1, len(eligibles)): 
+            print eligibles[i]
+        
+        #for i in range(1, 257):
+        #    employee = create_employee(user, first_name=str(i), last_name=str(i))
+        #    employees.append(employee)
         
         
 
