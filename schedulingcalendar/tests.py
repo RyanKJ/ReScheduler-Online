@@ -1,11 +1,22 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test import Client
+from django.utils import timezone
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar)
 from .business_logic import get_availability
 from datetime import datetime, date, time, timedelta
+import pytz
+import math
+
+
+def create_tzaware_datetime(datetime):
+    """Make datetime aware of server timezone."""
+    time_zone = timezone.get_default_timezone_name()
+    aware_dt = pytz.timezone(time_zone).localize(datetime)
+    
+    return aware_dt
 
 
 def create_employee(user, first_name='A', last_name='1', email="a@a.com", 
@@ -74,27 +85,95 @@ def create_desired_time(user, employee, start, end, weekday):
     return desired_time
     
     
-def create_many_conflicts(employees, availability_properties):
+def create_dep_membership(user, employee, department, dep_priority, dep_seniority):
+    """Creates a repeating desired time with optional customization."""
+    dep_mem = DepartmentMembership.objects.create(user=user, employee=employee,
+                                                  priority=dep_priority, 
+                                                  seniority=dep_seniority)    
+                                                  
+    return
+    
+    
+def create_many_conflicts(employees, department, availability_properties, user):
     """Create employees with conflicts to test get_eligable method."""
     if employees == [] or availability_properties == []:
         return
         
-        
     half =  math.floor(len(employees) / 2)
+    print "Employees are: ", employees
+    print "Half is: ", half
+    
     lower_half_emp = employees[0, half]
     upper_half_emp = employees[half:]
     
     avail_prop = availability_properties.pop(0)
     
-    # Case where we apply property to upper half of employees:
-    if not (avail_prop == 'Dep Priority' or 
-            avail_prop == 'Desired Times' or 
-            avail_prop == 'Desired Hours'):
+    for employee in lower_half_emp:
+        _create_availability_property(employee, department, availability_property, 'lower', user)
+    for employee in upper_half_emp:
+        _create_availability_property(employee, department, availability_property, 'upper', user)
+        
+    create_many_conflicts(lower_half_emp, department, availability_properties, user)
+    create_many_conflicts(upper_half_emp, department, availability_properties, user)
+    
+ 
+def _create_availability_property(employee, department, avail_property, list_side, user):
+    """Create the corresponding conflict for employee given property."""
+    if list_side == 'lower':
+        if avail_property == 'Dep Priority':
+            create_dep_membership(user, employee, department, 0, 0)
+        if avail_property == 'Desired Times':
+            start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+            end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
+            weekday = 0
+            desired_time = create_desired_time(user, start=start, end=end, 
+                                               weekday=weekday, employee=employee)
+        if avail_property == 'Desired Hours':
+            return
+        else:
+            print "Error, lower-list create availability given impossible input"
+            print avail_property
             
-        for employees in upper_half_emp:
-            if avail_prop == '(S)':
-               return
-                              
+    else:
+        if avail_property == 'Dep Priority':
+            create_dep_membership(user, employee, department, 1, 1)
+        if avail_property == 'Desired Times':
+            return
+        if avail_property == 'Desired Hours':
+            employee.desired_hours = -10000
+            employee.save()
+        if avail_property == '(O)':
+            for i in range(3, 8):    
+                start_dt = create_tzaware_datetime(datetime(2017, 1, i, 0, 0, 0))
+                end_dt = create_tzaware_datetime(datetime(2017, 1, i, 10, 0, 0))
+                t_delta = end_dt - start_dt
+                schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                           department=department, employee=employee)   
+        if avail_property == '(U)':
+            start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+            end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
+            weekday = 0
+            unav_repeat = create_unav_repeat(user, start=start, end=end, 
+                                             weekday=weekday, employee=employee)
+        if avail_property == '(A)':
+            start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+            end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
+            absence = create_absence(user, start_dt=start_dt, end_dt=end_dt,
+                                     employee=employee)
+        if avail_property == '(V)':
+            start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+            end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
+            vacation = create_vacation(user, start_dt=start_dt, end_dt=end_dt,
+                                       employee=employee)
+        if avail_property == '(S)':
+            start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+            end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
+            schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
+                                       department=department, employee=employee)
+        else:
+            print "Error, upper-list create availability given impossible input"
+            print avail_property
+            
                      
 class GetAvailabilityTest(TestCase):
     """Test class for the get_availability function.
@@ -122,8 +201,8 @@ class GetAvailabilityTest(TestCase):
         business_data = create_business_data(user)
         department = create_department(user)                     
         employee = create_employee(user)
-        start_dt = datetime(2017, 1, 2, 0, 0, 0)
-        end_dt = datetime(2017, 1, 2, 1, 0, 0)
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 0, 0))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 0))
         schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                    department=department, employee=employee)
                                    
@@ -151,8 +230,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         
         # Make an overlapping schedule to assign employee to:
-        start_dt = datetime(2017, 1, 2, 0, 59, 59)
-        end_dt = datetime(2017, 1, 2, 1, 0, 1)
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
         schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                    department=department, employee=employee)
         availability = get_availability(employee, schedule)          
@@ -173,8 +252,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         
         # Make an overlapping schedule to assign employee to:
-        start_dt = datetime(2017, 1, 2, 0, 59, 59)
-        end_dt = datetime(2017, 1, 2, 1, 0, 1)
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
         vacation = create_vacation(user, start_dt=start_dt, end_dt=end_dt,
                                    employee=employee)
         availability = get_availability(employee, schedule_conflict)          
@@ -195,8 +274,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         
         # Make an overlapping schedule to assign employee to:
-        start_dt = datetime(2017, 1, 2, 0, 59, 59)
-        end_dt = datetime(2017, 1, 2, 1, 0, 1)
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
         absence = create_absence(user, start_dt=start_dt, end_dt=end_dt,
                                    employee=employee)
         availability = get_availability(employee, schedule_conflict)          
@@ -218,8 +297,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         
         # Make an overlapping schedule to assign employee to:
-        start = time(6, 59, 59) # Set to 6 for UTC offset of CST
-        end = time(6, 0, 1) 
+        start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+        end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
         weekday = 0
         unav_repeat = create_unav_repeat(user, start=start, end=end, 
                                          weekday=weekday, employee=employee)
@@ -235,15 +314,15 @@ class GetAvailabilityTest(TestCase):
         
         
     def test_desired_time_overlap(self):
-        """Case where employee's desired time overlaps with schedule"""
+        """Case where employee's desired time overlaps with schedule."""
         user = User.objects.first()
         employee = Employee.objects.first()
         department = Department.objects.first()
         schedule_conflict = Schedule.objects.first()
         
         # Make an overlapping schedule to assign employee to:
-        start = time(6, 59, 59) # Set to 6 for UTC offset of CST
-        end = time(6, 0, 1) 
+        start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
+        end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
         weekday = 0
         desired_time = create_desired_time(user, start=start, end=end, 
                                           weekday=weekday, employee=employee)
@@ -266,8 +345,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         # Create four eight-hour schedules for week to put employee in overtime                    
         for i in range(3, 7):    
-            start_dt = datetime(2017, 1, i, 0, 0, 0)
-            end_dt = datetime(2017, 1, i, 8, 0, 0)
+            start_dt = create_tzaware_datetime(datetime(2017, 1, i, 0, 0, 0))
+            end_dt = create_tzaware_datetime(datetime(2017, 1, i, 8, 0, 0))
             t_delta = end_dt - start_dt
             schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                        department=department, employee=employee)
@@ -291,8 +370,8 @@ class GetAvailabilityTest(TestCase):
         schedule_conflict = Schedule.objects.first()
         # Create five ten-hour schedules for week to put employee in overtime                    
         for i in range(3, 8):    
-            start_dt = datetime(2017, 1, i, 0, 0, 0)
-            end_dt = datetime(2017, 1, i, 10, 0, 0)
+            start_dt = create_tzaware_datetime(datetime(2017, 1, i, 0, 0, 0))
+            end_dt = create_tzaware_datetime(datetime(2017, 1, i, 10, 0, 0))
             t_delta = end_dt - start_dt
             schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                        department=department, employee=employee)
@@ -308,22 +387,20 @@ class GetAvailabilityTest(TestCase):
         self.assertEqual(availability['(O)'], True)
         
 
-        
-        
-class GetEligablesTest(TestCase):
+class GetEligiblesTest(TestCase):
     """
-    get_eligables is a sorting method using the heuristic of 'availability', 
+    get_eligibles is a sorting method using the heuristic of 'availability', 
     sorting all eligable employees and returning this sorted list. We test the 
     method by returning a sorted list of employees that is large enough such 
-    that every flag that can affect eligablity is tested. For example, all
+    that every flag that can affect eligiblity is tested. For example, all
     combinations of schedule conflicts, vacations, overtime, etc. are
     calculated and tested to make sure employees are ranked accordingly.
     """
     
-    def setUp2(self):
+    def setUp(self):
         """
         Create users, departments, employee and schedule objects necessary
-        to execute the get_eligable
+        to execute the get_eligible
         """
         
         user = User.objects.create(username='testuser')
@@ -339,16 +416,21 @@ class GetEligablesTest(TestCase):
         avail_prop = ['(S)', '(V)', '(A)', '(U)', '(O)', 'Dep Priority', 
                       'Desired Times', 'Desired Hours']
         
-        start_dt = datetime(2017, 1, 2, 0, 0, 0)
-        end_dt = datetime(2017, 1, 2, 1, 0, 0)
+        start_dt = create_tzaware_datetime(datetime(2017, 1, 2, 0, 0, 0))
+        end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 0))
         schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
-                                   department=department, employee=employee)
+                                   department=department_1, employee=None)
                                    
         for i in range(1, 249):
             employee = create_employee(user, first_name=str(i), last_name=str(i))
             employees.append(employee)
-            
-        #create_many_conflicts(employees, avail_prop)
+
+        create_many_conflicts(employees, department_1, avail_prop, user)
+
+        
+    def test_get_eligibles(self):
+        
+        print "Hi"
         
         
 
