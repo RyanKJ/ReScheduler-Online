@@ -1,0 +1,40 @@
+<!-- Modal -->
+<div id="employeelessModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <div class="text-center">
+          <h4 class="modal-title">You Have Not Created Any Employees Yet</h4>
+        </div>
+      </div>
+      
+      <div class="modal-body">
+        <div class="legend-note">
+          <span>Click the button 'Create New Employee' below to be redirected
+          to the create new employee page. After you create the employee click
+          edit employee to add them to any departments you would like them to
+          belong to.
+          </span>
+        </div>
+        <br>
+        <div class="legend-note">
+          <span><b>Note: When you load the calendar for a given department, only
+          employees that are members of that department will show up.</b>
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="text-center">
+          <a class="btn btn-info"
+             href="{% url 'schedulingcalendar:employee_create' %}">Create New Employee</a>
+          <button type="button" 
+                  class="btn btn-danger"
+                  data-dismiss="modal">Close Alert</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

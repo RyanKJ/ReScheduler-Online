@@ -32,7 +32,7 @@ a:active {
 --------------------------------------------------------------------------------------------------*/
 
 .calendar-toolbar {
-  background-color: #0079D7;
+  background: linear-gradient(to bottom, #0079D7, #0a83eb);
   padding-bottom: 0px;
   margin-bottom: 5px;
 }
@@ -50,7 +50,8 @@ a:active {
   top: 10px;
   display: inline-block;
   margin-left: 3px;
-  border: 3px solid white;
+  border: 2px solid white;
+  border-radius: 1px;
   width: 100px;
   overflow: hidden;
   background: transparent;
@@ -78,7 +79,7 @@ a:active {
     width: 130%;
     border: none;
     box-shadow: none;
-    background: #0079D7;
+    background: #0073d3;
     background-image: none;
     cursor: pointer;
     -webkit-appearance: none;
@@ -104,6 +105,7 @@ a:active {
   margin-bottom: 10px;
   vertical-align: middle;
   background: transparent;
+  
   background-image: -webkit-linear-gradient(top, transparent, transparent);
   background-image: -moz-linear-gradient(top, transparent, transparent);
   background-image: -ms-linear-gradient(top, transparent, transparent);
@@ -114,8 +116,10 @@ a:active {
   font-size: 16px;
   font-weight: bold;
   padding: 4px 6px 4px 6px;
-  border: solid #ffffff 3px;
+  border: solid #ffffff 2px;
+  border-radius: 1px;
   text-decoration: none;
+  background: #0073d3;
   
   -webkit-transition: all .3s ease;
   -moz-transition: all .3s ease;
@@ -136,17 +140,13 @@ a:active {
   float: right;
   display: inline-block;
   padding-right: 37px;
-  background: transparent;
-  background-image: -webkit-linear-gradient(top, transparent, transparent);
-  background-image: -moz-linear-gradient(top, transparent, transparent);
-  background-image: -ms-linear-gradient(top, transparent, transparent);
-  background-image: -o-linear-gradient(top, transparent, transparent);
-  background-image: linear-gradient(to bottom, transparent, transparent);
+  background: #0073d3;
   color: #ffffff;
   font-size: 16px;
   font-weight: bold;
   padding: 4px 6px 4px 6px;
-  border: solid #ffffff 3px;
+  border: solid #ffffff 2px;
+  border-radius: 1px;
   cursor: pointer;
   
   -webkit-transition: all .3s ease;
@@ -161,11 +161,12 @@ a:active {
   display: inline-block;
   float: right;
   top: 10px;
-  height: 36px;
-  width: 4px;
+  height: 35px;
+  width: 3px;
   margin-left: 7px;
   margin-right: 1px;
   background: white;
+  border-radius: 1px;
 }
 
 .unactive-live {
@@ -213,8 +214,10 @@ a:active {
 }
 
 #remove-btn {
+    background: linear-gradient(to bottom right, #ffc34d, #ef573d);
     background: #f45c42;
     border-bottom: 2px solid #ef7c69;
+    border-radius: 2px;
     padding: 6px 3px 6px 3px;
     margin: 0px 15px 0px 15px;
     font-size: 120%;
@@ -271,6 +274,7 @@ ul#eligable-list {
 
 #eligable-list-header {
     background: #0079D7;
+    border-radius: 2px 2px 0px 0px;
     padding: 4px 0;
     margin-top: 16px;
     margin-bottom: 0px;
@@ -347,6 +351,7 @@ ul#cost-list {
 }
 
 #cost-header {
+    border-radius: 3px 3px 0px 0px;
     background: #0079D7;
     padding: 4px 0;
     margin-top: 16px;
@@ -374,16 +379,6 @@ li:last-child.cost-list {
 /* Scheduler adder styling
 --------------------------------------------------------------------------------------------------*/
 
-.schedule-adder h1{
-  background: #ffc34d;
-  padding: 12px 0;
-  font-size: 180%;
-  font-weight: 300;
-  text-align: center;
-  color: #fff;
-  margin: -16px -16px 16px -16px;
-}
-
 .schedule-adder{
     font: 95% Arial, Helvetica, sans-serif;
     margin: 10px auto;
@@ -394,6 +389,7 @@ li:last-child.cost-list {
 
 .schedule-adder h1{
     background: #ffc34d;
+    border-radius: 3px 3px 0px 0px;
     padding: 12px 0;
     font-size: 180%;
     font-weight: 300;
@@ -454,7 +450,8 @@ li:last-child.cost-list {
     -moz-box-sizing: border-box;
     width: 100%;
     padding: 3%;
-    background: #ffc34d;
+    background: linear-gradient(to bottom right, #ffc34d, #fabe47);
+    border-radius: 2px;
     border-bottom: 2px solid #ffd480;
     border-top-style: none;
     border-right-style: none;

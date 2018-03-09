@@ -6,45 +6,51 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/landing-page.css' %}" />
 {% endblock stylesheets %}
 
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1 class="headline">Simple. Painless. Fast.</h1>
-      <p>Are you ready to schedule your employees in a fraction of the time it usually takes and in a way that meets both your needs and employee needs?</p>
+<div class="front-bg">
+  <div class="jumbotron landing-page-bg-top">
+    <div class="container text-center">
+      <h2 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h2>
+      <p>Schedule employees in the simplest possible way. 
+      Designed to feel like you're making schedules for humans, not a database.</p>
       <br>
-      <p><a class="btn btn-primary btn-lg" href="{% url 'schedulingcalendar:register' %}" role="button">Register For Free Trial &raquo;</a> <a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+      <p>
+        <a class="btn btn-primary btn-lg landing-page-btn" href="{% url 'schedulingcalendar:register' %}" role="button">Register For Free &raquo;</a> 
+      </p>
     </div>
   </div>
 
-  <section class="call-to-action">
+  <section class="call-to-action landing-page-bg-bottom">
     <div class="container">
       <div class="row">
         <div class="col-md-4">
           <div class="text-center">
-            <span class="glyphicon glyphicon-calendar glyphicon-large" aria-hidden="true"></span>
-            <h3>Intelligent Calendar</h3>
+            <span class="glyphicon glyphicon-tower glyphicon-large" aria-hidden="true"></span>
+            <h3>Intelligent</h3>
           </div>
-          <p>Our calendar is responsive to the various needs and desires of employees. It informs you of scheduling conflicts such as overtime, vacations, other jobs, recommends employees according to times and hours they wish to work, and much more.</p>
+          <p>Our calendar is responsive to the various needs and desires of both you and your employees. It informs you of scheduling conflicts such as overtime, vacations, other jobs, recommends employees according to times and hours they wish to work, and much more.</p>
         </div>
         <div class="col-md-4">
           <div class="text-center">
-            <span class="glyphicon glyphicon-list-alt glyphicon-large" aria-hidden="true"></span>
-          <h3>Track Employement Costs</h3>
+            <span class="glyphicon glyphicon-leaf glyphicon-large" aria-hidden="true"></span>
+          <h3>Simple</h3>
           </div>
-          <p>Every time you add, edit, or remove a schedule the monthly employement cost relative to monthly revenue is updated for you to keep track of employement costs allowing you to maximize business profits.</p>
+          <p>ReScheduler is built for maximum simplicity. There is not a headache inducing amount of feature bloat. Everything you need and nothing you don't, because we're not selling you ReScheduler as part of a larger product package.</p>
         </div>
         <div class="col-md-4">
           <div class="text-center">
             <span class="glyphicon glyphicon-usd glyphicon-large" aria-hidden="true"></span>
-          <h3>Cheap</h3>
+          <h3>Reduce Costs</h3>
           </div>
-          <p>Shop around for other online scheduling software. Common prices average around 50 dollars a month at best. ReScheduler is free for the first 3 months and 10 dollars a month after. We aim for small retail businesses with tight budgets, not large monolithic corporations.</p>
+          <p>Every time you add, edit, or remove a schedule the monthly employement cost relative to monthly revenue is updated for you to keep track of employement costs allowing you to maximize profits.</p>
         </div>
       </div>
     </div>
   </section>
+</div>
 {% endblock content %}
 
 {% block javascript %}

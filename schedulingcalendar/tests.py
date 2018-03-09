@@ -99,26 +99,24 @@ def create_many_conflicts(employees, department, availability_properties, user):
     """Create employees with conflicts to test get_eligable method."""
     if employees == [] or availability_properties == []:
         return
-        
-    half =  int(math.floor(len(employees) / 2))
+             
+    half = int(math.floor(len(employees) / 2))
     lower_half_emp = employees[0:half]
     upper_half_emp = employees[half:]
     
-    print
-    print
-    print "lower half is: ", lower_half_emp
-    print
-    print
-    print "upper half is: ", upper_half_emp
+    # We clone avail_properties, otherwise the second recursive call for upper_half_emp
+    # will have a reference to avail_properties that has been changed by other 
+    # recursive calls with the lower_half_emp
+    avail_properties_clone = list(availability_properties)
+    avail_prop = avail_properties_clone.pop(0)
     
-    avail_prop = availability_properties.pop(0)
     for employee in lower_half_emp:
         _create_availability_property(employee, department, avail_prop, 'lower', user)
     for employee in upper_half_emp:
         _create_availability_property(employee, department, avail_prop, 'upper', user)
         
-    create_many_conflicts(lower_half_emp, department, availability_properties, user)
-    create_many_conflicts(upper_half_emp, department, availability_properties, user)
+    create_many_conflicts(lower_half_emp, department, avail_properties_clone, user)
+    create_many_conflicts(upper_half_emp, department, avail_properties_clone, user)
     
  
 def _create_availability_property(employee, department, avail_property, list_side, user):
@@ -143,12 +141,13 @@ def _create_availability_property(employee, department, avail_property, list_sid
             employee.desired_hours = -10000
             employee.save()
         elif avail_property == '(O)':
+            print "In (O) creation switch"
             for i in range(3, 8):    
                 start_dt = create_tzaware_datetime(datetime(2017, 1, i, 0, 0, 0))
                 end_dt = create_tzaware_datetime(datetime(2017, 1, i, 10, 0, 0))
-                t_delta = end_dt - start_dt
                 schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                            department=department, employee=employee)   
+                print get_availability(employee, schedule)
         elif avail_property == '(U)':
             start = create_tzaware_datetime(datetime(2017, 1, 2, 0, 59, 59))
             end = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
@@ -170,6 +169,7 @@ def _create_availability_property(employee, department, avail_property, list_sid
             end_dt = create_tzaware_datetime(datetime(2017, 1, 2, 1, 0, 1))
             schedule = create_schedule(user, start_dt=start_dt, end_dt=end_dt,
                                        department=department, employee=employee)
+    return
             
                      
 class GetAvailabilityTest(TestCase):
@@ -407,8 +407,6 @@ class GetEligiblesTest(TestCase):
         # Create employee, a 1-hour schedule, then assign employee to schedule
         business_data = create_business_data(user)
         department_1 = create_department(user, "A")
-        department_2 = create_department(user, "B")
-        
         employees = []
         avail_prop = ['(S)', '(V)', '(A)', '(U)', '(O)', 'Dep Priority', 
                       'Desired Times', 'Desired Hours']
@@ -430,16 +428,8 @@ class GetEligiblesTest(TestCase):
         eligible_return_value = get_eligibles(schedule)
         eligibles = eligible_return_value['eligables']
         
-        
-        print "eligible count is: ", len(eligibles)
-        print "eligibles are: "
-        
-        for i in range(1, len(eligibles)): 
-            print eligibles[i]
-        
-        #for i in range(1, 257):
-        #    employee = create_employee(user, first_name=str(i), last_name=str(i))
-        #    employees.append(employee)
-        
-        
+        self.assertEqual(len(eligibles), 256)   
+        for i in range(1, 257): 
+            self.assertEqual(int(eligibles[i]['employee'].first_name), i)
+
 

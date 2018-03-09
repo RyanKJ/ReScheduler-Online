@@ -83,12 +83,14 @@ def register(request):
             # Create business logic for user
             business_data = BusinessData(user=user)
             business_data.save()
+            department = Department(user=user, name="Main")
+            department.save()
             # Add user to manager group for permissions
             manager_user_group = Group.objects.get(name="Managers")
             user.groups.add(manager_user_group)
             # Log user in and redirect to department page to create 1st dep
             login(request, user)
-            return redirect('/departments/')
+            return redirect('/calendar/')
     else:
         form = UserCreationForm()
     return render(request, 'registration/signUp.html', {'form': form})
@@ -190,6 +192,19 @@ def get_schedules(request):
             for s in schedules:
                 if s.employee:
                     employees.add(s.employee)
+            # Check if any employees for this user exist to alert them if no employees exist
+            # Or alert them if employees exist, but none are members of this department
+            no_employees_exist = False
+            no_employees_exist_for_department = False
+            if not employees: 
+                all_employees = Employee.objects.filter(user=logged_in_user)
+                if not all_employees:
+                    no_employees_exist = True
+                else: # Employees exist, but none for this department
+                    all_dep_employees = DepartmentMembership.objects.filter(department=department_id)
+                    if not all_dep_employees:
+                        no_employees_exist_for_department = True
+                    
                     
             # Get day notes to display for dates within range of month
             day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
@@ -235,7 +250,7 @@ def get_schedules(request):
             business_data.save()
               
             # Combine all appropriate data into dict for serialization
-            combined_dict = {'date': cal_date.isoformat(), 
+            combined_dict = {'date': cal_date.isoformat(),
                              'department': department_id,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
@@ -244,7 +259,9 @@ def get_schedules(request):
                              'department_costs': department_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,
-                             'is_active': is_active}
+                             'is_active': is_active,
+                             'no_employees_exist': no_employees_exist,
+                             'no_employees_exist_for_department': no_employees_exist_for_department}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)

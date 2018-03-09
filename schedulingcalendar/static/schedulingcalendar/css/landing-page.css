@@ -1,0 +1,46 @@
+.front-bg {
+  background: linear-gradient(to bottom, #FCFCFC, white);
+}
+
+.landing-page-title {
+  font-size: 3em;
+  font-family: 'Nanum Myeongjo', serif;
+  font-weight: bold;
+}
+
+
+.landing-page-bg-top {
+  background: linear-gradient(to bottom, #0079D7, #1190f2);
+  color: white;
+  font-family: 'Nanum Myeongjo', serif;
+  
+}
+
+.landing-page-bg-bottom {
+  color: #212A35;
+  background: linear-gradient(to top right, #FCFCFC, white);
+}
+
+.landing-page-btn {
+  background: #0079D7;
+  border-radius: 3px;
+  border-color: white;
+  font-weight: bold;
+  
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+	transition: all .3s ease;
+}
+
+.landing-page-btn:hover {
+  border-color: white;
+  background: #00BFFF;
+  font-weight: bold;
+}
+
+
+.test{
+  background: linear-gradient(to bottom, #0079D7, #7faaef);
+}

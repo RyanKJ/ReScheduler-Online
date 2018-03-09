@@ -1,0 +1,42 @@
+<!-- Modal -->
+<div id="employeelessDepartmentModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <div class="text-center">
+          <h4 class="modal-title">No Employee Is A Member Of This Department</h4>
+        </div>
+      </div>
+      
+      <div class="modal-body">
+        <div class="legend-note">
+          <span><b>You must make an employee a member of the department 
+          before you can assign that employee to a schedule belonging to this department.
+          </b></span>
+        </div>
+        <br>
+      
+        <div class="legend-note">
+          <span>If you wish to assign an employee to this department, click the button
+          below to be redirected to the employee list page, then click edit for the employee
+          you wish to make a member of this department and click the tab 'Departments' and 
+          make them a member.
+          </span>
+        </div>
+      </div>
+
+
+      <div class="modal-footer">
+        <div class="text-center">
+          <a class="btn btn-info"
+             href="{% url 'schedulingcalendar:employee_list' %}">Employee List</a>
+          <button type="button" 
+                  class="btn btn-danger"
+                  data-dismiss="modal">Close Alert</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

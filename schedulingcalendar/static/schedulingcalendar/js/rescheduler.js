@@ -217,6 +217,15 @@ $(document).ready(function() {
     console.log("load schedules data is: ");
     console.log(info);
     
+    // Let user know if no employees exist at all via modal
+    if (info["no_employees_exist"]) {
+      _showEmployeelessModal();
+    } else {
+      if (info["no_employees_exist_for_department"]) {
+        _showEmployeelessDepartmentModal();
+      }
+    }
+    
     // Set default start and end time for time-pickers
     st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
     et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
@@ -1387,10 +1396,28 @@ $(document).ready(function() {
   }
   
   
-  /** Display  */
+  /** Clear eligibles */
   function clearEligables() {
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
+  }
+  
+  
+  /** Callback function to show user the employeeless modal */
+  function _showEmployeelessModal() {
+    $employeelessModal = $("#employeelessModal");
+    $employeelessModal.css("margin-top", Math.max(0, ($(window).height() - $employeelessModal.height()) / 2));
+    $employeelessModal.modal('show');
+  }
+  
+  /** Callback function to show user the employeeless department modal. This is 
+   *  called when employees do exist for the user, but none are members of the
+   *  department of the calendar the user is currently editing.
+   */
+  function _showEmployeelessDepartmentModal() {
+    $employeelessDepartmentModal = $("#employeelessDepartmentModal");
+    $employeelessDepartmentModal.css("margin-top", Math.max(0, ($(window).height() - $employeelessDepartmentModal.height()) / 2));
+    $employeelessDepartmentModal.modal('show');
   }
   
 }); 
