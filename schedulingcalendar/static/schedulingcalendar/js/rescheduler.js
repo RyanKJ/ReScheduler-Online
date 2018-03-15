@@ -919,13 +919,13 @@ $(document).ready(function() {
   function _updateCurrHours(employeeID, scheduleLength) {
     var $newlyAssignedEmployee = $("#" + employeeID + " .eligible-hours");
     var oldHours = $newlyAssignedEmployee.text();
-    var newHours = parseInt(oldHours) + scheduleLength;
+    var newHours = parseFloat(oldHours) + scheduleLength;
     $newlyAssignedEmployee.text(newHours);
     var $previousAssignedEmployee = $(".curr-assigned-employee");
     if ($previousAssignedEmployee.length) {
       var $PreviousEmployeeHours = $previousAssignedEmployee.children(" .eligible-hours");
       var oldHours = $PreviousEmployeeHours.text();
-      var newHours = parseInt(oldHours) - scheduleLength;
+      var newHours = parseFloat(oldHours) - scheduleLength;
       $PreviousEmployeeHours.text(newHours);
     }
   }

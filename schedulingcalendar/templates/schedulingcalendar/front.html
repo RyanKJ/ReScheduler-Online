@@ -10,7 +10,6 @@
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="front-bg">
   <div class="jumbotron landing-page-bg-top">
     <div class="container text-center">
       <h2 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h2>
@@ -50,7 +49,28 @@
       </div>
     </div>
   </section>
-</div>
+  <br>
+  <section class="landing-page-bg-example">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="text-center">
+          <h3>An Example Calendar: </h3>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-12">
+          <div class="text-center">
+            <a class="cart-view" href="/static/site/images/front-page-ex-large.jpg" onClick="return Pop(this.href,500,499)">
+              <img class="img-responsive" src="/static/site/images/front-page-ex-large.jpg" alt="Example Picture">
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>      
+  </section>
 {% endblock content %}
 
 {% block javascript %}

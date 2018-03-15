@@ -338,8 +338,6 @@ def calculate_weekly_hours_with_sch(employee, schedule):
         that with, including the hours of the schedule they may be assigned to.
     """
     
-    # TODO: Not count overlapping time of to be assigned schedule.
-    
     curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, schedule.user)
     if schedule.employee == employee:
         return curr_hours
@@ -409,78 +407,6 @@ def calculate_weekly_hours(employee, dt, user):
             last_end_dt = schedule.end_datetime
     
     return hours
-    
-    
-def eligable_list_to_dict(eligable_list):
-    """Convert eligable_list into a dict ready for json serialization.
-    
-    Args:
-        eligable_list: list of sorted eligables with an availability dict and
-        a sorting score.
-    Returns:
-        The eligible list formatted into dicts to be serialized by json.
-    """
-    
-    eligable_serialized_list = []
-    
-    for e in eligable_list['eligables']:
-        eligable_serialized = {}
-        eligable_serialized_list.append(eligable_serialized)
-        
-        # Serialize the employee model
-        employee_serialized = model_to_dict(e['employee'])
-        eligable_serialized['employee'] = employee_serialized
-        # Serialize the availability dict
-        avail_serialized = _availability_to_dict(e['availability'])
-        eligable_serialized['availability'] = avail_serialized
-        
-    # Serialize the corresponding schedule
-    serialized_schedule = model_to_dict(eligable_list['schedule'])
-    
-    data = {'schedule': serialized_schedule, 
-            'eligable_list': eligable_serialized_list}
-            
-    return data
-    
-    
-def _availability_to_dict(availability):
-    """Convert availability into a dict ready for json serialization.
-    
-    Args:
-        availability: list containing django querysets and other information
-        compiled by the get_availability function.
-    Returns:
-        Availability formatted into dicts to be serialized by json.
-    """
-    
-    MODEL_AVAILABILITIES = ('(S)', '(V)', '(A)', '(U)', 'Desired Times')
-    avail_serialized = {}
-    
-    for key in MODEL_AVAILABILITIES:
-        serialized_conflicts = []
-        for conflict in availability[key]:
-            serial_conf = model_to_dict(conflict)
-            serialized_conflicts.append(serial_conf)
-            
-        avail_serialized[key] = serialized_conflicts
-            
-    avail_serialized['(O)'] = availability['(O)']
-    avail_serialized['Hours Scheduled'] = availability['Hours Scheduled']
-    
-    return avail_serialized
-      
-    
-def date_handler(obj):
-    """Add converting instructions to JSON parser for datetime objects. 
-    
-    Written by Anthony Hatchkins: 
-    http://stackoverflow.com/questions/23285558/datetime-date2014-4-25-is-not-json-serializable-in-django
-    """
-    
-    if hasattr(obj, 'isoformat'):
-        return obj.isoformat()
-    else:
-        raise TypeError
         
         
 def get_start_end_of_weekday(dt, user):
@@ -540,8 +466,6 @@ def time_dur_in_hours(start_datetime, end_datetime,
         A float representing number of hours of time duration.
     """
     
-    #TODO: Include subtracting hours for lunch breaks
-    
     if not start_lowerb or not end_upperb:
         start = start_datetime
         end = end_datetime
@@ -556,10 +480,10 @@ def time_dur_in_hours(start_datetime, end_datetime,
             end = end_upperb
     
     time_delta = end - start
-    hours = time_delta.seconds / 3600
+    hours = time_delta.seconds / 3600.0
     
     if min_time_for_break and min_time_for_break >= hours:
-        hours -= break_time_in_min / 60
+        hours -= break_time_in_min / 60.0
     
     return hours
     
@@ -753,7 +677,9 @@ def calculate_workweek_costs(workweek_hours, departments, business_data, month_o
         
 def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedules, 
                             month=None, year=None):
-    """Calculate the number of hours and overtime hours for given schedules.
+    """Calculate the number of hours and overtime hours for given schedules
+    as they occur chronologically and according to which department those 
+    hours and overtime hours occur.
     
     This function works similarly to calculate_weekly_hours in that it does
     not count time overlapping between multiple schedules for one employee as
@@ -761,11 +687,11 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     present at work for a day in 2 different departments twice. The first
     occuring schedule is the department whose hours are counted in the case of
     an overlap.
-   
+    
     Then we count the number of hours the employee is working both in that 
     department and overall all departments for that workweek. Furthermore, 
     since we are interested in the ratio of employment costs to average monthly 
-    revenue, keep a running sum of the regular and overtime hours of schedules
+    revenue, we keep a running sum of the regular and overtime hours of schedules
     that strictly belong to a given month and year. This is because workweeks 
     at the start and end of a month contain schedules that fall outside that
     month. This running sum allows us to calculate costs of scheduling that 
@@ -778,6 +704,19 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     possible. This potential error is considered tolerable due to the purpose
     of scheduling cost / average revenue as a loose guideline for managers to
     create schedules.
+    
+    Also: Calculating the hours is a convoluted mess because calculating the 
+    cost of a schedule is dependent on 2 different variables: overtime caused 
+    by previous schedules for that given workweek AND where the overtime hours 
+    occur given that an employee can belong to more than one department. For 
+    example, employee A belongs to department 1 and 2 and overtime occurs at 
+    40 hours. Employee A works 30 hours in the beginning of the workweek in 
+    department 1 then 20 hours in department 2. 10 of those hours are overtime,
+    but they occur in a different department. This means we must keep track of
+    the hours worked by an employee in a work week across departments to 
+    correctly attribute which overtime hour belongs to which department,
+    otherwise the cost for a given department's schedules for that month will
+    be incorrect.
     
     Args:
         start_dt: Python datetime representing start of workweek
@@ -974,7 +913,7 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
     department_costs = {} # Create dict for department costs
     for department in departments:
         department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'total', 'cost': 0}         
+    department_costs['total'] = {'name': 'total', 'cost': 0}
     
     # Get workweeks that intersect with schedule
     workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
@@ -1124,6 +1063,75 @@ def create_live_schedules(user, live_calendar):
         live_schedule.save()
                           
                           
-                          
+def eligable_list_to_dict(eligable_list):
+    """Convert eligable_list into a dict ready for json serialization.
+    
+    Args:
+        eligable_list: list of sorted eligables with an availability dict and
+        a sorting score.
+    Returns:
+        The eligible list formatted into dicts to be serialized by json.
+    """
+    
+    eligable_serialized_list = []
+    
+    for e in eligable_list['eligables']:
+        eligable_serialized = {}
+        eligable_serialized_list.append(eligable_serialized)
+        
+        # Serialize the employee model
+        employee_serialized = model_to_dict(e['employee'])
+        eligable_serialized['employee'] = employee_serialized
+        # Serialize the availability dict
+        avail_serialized = _availability_to_dict(e['availability'])
+        eligable_serialized['availability'] = avail_serialized
+        
+    # Serialize the corresponding schedule
+    serialized_schedule = model_to_dict(eligable_list['schedule'])
+    
+    data = {'schedule': serialized_schedule, 
+            'eligable_list': eligable_serialized_list}
+            
+    return data
+    
+    
+def _availability_to_dict(availability):
+    """Convert availability into a dict ready for json serialization.
+    
+    Args:
+        availability: list containing django querysets and other information
+        compiled by the get_availability function.
+    Returns:
+        Availability formatted into dicts to be serialized by json.
+    """
+    
+    MODEL_AVAILABILITIES = ('(S)', '(V)', '(A)', '(U)', 'Desired Times')
+    avail_serialized = {}
+    
+    for key in MODEL_AVAILABILITIES:
+        serialized_conflicts = []
+        for conflict in availability[key]:
+            serial_conf = model_to_dict(conflict)
+            serialized_conflicts.append(serial_conf)
+            
+        avail_serialized[key] = serialized_conflicts
+            
+    avail_serialized['(O)'] = availability['(O)']
+    avail_serialized['Hours Scheduled'] = availability['Hours Scheduled']
+    
+    return avail_serialized
+      
+    
+def date_handler(obj):
+    """Add converting instructions to JSON parser for datetime objects. 
+    
+    Written by Anthony Hatchkins: 
+    http://stackoverflow.com/questions/23285558/datetime-date2014-4-25-is-not-json-serializable-in-django
+    """
+    
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    else:
+        raise TypeError           
                           
                           

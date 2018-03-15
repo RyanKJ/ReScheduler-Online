@@ -30,7 +30,7 @@
     {% include "schedulingcalendar/_employeelessDepartmentModal.html" %}
     
     <div class="row no-print calendar-toolbar">
-      <div class="col-md-6">
+      <div class="col-md-7">
         <!-- Form for getting calendar -->
         <form id="load-calendar-form"
               action="{% url 'schedulingcalendar:get_schedules' %}"
@@ -74,7 +74,7 @@
         </form>
       </div>
         
-      <div class="col-md-6">
+      <div class="col-md-5">
         <!-- Buttons for live version of calendar that employees see -->
         <div id="push-live" class="calendar-push-btn">
           Push Live
@@ -83,7 +83,8 @@
         <div id="active-live-set" class="calendar-push-btn unactive-live">
            Deactivate Live
         </div>
-            
+        
+
         <form id="view-live-form"
               action="{% url 'schedulingcalendar:view_live_schedules' %}"
               method="get">
