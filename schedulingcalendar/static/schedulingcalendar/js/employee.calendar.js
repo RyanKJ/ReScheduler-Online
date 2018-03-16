@@ -65,7 +65,7 @@ $(document).ready(function() {
       // Make remove button active since an event is clicked
       $(".fc-removeSchedule-button").removeClass("fc-state-disabled");
       var pk = calEvent.id;
-      $.get("get_schedule_info", {pk: pk}, displayEligables);
+      alert("Hello.");
     },
         
     /** Highlight event when mouse hovers over event. */
@@ -338,6 +338,7 @@ $(document).ready(function() {
     $scheduleInfo.css("visibility", "visible");
 
     var info = JSON.parse(data);
+    console.log(info);
     var eligableList = info["eligable_list"];
     var schedulePk = info["schedule"]["id"];
     var currAssignedEmployeeID = info["schedule"]["employee"];

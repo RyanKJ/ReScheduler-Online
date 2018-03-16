@@ -14,6 +14,7 @@
 {% block content %}    
   <!-- Modal used for warnings -->
   {% include "schedulingcalendar/_noCalendarModal.html" %}
+  {% include "schedulingcalendar/_giveUpSchedule.html" %}
 
   <div class="container-fluid">
     <div class="row no-print calendar-toolbar">
@@ -59,7 +60,7 @@
       <div class="col-md-3">
         <!-- Misc Buttons -->
         <div id="swap-schedule-btn" class="calendar-push-btn">
-          Swap Schedule
+          Schedule Swaps
         </div>
         <div id="print-live" class="calendar-push-btn">
           Print Calendar

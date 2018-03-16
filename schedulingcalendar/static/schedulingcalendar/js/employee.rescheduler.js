@@ -63,6 +63,8 @@ $(document).ready(function() {
       $(".fc-swapSchedule-button").removeClass("fc-state-disabled");
       var pk = calEvent.id;
       // TODO Add get employee's to swap with
+      displayGiveUpScheduleModal();
+      
     },
         
     /** Highlight event when mouse hovers over event. */
@@ -459,6 +461,14 @@ $(document).ready(function() {
   function printCalendar() {
     window.print();
   } 
+  
+  
+  /** Callback function to show employee modal to give up schedule */
+  function displayGiveUpScheduleModal() {
+    $giveUpScheduleModal = $("#giveUpSchedulModal");
+    $giveUpScheduleModal.css("margin-top", Math.max(0, ($(window).height() - $giveUpScheduleModal.height()) / 2));
+    $giveUpScheduleModal.modal('show');
+  }
 }); 
       
     

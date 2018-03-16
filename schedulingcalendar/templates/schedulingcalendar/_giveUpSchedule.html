@@ -1,0 +1,41 @@
+{% load widget_tweaks %}
+
+<!-- Modal -->
+<div id="giveUpSchedulModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="text-center">
+          <h4 class="modal-title">Broadcast Schedule Swap To Other Employees & Manager?</h4>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="legend-note">
+          <span>By clicking 'Broadcast Schedule Swap' other employees loading 
+          this calendar will see you wish to give up this schedule and can
+          apply to be swapped with you along with the manager who may assign
+          someone else to the schedule.
+          </span>
+        </div>
+        <br>
+        <div class="legend-note">
+          <span><b>Click the 'Schedule Swaps' button to both view and remove
+          previous submitted schedule swaps.</b>
+          </span>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <div class="text-center">
+          <a class="btn btn-danger"
+             href="{% url 'schedulingcalendar:employee_create' %}">Broadcast Schedule Swap</a>
+          <button type="button" 
+                  class="btn btn-info"
+                  data-dismiss="modal">Close And Do Nothing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
