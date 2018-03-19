@@ -21,7 +21,7 @@ from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
-                     DayNoteHeader, DayNoteBody)
+                     DayNoteHeader, DayNoteBody, ScheduleSwapPetition)
 from .business_logic import (get_eligibles, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
@@ -32,7 +32,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
-                    DayNoteBodyForm, ScheduleNoteForm)
+                    DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -282,11 +282,13 @@ def get_live_schedules(request):
         user_is_manager = manager_check(logged_in_user)
         if user_is_manager:
             employee = None
+            employee_user_pk = None
             manager_user = logged_in_user
             form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
                                 .get(employee_user=logged_in_user))
+            employee_user_pk = employee.id
             manager_user = employee.user
             form = LiveCalendarForm(manager_user, request.GET)
         if form.is_valid():
@@ -371,7 +373,8 @@ def get_live_schedules(request):
                                  'day_note_header': day_note_header_as_dicts,
                                  'day_note_body': day_note_body_as_dicts,
                                  'version': version,
-                                 'display_settings': business_dict}
+                                 'display_settings': business_dict,
+                                 'employee_user_pk': employee_user_pk}
                 combined_json = json.dumps(combined_dict, default=date_handler)
                 
                 return JsonResponse(combined_json, safe=False)
@@ -689,6 +692,47 @@ def edit_schedule_note(request):
     else:
         pass
         #TODO: Implement reponse for non-POST requests    
+        
+        
+@login_required
+def create_schedule_swap_petition(request):
+    """Create schedule petition swap for logged in employee"""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ScheduleSwapPetitionForm(request.POST)
+        if form.is_valid():
+            id = form.cleaned_data['live_schedule_pk']
+            note = form.cleaned_data['note']
+            employee = (Employee.objects.select_related('user')
+                                .get(employee_user=logged_in_user))
+            manager_user = employee.user
+            live_schedule = LiveSchedule.objects.get(user=manager_user,
+                                                     employee=employee,
+                                                     pk=id)
+            
+            schedule_swap_petition = ScheduleSwapPetition(user=manager_user,
+                                                          live_schedule=live_schedule,
+                                                          employee=employee,
+                                                          note=note)
+            schedule_swap_petition.save()
+            
+            json_info = json.dumps({'message': 'Successfully created schedule swap petition!'})
+            return JsonResponse(json_info, safe=False)
+    else:
+        pass
+        #TODO: Implement reponse for non-POST requests    
+        json_info = json.dumps({'message': 'Could not create schedule swap petition'})
+        return JsonResponse(json_info, safe=False)
+        
+
+@login_required 
+@user_passes_test(manager_check, login_url="/live_calendar/")       
+def pending_approvals_page(request):
+    """Display the manager's pending approval page"""
+    template = loader.get_template('schedulingcalendar/managerPendingApprovals.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
         
                   
 @method_decorator(login_required, name='dispatch')

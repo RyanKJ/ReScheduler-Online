@@ -1,7 +1,7 @@
 {% load widget_tweaks %}
 
 <!-- Modal -->
-<div id="giveUpSchedulModal" class="modal fade" role="dialog">
+<div id="scheduleSwapPetitionModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
@@ -29,8 +29,12 @@
       
       <div class="modal-footer">
         <div class="text-center">
-          <a class="btn btn-danger"
-             href="{% url 'schedulingcalendar:employee_create' %}">Broadcast Schedule Swap</a>
+          <button type="button" 
+                  class="btn btn-danger"
+                  id="create-schedule-swap-petition-btn"
+                  data-dismiss="modal">Create Schedule Swap Petition</button>   
+             
+             
           <button type="button" 
                   class="btn btn-info"
                   data-dismiss="modal">Close And Do Nothing</button>

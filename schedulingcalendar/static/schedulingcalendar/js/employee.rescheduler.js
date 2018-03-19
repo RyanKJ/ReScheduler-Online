@@ -20,6 +20,7 @@ $(document).ready(function() {
   var dayNoteBodies = {};
   var scheduleNotes = {};
   var employeeRowList = [];
+  var employeeUserPk = null;
    
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -28,6 +29,10 @@ $(document).ready(function() {
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $printDraftBtn = $("#print-live");
+  var $createScheduleSwapPetition = $("#create-schedule-swap-petition-btn");
+  var $successfulScheduleSwapMsg = $("#successful-schedule-swap-msg");
+  
+  $createScheduleSwapPetition.click(_createScheduleSwapPetition);
   $printDraftBtn.click(printCalendar);
   
   $fullCal.fullCalendar({
@@ -61,10 +66,12 @@ $(document).ready(function() {
       
       // Make remove button active since an event is clicked
       $(".fc-swapSchedule-button").removeClass("fc-state-disabled");
-      var pk = calEvent.id;
-      // TODO Add get employee's to swap with
-      displayGiveUpScheduleModal();
+      var employee_pk = calEvent.employeePk;
       
+      if (employeeUserPk == employee_pk) {
+        // TODO Add get employee's to swap with
+        displayScheduleSwapPetitionModal();
+      }
     },
         
     /** Highlight event when mouse hovers over event. */
@@ -122,11 +129,12 @@ $(document).ready(function() {
    * fullCalendar view, title, and events.
    */
   function loadSchedules(json_data) {
-    console.log("successful response")
     var info = JSON.parse(json_data);
+    console.log(info)
     employeeRowList = [];
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
+    employeeUserPk = info["employee_user_pk"]
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
@@ -464,11 +472,44 @@ $(document).ready(function() {
   
   
   /** Callback function to show employee modal to give up schedule */
-  function displayGiveUpScheduleModal() {
-    $giveUpScheduleModal = $("#giveUpSchedulModal");
-    $giveUpScheduleModal.css("margin-top", Math.max(0, ($(window).height() - $giveUpScheduleModal.height()) / 2));
-    $giveUpScheduleModal.modal('show');
+  function displayScheduleSwapPetitionModal() {
+    $scheduleSwapPetitionModal = $("#scheduleSwapPetitionModal");
+    $scheduleSwapPetitionModal.css("margin-top", Math.max(0, ($(window).height() - $scheduleSwapPetitionModal.height()) / 2));
+    $scheduleSwapPetitionModal.modal('show');
   }
+  
+  
+  /** Tell server to make current calendar state live for employee queries */
+  function _createScheduleSwapPetition(event) {
+    var event_id = $(".fc-event-clicked").parent().data("event-id");
+    if (event_id) {
+      $.post("create_schedule_swap_petition",
+             {live_schedule_pk: event_id, note: ""},
+             successfulScheduleSwapCreation);
+    }
+  }
+  
+  
+  /** Inform user that the calendar was succesfully pushed. */
+  function successfulScheduleSwapCreation(data) {
+    var info = JSON.parse(data);
+    var msg = info["message"];
+    successfulScheduleSwapCreationModal(msg);
+  }
+  
+  
+  /** Show user modal to indicate successful change to live calendar */
+  function successfulScheduleSwapCreationModal(msg) {
+    $successfulScheduleSwapMsg.text(msg);
+    $successfulScheduleSwapModal = $("#successfulScheduleSwapModal");
+    $successfulScheduleSwapModal.css("margin-top", Math.max(0, ($(window).height() - $successfulScheduleSwapModal.height()) / 2));
+    $successfulScheduleSwapModal.modal('show');
+  }
+  
+  
+  
+  
+  
 }); 
       
     

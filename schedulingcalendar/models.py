@@ -211,16 +211,22 @@ class DayNoteBody(models.Model):
     
     
 class ScheduleSwapPetition(models.Model):
-    """Object to store information about a potential schedule swap."""
+    """Object to store information about schedule swap petition."""
     user = models.ForeignKey(User)
     live_schedule = models.ForeignKey(LiveSchedule, 
-                                      on_delete=models.SET_NULL, 
                                       null=True)
     employee = models.ForeignKey(Employee)
-    approved = models.BooleanField(default=None)
+    note = models.CharField('Note', default="", blank=True, max_length=280)
+    approved = models.NullBooleanField(default=None, blank=True)
+    
+    
+class ScheduleSwapApplication(models.Model):
+    """Object to store information about a schedule swap application."""
+    user = models.ForeignKey(User)
+    schedule_swap_petition = models.ForeignKey(ScheduleSwapPetition)
+    employee = models.ForeignKey(Employee)
+    approved = models.BooleanField(default=None, blank=True)
 
-    
-    
     
 class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""

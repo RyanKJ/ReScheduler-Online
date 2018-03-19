@@ -353,6 +353,11 @@ class ScheduleNoteForm(forms.Form):
     schedule_text = forms.CharField(label='Note', required=False, max_length=280)
     
     
+class ScheduleSwapPetitionForm(forms.Form):
+    live_schedule_pk = forms.IntegerField(label='live_schedule id')
+    note = forms.CharField(label='Note', required=False, max_length=280)
+    
+    
 def get_department_tuple(logged_user):
     """Return a tuple of strings departments
     
