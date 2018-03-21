@@ -225,7 +225,7 @@ class ScheduleSwapApplication(models.Model):
     user = models.ForeignKey(User)
     schedule_swap_petition = models.ForeignKey(ScheduleSwapPetition)
     employee = models.ForeignKey(Employee)
-    approved = models.BooleanField(default=None, blank=True)
+    approved = models.NullBooleanField(default=None, blank=True)
 
     
 class BusinessData(models.Model):

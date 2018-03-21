@@ -2,24 +2,68 @@
 {% load schedule_calendar_extras %}
 {% load widget_tweaks %}
 
+{% block stylesheets %}
+  {{ block.super }}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/pending-approval.css' %}" />
+{% endblock stylesheets %}
+
 {% block sub_navbar %}
   <div class="back-navbar">
       <a class="go-back-link"
-         href="{% url 'schedulingcalendar:employee_list' %}">Return To Employee List</a>
+         href="{% url 'schedulingcalendar:calendar_page' %}">Return To Schedules</a>
   </div>
 {% endblock sub_navbar %}  
 
 {% block content %}
   {{ block.super }}  
   <div class="container">
+    {% include "schedulingcalendar/_disapproveModal.html" %}
+  
     <div class="row">
-      <div class="col-md-3">
-        Hi.
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-9">
+      <div class="col-md-12">
+        <div class="text-center">
+          <h3>Pending Approvals</h3>
+          <ul class="nav nav-tabs">
+            <!-- General Tabs -->
+            <li class="active"><a href="#schedule-swaps-tab" data-toggle="tab">Schedule Swaps</a></li>
+            <li><a href="#unavail-applications-tab" data-toggle="tab">Unavailability Applications</a></li>
+          </ul>
+        
+          <div class="tab-content">
+            <div class="tab-pane active" id="schedule-swaps-tab">
+              <div class="row">
+                <div class="col-md-4">
+                  Click A Schedule Swap To See Eligible Employees
+                </div>
+                
+                <div class="col-md-8">
+                  <h4>Pending Schedule Swaps</h4>
+                  <ul class="list-group">
+                    {% for sch_swap in sch_swap_list %}
+                      <li class="list-group-item pending-approval-li">
+                        <ul class="list-inline" data-sch-swap-id="{{ sch_swap.id }}">
+                          <li class="note-btn">Note</li>
+                          <li>{{ sch_swap.employee }}</li>
+                          <li class="disapprove-btn disapprove-sch-swap">Disapprove</li>
+                        </ul>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tab-pane" id="unavail-applications-tab">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-{% endblock content %}  
+{% endblock content %}
+
+{% block javascript %}
+  {{ block.super }}     
+  <script src="{% static 'schedulingcalendar/js/pending-approvals.js' %}" ></script>
+{% endblock javascript %}    

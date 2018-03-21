@@ -1,0 +1,63 @@
+.pending-approval-li {
+  height: 40px;
+  max-width: 500px;
+  margin: auto;
+  margin-bottom: -1px;
+  cursor: pointer;
+  
+  -webkit-appearance: none;
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  transition: all .3s ease;
+}
+
+.pending-approval-li:hover {
+  background: #00BFFF;
+  cursor: pointer;
+}
+
+.disapprove-btn  {
+  border: solid #cccccc 1px;
+  border-radius: 3px;
+  background: white;
+  
+  -webkit-appearance: none;
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  transition: all .3s ease;
+}
+
+.disapprove-btn:hover  {
+  background: #f75e54;
+  color: white;
+  border: solid #f75e54 1px;
+}
+
+.note-btn {
+  float: left;
+  border: solid #cccccc 1px;
+  border-radius: 3px;
+  background: white;
+  
+  -webkit-appearance: none;
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  transition: all .3s ease;
+}
+
+.note-btn:hover  {
+  background: #4a7ce0;
+  color: white;
+  border: solid #4a7ce0 1px;
+}
+
+
+
+
+

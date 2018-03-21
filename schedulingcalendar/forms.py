@@ -349,13 +349,20 @@ class DayNoteBodyForm(forms.ModelForm):
         
         
 class ScheduleNoteForm(forms.Form):
+    """Form for creating schedule notes."""
     schedule_pk = forms.IntegerField(label='schedule id')
     schedule_text = forms.CharField(label='Note', required=False, max_length=280)
     
     
 class ScheduleSwapPetitionForm(forms.Form):
+    """Form for creating schedule swao petitions."""
     live_schedule_pk = forms.IntegerField(label='live_schedule id')
     note = forms.CharField(label='Note', required=False, max_length=280)
+    
+    
+class ScheduleSwapDecisionForm(forms.Form):
+    """Form for approving or disapproving schedule swaps."""
+    schedule_swap_pk = forms.IntegerField(label='schedule_swap_pk')
     
     
 def get_department_tuple(logged_user):

@@ -21,7 +21,8 @@ from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
 from .models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
-                     DayNoteHeader, DayNoteBody, ScheduleSwapPetition)
+                     DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
+                     ScheduleSwapApplication)
 from .business_logic import (get_eligibles, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
@@ -32,7 +33,8 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
-                    DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm)
+                    DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
+                    ScheduleSwapDecisionForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -730,9 +732,41 @@ def create_schedule_swap_petition(request):
 def pending_approvals_page(request):
     """Display the manager's pending approval page"""
     template = loader.get_template('schedulingcalendar/managerPendingApprovals.html')
-    context = {}
+    logged_in_user = request.user
+    
+    schedule_swaps = ScheduleSwapPetition.objects.filter(user=logged_in_user, approved__isnull=True)
 
+    context = {'sch_swap_list': schedule_swaps}
     return HttpResponse(template.render(context, request))
+    
+    
+@login_required 
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def schedule_swap_disapproval(request):
+    """Set schedule swap petition to disapproved and notify corresponding employees."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ScheduleSwapDecisionForm(request.POST)
+        if form.is_valid():
+            # TODO: Notify employee via email/text
+            schedule_swap_pk = form.cleaned_data['schedule_swap_pk']
+            
+            schedule_swap = ScheduleSwapPetition.objects.get(user=logged_in_user,
+                                                             pk=schedule_swap_pk)
+            schedule_swap.approved = False
+            schedule_swap.save()
+            sch_swap_apps = (ScheduleSwapApplication.objects
+                                                    .filter(user=logged_in_user,
+                                                            schedule_swap_petition=schedule_swap)
+                                                    .update(approved=False))
+            
+            json_info = json.dumps({'message': 'Successfully disapproved schedule swap.'})
+            return JsonResponse(json_info, safe=False)
+    
+    else:
+        #TODO: Implement reponse for non-POST requests    
+        json_info = json.dumps({'message': 'Could not disapprove schedule swap petition'})
+        return JsonResponse(json_info, safe=False)
         
                   
 @method_decorator(login_required, name='dispatch')

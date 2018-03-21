@@ -55,5 +55,6 @@ urlpatterns = [
     url(r'^live_calendar/$', views.employee_calendar_page, name='employee_calendar_page'),
     url(r'^live_calendar/create_schedule_swap_petition$', views.create_schedule_swap_petition, name='create_schedule_swap_petition'),
     url(r'pending_approvals/$', views.pending_approvals_page, name='pending_approvals'),
+    url(r'pending_approvals/schedule_swap_disapproval$', views.schedule_swap_disapproval, name='schedule_swap_disapproval'),
     url(r'^.well-known/pki-validation/735B730461563A26284BCE64D8EE12C5.txt$', views.ssl_http, name='ssl_http'),
 ]
