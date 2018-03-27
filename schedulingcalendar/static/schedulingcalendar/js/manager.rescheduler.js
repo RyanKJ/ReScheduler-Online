@@ -32,7 +32,8 @@ $(document).ready(function() {
   $printDraftBtn.click(printCalendar);
   
   $fullCal.fullCalendar({
-    editable: false,
+    fixedWeekCount: false,
+    editable: true,
     events: [],
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
@@ -178,8 +179,11 @@ $(document).ready(function() {
       _dayNoteHeaderRender(dayHeaderNotes[i]);
     }
     
-    //Make other month days displayed not gray'd out
+    // Make other month days displayed not gray'd out
     $(".fc-other-month").removeClass("fc-other-month");
+    
+    // Add no-print to blank-events when no employee is assigned that week
+    addNoPrintToBlankEvents();
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -444,6 +448,36 @@ $(document).ready(function() {
   function printCalendar() {
     window.print();
   }
+  
+  
+  
+  function addNoPrintToBlankEvents() {
+    var $fcContentSkeletons = $(".fc-content-skeleton tbody tr");
+    console.log($fcContentSkeletons);
+    
+    $fcContentSkeletons.each(function(i) {
+      var allEventsBlank = _checkIfAllEventsAreBlank($(this));
+      if (allEventsBlank) { _addNoPrintToBlankEvents($(this)); }
+    });
+  }
+  
+  
+  function _checkIfAllEventsAreBlank($fcTableRow) {
+    // Return true if all are blank, return false otherwise
+    var $fcRowEvents = $fcTableRow.find(".fc-event");
+    if (!$fcRowEvents.hasClass("blank-event")) {
+      return false;
+    } 
+    return true;
+  }
+  
+  
+  function _addNoPrintToBlankEvents($fcTableRow) {
+    //Add .no-print to each descendent class with .blank-event
+    var $blankEvents = $fcTableRow.find(".blank-event");
+    $blankEvents.addClass("no-print");
+  }
+  
 });
 
 /** Validate request get a calendar and associated data */
