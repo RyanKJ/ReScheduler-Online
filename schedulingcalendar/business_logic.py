@@ -1061,6 +1061,25 @@ def create_live_schedules(user, live_calendar):
                                      department=schedule.department,
                                      employee=schedule.employee)
         live_schedule.save()
+        
+        
+def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
+    """Create a dict mapping dates to employees of department with time 
+    requested off for that date.
+    """
+    return
+    #dep_memberships = (DepartmentMembership.objects.filter(department=department).
+    #                                               .values('employee'))
+    employee_pks = []
+    for dep_mem in dep_memberships:
+        employee_pks.append(dep_mem.employee.id)
+        
+    dep_vacations = Vacation.objects.filter(user=logged_in_user,
+                                            start_datetime__gte=lower_bound_dt,
+                                            end_datetime__lte=upper_bound_dt,
+                                            department=department,
+                                            employee__in=employee_pks)
+    return dep_vacations
                           
                           
 def eligable_list_to_dict(eligable_list):

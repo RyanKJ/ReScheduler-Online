@@ -87,7 +87,7 @@
         <ul class="nav nav-tabs">
           <!-- Availability Tabs -->
           <li class="active"><a href="#vacation-tab" data-toggle="tab">Vacations</a></li>
-          <li><a href="#absence-tab" data-toggle="tab">Absences</a></li>
+          <li><a href="#unavailability-tab" data-toggle="tab">Unavailability</a></li>
           <li><a href="#repeat-unavailability-tab" data-toggle="tab">Repeat Unavailabilities</a></li>
           <li><a href="#desired-times-tab" data-toggle="tab">Desired Times</a></li>
         </ul>
@@ -136,8 +136,8 @@
           </div>
           
           <!-- Absence Tab -->
-          <div class="tab-pane" id="absence-tab">
-            <a href="{% url 'schedulingcalendar:absent_create' employee.id %}">New Absence</a>
+          <div class="tab-pane" id="unavailability-tab">
+            <a href="{% url 'schedulingcalendar:absent_create' employee.id %}">New Unavailability</a>
             <!-- Absence Sub-Tabs -->
             <ul class="nav nav-tabs">
               <li class="active"><a href="#curr-future-absence-tab" data-toggle="tab">Future</a></li>

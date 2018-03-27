@@ -34,7 +34,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
-                    ScheduleSwapDecisionForm)
+                    ScheduleSwapDecisionForm, EditScheduleForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -49,7 +49,18 @@ def ssl_http(request):
     response = HttpResponse(content, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
     return response
-
+    
+    
+def front_or_cal_page(request):
+    """Redirect to calendar if logged in, otherwise redirect to front page."""
+    if request.user.is_authenticated():
+        if manager_check(request.user):
+            return redirect("/calendar/") # Manager calendar
+        else:
+            return redirect("/live_calendar/") # Employee calendar
+    else:
+        return redirect("/front/")
+        
 
 def front_page(request):
     """Display the front page for the website."""
@@ -212,11 +223,13 @@ def get_schedules(request):
             day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
                                                            date__year=year,
                                                            date__month__gte=month - 1,
-                                                           date__month__lte=month + 1)
+                                                           date__month__lte=month + 1,
+                                                           department=department_id)
             day_note_body = DayNoteBody.objects.filter(user=logged_in_user,
                                                        date__year=year,
                                                        date__month__gte=month - 1,
-                                                       date__month__lte=month + 1)                                          
+                                                       date__month__lte=month + 1,
+                                                       department=department_id)                                          
                                                             
             # Convert schedules, employees and notes to dicts for json dump
             schedules_as_dicts = []
@@ -338,11 +351,13 @@ def get_live_schedules(request):
                 day_note_header = DayNoteHeader.objects.filter(user=manager_user,
                                                                date__year=year,
                                                                date__month__gte=month - 1,
-                                                               date__month__lte=month + 1)
+                                                               date__month__lte=month + 1,
+                                                               department=department_id)
                 day_note_body = DayNoteBody.objects.filter(user=manager_user,
                                                            date__year=year,
                                                            date__month__gte=month - 1,
-                                                           date__month__lte=month + 1)  
+                                                           date__month__lte=month + 1,
+                                                           department=department_id)  
                 
                 # Convert live_schedules and employees to dicts for json dump
                 schedules_as_dicts = []
@@ -518,6 +533,44 @@ def remove_schedule(request):
     
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
+def edit_schedule(request):
+    """Edit start/end times and hide start/end booleans for schedule."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = EditScheduleForm(request.POST)
+        if form.is_valid():
+            schedule_pk = request.POST['schedule_pk']
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+            hide_start = form.cleaned_data['hide_start']
+            hide_end = form.cleaned_data['hide_end']
+            schedule = (Schedule.objects.select_related('department', 'employee')
+                                        .get(user=logged_in_user, pk=schedule_pk))
+                                        
+            # Construct start and end datetimes for schedule
+            date = schedule.start_datetime.date()
+            time_zone = timezone.get_default_timezone_name()
+            start_dt = datetime.combine(date, start_time)
+            start_dt = pytz.timezone(time_zone).localize(start_dt)
+            end_dt = datetime.combine(date, end_time)
+            end_dt = pytz.timezone(time_zone).localize(end_dt)
+            
+            #Set schedule fields to form data
+            schedule.start_datetime = start_dt
+            schedule.end_datetime = end_dt
+            schedule.hide_start_time = hide_start
+            schedule.hide_end_time = hide_end                 
+            schedule.save()
+            schedule_dict = model_to_dict(schedule)
+            json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0},
+                                    default=date_handler)
+                                    
+            return JsonResponse(json_info, safe=False)
+    
+    
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def push_live(request):
     """Create a live version of schedules for employee users to query."""
     logged_in_user = request.user
@@ -637,8 +690,10 @@ def add_edit_day_note_header(request):
         if form.is_valid():
             text = form.cleaned_data['header_text']
             date = form.cleaned_data['date']
+            dep =  form.cleaned_data['department']
             day_note_header, created = DayNoteHeader.objects.get_or_create(user=logged_in_user,
-                                                                           date=date)
+                                                                           date=date,
+                                                                           department=dep)
             day_note_header.header_text = text
             day_note_header.save(update_fields=['header_text'])
             day_note_header_dict = model_to_dict(day_note_header)
@@ -660,8 +715,10 @@ def add_edit_day_note_body(request):
         if form.is_valid():
             text = form.cleaned_data['body_text']
             date = form.cleaned_data['date']
+            dep =  form.cleaned_data['department']
             day_note_body, created = DayNoteBody.objects.get_or_create(user=logged_in_user,
-                                                                       date=date)
+                                                                       date=date,
+                                                                       department=dep)
             day_note_body.body_text = text
             day_note_body.save(update_fields=['body_text'])
             day_note_body_dict = model_to_dict(day_note_body)
@@ -760,7 +817,8 @@ def schedule_swap_disapproval(request):
                                                             schedule_swap_petition=schedule_swap)
                                                     .update(approved=False))
             
-            json_info = json.dumps({'message': 'Successfully disapproved schedule swap.'})
+            json_info = json.dumps({'message': 'Successfully disapproved schedule swap.',
+                                    'sch_swap_id': schedule_swap_pk})
             return JsonResponse(json_info, safe=False)
     
     else:

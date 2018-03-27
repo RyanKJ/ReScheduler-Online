@@ -214,6 +214,15 @@ class AddScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", 
                                   required=False,
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
+                                  
+                                  
+class EditScheduleForm(forms.Form):
+    """Form for user to edit the start/end times & hide time booleans of a schedule"""
+    schedule_pk = forms.IntegerField(label='schedule id')
+    start_time = forms.TimeField(label='Start Time', input_formats=TIME_FORMATS)
+    end_time =  forms.TimeField(label='End Time', input_formats=TIME_FORMATS)
+    hide_start = forms.BooleanField(label="", required=False)
+    hide_end = forms.BooleanField(label="", required=False)
                 
                 
 class DepartmentMembershipForm(forms.ModelForm):
@@ -337,7 +346,7 @@ class DayNoteHeaderForm(forms.ModelForm):
                                 
     class Meta:
         model = DayNoteHeader
-        fields = ['date', 'header_text']
+        fields = ['date', 'header_text', 'department']
         
         
 class DayNoteBodyForm(forms.ModelForm):
@@ -345,7 +354,7 @@ class DayNoteBodyForm(forms.ModelForm):
                                 
     class Meta:
         model = DayNoteBody
-        fields = ['date', 'body_text']
+        fields = ['date', 'body_text', 'department']
         
         
 class ScheduleNoteForm(forms.Form):

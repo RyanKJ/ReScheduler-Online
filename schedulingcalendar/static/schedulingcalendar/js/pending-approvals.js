@@ -31,9 +31,13 @@ $(document).ready(function() {
   
   
   function successfulSchSwapDisapproval(data) {
-    // 1) Find li with id
-    // 2) Remove li
-    alert("Success!");  
+    // TODO: Create modal success alert
+    var info = JSON.parse(data);
+    
+    schSwapId = info["sch_swap_id"];
+    var schSwapLi = $("[data-sch-swap-id='" + schSwapId + "']").parent();
+    schSwapLi.remove();
+    
+    alert(info["message"]);  
   }
-  
 }); 

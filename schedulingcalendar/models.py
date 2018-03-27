@@ -14,7 +14,7 @@ class Employee(models.Model):
 
     first_name = models.CharField(max_length=80, default="")
     last_name = models.CharField(max_length=80, default="")
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     employee_id = models.IntegerField('employee id', default=0)
     wage = models.FloatField('employee wage', default=0)
     desired_hours = models.IntegerField('desired weekly hours', default=30)
@@ -128,6 +128,12 @@ class LiveSchedule(models.Model):
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee)
     
+    def __str__(self):
+        start_str = self.start_datetime.strftime("%B %d, %I:%M %p")
+        end_str = self.end_datetime.strftime("%I:%M %p")
+        
+        return "Department " + self.department.name + " on " + start_str + " - " + end_str
+    
         
 class Vacation(models.Model):
     """Representation of a vacation block of time for employee absentee."""
@@ -197,6 +203,7 @@ class MonthlyRevenue(models.Model):
 class DayNoteHeader(models.Model):
     """Note for a given date that is rendered in a day's header near day number."""
     user = models.ForeignKey(User)
+    department = models.ForeignKey(Department, default=1)
 
     date = models.DateField('Date', default=date.today)
     header_text = models.CharField('Note', default="", blank=True, max_length=140)
@@ -205,6 +212,7 @@ class DayNoteHeader(models.Model):
 class DayNoteBody(models.Model):
     """Note for a given date that is rendered in a day's body near schedules."""
     user = models.ForeignKey(User)
+    department = models.ForeignKey(Department, default=1)
 
     date = models.DateField('Date', default=date.today)
     body_text = models.CharField('Note', default="", blank=True, max_length=280)

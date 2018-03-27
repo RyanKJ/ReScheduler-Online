@@ -24,6 +24,7 @@ $(document).ready(function() {
   $conflictAssignBtn.on("click", _assignEmployeeAfterWarning);
   
   $fullCal.fullCalendar({
+    fixedWeekCount: false,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",

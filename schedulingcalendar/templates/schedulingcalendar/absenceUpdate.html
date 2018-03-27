@@ -10,7 +10,7 @@
 {% endblock sub_navbar %}  
 
 {% block form_content %}
-  <h4 class="card-title text-center">Edit Absence For {{ employee.first_name }} {{ employee.last_name }}</h4>
+  <h4 class="card-title text-center">Edit Unavailability For {{ employee.first_name }} {{ employee.last_name }}</h4>
   <form id="update-absence-form"
         name= "UpdateAbsenceForm"
         action="{% url 'schedulingcalendar:absent_update' employee.id absence.id %}"

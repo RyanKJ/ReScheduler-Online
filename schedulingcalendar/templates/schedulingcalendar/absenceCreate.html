@@ -10,7 +10,7 @@
 {% endblock sub_navbar %}  
     
 {% block form_content %}
-    <h4 class="card-title text-center">Create Vacation For {{ employee.first_name }} {{ employee.last_name }}</h4>
+    <h4 class="card-title text-center">Create Unavailability For {{ employee.first_name }} {{ employee.last_name }}</h4>
     <form id="create-absence-form"
           name= "CreateAbsenceForm"
           action="{% url 'schedulingcalendar:absent_create' employee.id %}"
@@ -34,7 +34,7 @@
         <input type="text" id="hidden-end-time"/>
       </div>
       <div id="outlet"></div>
-      <input type="submit" class="btn btn-primary" value="Create Absence">
+      <input type="submit" class="btn btn-primary" value="Create Unavailability">
     </form>
 {% endblock form_content %}   
 

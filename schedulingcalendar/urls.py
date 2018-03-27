@@ -4,15 +4,17 @@ from . import views
 
 app_name = 'schedulingcalendar'
 urlpatterns = [
-    url(r'^$', views.front_page, name='front_page'),
-    url(r'login_success/$', views.login_success, name='login_success'),
-    url(r'register/$', views.register, name='register'),
+    url(r'^$', views.front_or_cal_page, name='front_or_cal_page'),
+    url(r'^front/$', views.front_page, name='front_page'),
+    url(r'^login_success/$', views.login_success, name='login_success'),
+    url(r'^register/$', views.register, name='register'),
     url(r'^calendar/$', views.calendar_page, name='calendar_page'),
     url(r'^calendar/add_schedule$', views.add_schedule, name='add_schedule'),
     url(r'^calendar/get_schedules$', views.get_schedules, name='get_schedules'),
     url(r'^calendar/get_schedule_info$', views.get_schedule_info, name='get_schedule_info'),
     url(r'^calendar/add_employee_to_schedule$', views.add_employee_to_schedule, name='add_employee_to_schedule'),
     url(r'^calendar/remove_schedule$', views.remove_schedule, name='remove_schedule'),
+    url(r'^calendar/edit_schedule$', views.edit_schedule, name='edit_schedule'),
     url(r'^calendar/push_live$', views.push_live, name='push_live'),
     url(r'^calendar/set_active_state$', views.set_active_state, name='set_active_state'),
     url(r'^calendar/get_live_schedules$', views.get_live_schedules, name='get_live_schedules'),
@@ -54,7 +56,7 @@ urlpatterns = [
     url(r'^business_settings$', views.BusinessDataUpdateView.as_view(), name='business_update'),
     url(r'^live_calendar/$', views.employee_calendar_page, name='employee_calendar_page'),
     url(r'^live_calendar/create_schedule_swap_petition$', views.create_schedule_swap_petition, name='create_schedule_swap_petition'),
-    url(r'pending_approvals/$', views.pending_approvals_page, name='pending_approvals'),
-    url(r'pending_approvals/schedule_swap_disapproval$', views.schedule_swap_disapproval, name='schedule_swap_disapproval'),
+    url(r'^pending_approvals/$', views.pending_approvals_page, name='pending_approvals'),
+    url(r'^pending_approvals/schedule_swap_disapproval$', views.schedule_swap_disapproval, name='schedule_swap_disapproval'),
     url(r'^.well-known/pki-validation/735B730461563A26284BCE64D8EE12C5.txt$', views.ssl_http, name='ssl_http'),
 ]

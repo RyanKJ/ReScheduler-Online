@@ -206,11 +206,28 @@ a:active {
 /* Eligable list styling
 --------------------------------------------------------------------------------------------------*/
 
-.remove-btn-bg {
+.edit-remove-btn-bg {
   background: #F7F7F7;
-  height: 58px;
+  height: 88px;
   margin-top: 0px;
-  padding-top: 12px;
+}
+
+#edit-btn {
+    margin-bottom: 10px;
+    background: #4286f4;
+    border-bottom: 2px solid #4a8cf7;
+    border-radius: 2px;
+    padding: 6px 3px 6px 3px;
+    margin: 0px 15px 0px 15px;
+    font-size: 120%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+}
+
+#edit-btn:hover {
+  background: #629dfc;
+  cursor: pointer;
 }
 
 #remove-btn {
@@ -219,7 +236,7 @@ a:active {
     border-bottom: 2px solid #ef7c69;
     border-radius: 2px;
     padding: 6px 3px 6px 3px;
-    margin: 0px 15px 0px 15px;
+    margin: 15px 15px 0px 15px;
     font-size: 120%;
     font-weight: 300;
     text-align: center;

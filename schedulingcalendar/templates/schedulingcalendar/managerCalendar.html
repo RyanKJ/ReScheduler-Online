@@ -19,10 +19,10 @@
     <div class="row">
       <div class="col-md">
         <aside class="calendar-page-toolbar">
-          <div class="row">
+          <div class="row no-print">
             <!-- Link back to schedule editing page -->
             <div class="col-md-3">
-              <section class="calendar-loader no-print">
+              <section class="calendar-loader">
                 <div class="select-cal-loader return-to-schedule-editor">
                   <a href="{% url 'schedulingcalendar:calendar_page' %}">Go Back To Schedule Editor</a>
                 </div>
@@ -31,7 +31,7 @@
             <!-- Version select -->
             <div class="col-md-6">
               <div class="text-center">
-                <section class="calendar-loader no-print">
+                <section class="calendar-loader">
                   <div class="version-loader">
                     <form id="load-calendar-form"
                           action="{% url 'schedulingcalendar:get_live_schedules' %}"

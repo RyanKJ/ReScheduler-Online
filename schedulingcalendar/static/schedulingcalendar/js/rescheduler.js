@@ -35,6 +35,7 @@ $(document).ready(function() {
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $removeScheduleBtn = $("#remove-btn");
   var $removeScheduleAfterWarningBtn = $("#remove-schedule-btn");
+  var $editScheduleBtn = $("#edit-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
@@ -70,6 +71,7 @@ $(document).ready(function() {
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
   $removeScheduleAfterWarningBtn.click(_removeScheduleAfterWarning);
+  $editScheduleBtn.click(editSchedule);
   $pushLive.click(pushCalendarLive);
   $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
   $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
@@ -85,6 +87,7 @@ $(document).ready(function() {
   $scheduleNoteBtn.click(postScheduleNote);
   
   $fullCal.fullCalendar({
+    fixedWeekCount: false,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -194,7 +197,8 @@ $(document).ready(function() {
       }
     }
   });
-    
+  
+  
   // Turn loadSchedules into a callback function for the load-calendar-form
   $("#load-calendar-form").ajaxForm(loadSchedules); 
   
@@ -209,13 +213,11 @@ $(document).ready(function() {
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
     employeeRowList = [];
+    _removeDayNoteHeaders();
     
     var info = JSON.parse(json_data);
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
-    
-    console.log("load schedules data is: ");
-    console.log(info);
     
     // Let user know if no employees exist at all via modal
     if (info["no_employees_exist"]) {
@@ -225,7 +227,6 @@ $(document).ready(function() {
         _showEmployeelessDepartmentModal();
       }
     }
-    
     // Set default start and end time for time-pickers
     st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
     et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
@@ -303,6 +304,9 @@ $(document).ready(function() {
    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
+    
+    //Test double click
+    doubleClick();
   }
   
   
@@ -418,6 +422,7 @@ $(document).ready(function() {
   
   /** Helper function to create a blank full calendar event */
   function _createBlankEvent(date, employeePk, eventRow) {
+    var str = _getBlankEventStr(date, employeePk);
     var fullCalEvent = {
       id: date + "-" + employeePk,
       title: "",
@@ -436,16 +441,50 @@ $(document).ready(function() {
   }
   
   
+  /** Helper functino to create str for blank event */
+  function _getBlankEventStr(date, employeePk) {
+    // 1) Given an employee we need to look at some data structure that tells 
+    //    us that for this date there is a vacation/unavailability. So something
+    //    like a dictionary where the keys map to an array of employee pks,
+    //    (Or could be vacations, but then we'd need to search it, maybe with 
+    //     a lambda function f(x) {x.employee})? So then if we find for a date
+    //     an employee pk, that means on that date that employee has
+    //    "Time Requested Off" and then the string becomes "**** TRO ****" or
+    //    something.
+    //
+    //    The issue then becomes: what if the order comes off because an employee
+    //    gets deleted or something? The order issue only comes from adding
+    //    and editing, removing schedules, which, when the user prints a live
+    //    calendar, the rows will be static
+    //    So this function is dreadfully simple, the only issue is passing the
+    //    dict from the backend.
+  }
+  
+  
   /** Helper function for rendering day not headers for the full calendar */
   function _dayNoteHeaderRender(dayHeaderObj) {
     var date = dayHeaderObj["date"];
     var $dayHeader = $("thead td[data-date="+date+"]");
     var dayNumber = $dayHeader.children().first().text();
-    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
+    var html = "<span class='fc-day-number day-number-of-header-note fright'>" + dayNumber + "</span>" +
                "<span class='fc-day-number fleft'><b>" + dayHeaderObj["header_text"] + "</b></span>"
-    $dayHeader.html(HTML);
+    $dayHeader.html(html);
   }
-
+  
+  
+  /** Helper function to remove all day note headers */
+  function _removeDayNoteHeaders() {
+    var $dayNumberOfHeaderNotes = $(".day-number-of-header-note");
+    console.log("Remove Day Note Headers:")
+    console.log($dayNumberOfHeaderNotes);
+    $dayNumberOfHeaderNotes.each(function( i ) {
+      var dayNumber = $(this).text();
+      var html = "<span class='fc-day-number'>" + dayNumber + "</span>"
+      var $dayHeader = $(this).parent();
+      $dayHeader.html(html);
+    });
+  }
+  
 
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));
@@ -764,27 +803,27 @@ $(document).ready(function() {
     var warningFlagList = [];
     
     if (availability['(S)'].length > 0) {
-      warningFlagList.push("S")
+      warningFlagList.push("S");
     }
     if (availability['(V)'].length > 0) {
-      warningFlagList.push("V")
+      warningFlagList.push("V");
     }
     if (availability['(A)'].length > 0) {
-      warningFlagList.push("A")
+      warningFlagList.push("U");
     }
     if (availability['(U)'].length > 0) {
-      warningFlagList.push("U")
+      warningFlagList.push("U-Re");
     }
     if (availability['(O)']) {
-      warningFlagList.push("O")
+      warningFlagList.push("O");
     }
     if (warningFlagList.length > 0) {
-      var warningFlag = "("
+      var warningFlag = "(";
       
       for (i = 0; i < warningFlagList.length - 1; i++) {
         warningFlag += warningFlagList[i] + ", ";
       }
-      warningFlag = warningFlag + warningFlagList[warningFlagList.length-1] + ")"
+      warningFlag = warningFlag + warningFlagList[warningFlagList.length-1] + ")";
       return warningFlag;
     } else {
       return "";
@@ -811,7 +850,7 @@ $(document).ready(function() {
       }
     }
     if (availability['(A)'].length > 0) {
-      warningStr += "<h4>Absences That Overlap:</h4>";
+      warningStr += "<h4>Unavailabilities That Overlap:</h4>";
       for (absences of availability['(A)']) {
         var str = _timeOffConflictToStr(absences);
         warningStr += "<p>" + str + "</p>";
@@ -1207,6 +1246,61 @@ $(document).ready(function() {
     $scheduleNoteBtn.prop('disabled', true);
   }
   
+    
+  /** Change times and hide start/end booleans */
+  function editSchedule(event) {
+    var event_id = $(".fc-event-clicked").parent().data("event-id");
+    var startTime = $("#start-timepicker").val();
+    var endTime = $("#end-timepicker").val();
+    var hideStart = $("#start-checkbox").prop('checked');
+    var hideEnd = $("#end-checkbox").prop('checked');
+    
+    console.log(startTime);
+    console.log(endTime);
+    console.log(hideStart);
+    console.log(hideEnd);
+    
+    if (event_id) {
+      $.post("edit_schedule", 
+             {schedule_pk: event_id, start_time: startTime, end_time: endTime,
+              hide_start: hideStart, hide_end: hideEnd}, 
+             successfulScheduleEdit);
+    }
+  }
+  
+  
+  /** Update schedule string and cost */
+  function successfulScheduleEdit(data) {
+    var info = JSON.parse(data);
+    var schedule = info["schedule"];
+    var schedulePk = schedule["id"];
+    var startDateTime = schedule["start_datetime"]; 
+    var endDateTime = schedule["end_datetime"];
+    var hideStart = schedule["hide_start_time"];
+    var hideEnd = schedule["hide_end_time"];
+    var employeePk = schedule["employee"];
+    var firstName = "";
+    var lastName = "";
+    if (employeePk != null) {
+      var firstName = employeeNameDict[employeePk]["firstName"];
+      var lastName = employeeNameDict[employeePk]["lastName"];
+    }
+    var note = schedule["schedule_note"];
+    var str = getEventStr(startDateTime, endDateTime,
+                          hideStart, hideEnd,
+                          firstName, lastName, 
+                          note);
+    // Update title string to reflect changes to schedule & rehighlight
+    $event = $fullCal.fullCalendar("clientEvents", schedulePk);
+    $event[0].title = str;
+    $fullCal.fullCalendar("updateEvent", $event[0]);
+    
+    //Highlight newly created event
+    var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
+    $event_div.addClass("fc-event-clicked"); 
+    
+    //TODO: Add in cost change.
+  }
   
   /** Helper function that returns true if employee assigned more than once on date */ 
   function _employeeAssignedMoreThanOnceOnDate(date, employeePk) {
@@ -1298,7 +1392,7 @@ $(document).ready(function() {
   function postDayNoteHeader(event) {
     var text_val = $dayNoteHeaderText.val();
     $.post("add_edit_day_note_header",
-           {date: $addScheduleDate.val(), header_text: text_val},
+           {date: $addScheduleDate.val(), header_text: text_val, department: calDepartment},
             _updateDayNoteHeader);
   }
   
@@ -1315,7 +1409,7 @@ $(document).ready(function() {
   function postDayNoteBody(event) {
     var text_val = $dayNoteBodyText.val();
     $.post("add_edit_day_note_body",
-           {date: $addScheduleDate.val(), body_text: text_val},
+           {date: $addScheduleDate.val(), body_text: text_val, department: calDepartment},
             _updateDayNoteBody);
   }
   
@@ -1418,6 +1512,17 @@ $(document).ready(function() {
     $employeelessDepartmentModal = $("#employeelessDepartmentModal");
     $employeelessDepartmentModal.css("margin-top", Math.max(0, ($(window).height() - $employeelessDepartmentModal.height()) / 2));
     $employeelessDepartmentModal.modal('show');
+  }
+  
+  
+  function doubleClick() {
+    var $fcDays = $(".fc-day");
+    $fcDays.dblclick(dblClickHelper);
+  }
+  
+  
+  function dblClickHelper() { 
+    //alert("Double clicked!");
   }
   
 }); 
