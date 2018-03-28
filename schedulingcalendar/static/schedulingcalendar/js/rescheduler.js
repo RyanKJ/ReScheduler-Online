@@ -26,6 +26,7 @@ $(document).ready(function() {
   var dayNoteBodies = {};
   var scheduleNotes = {};
   var employeeRowList = [];
+  var copySchedulePksList = [];
   
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -34,7 +35,8 @@ $(document).ready(function() {
   var $calendarLoaderForm = $("#load-calendar-form");
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $removeScheduleBtn = $("#remove-btn");
-  var $removeScheduleAfterWarningBtn = $("#remove-schedule-btn");
+  var $removeBtnConfirm = $("#remove-btn-confirm")
+  var $removeBtnConfirmContainer = $("#remove-btn-confirm-container");
   var $editScheduleBtn = $("#edit-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
@@ -48,14 +50,12 @@ $(document).ready(function() {
   var $successfulLiveCalMsg = $("#successful-live-cal-change");
   var $setActiveLive = $("#active-live-set");
   var $viewLive = $("#view-live");
-  var $printDraftBtn = $("#print-draft");
-  var $printDraftBtnWarning = $("#print-draft-calendar-warning");
-  var $printLiveBtn = $("#print-live-calendar");
   var $eligibleLegendSelector = $("#legend-selector");
   var $startTimePicker = $("#start-timepicker").pickatime();
   var $endTimePicker = $("#end-timepicker").pickatime();
   var $hideStart = $("#start-checkbox");
   var $hideEnd = $("#end-checkbox");
+  var $copyDayBtn = $("#copy-day");
   var $dayNoteBtn = $("#day-note");
   var $dayNoteHeaderBtn = $("#day-note-header-btn");
   var $dayNoteHeaderText = $("#id_header_text");
@@ -70,24 +70,27 @@ $(document).ready(function() {
     
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
-  $removeScheduleAfterWarningBtn.click(_removeScheduleAfterWarning);
+  $removeBtnConfirm.click(_removeScheduleAfterWarning);
   $editScheduleBtn.click(editSchedule);
   $pushLive.click(pushCalendarLive);
   $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
   $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
   $reactivateLiveAfterWarning.click(_SetActivityAfterWarning);
   $setActiveLive.click(SetActiveLiveCalendar);
-  $printDraftBtn.click(printCalendar);
-  $printDraftBtnWarning.click(_printAfterWarning);
-  $printLiveBtn.click(_goToLiveAfterPrintWarning);
   $dayNoteBtn.click(showDayNoteModal);
   $eligibleLegendSelector.click(showEligibleLegend);
   $dayNoteHeaderBtn.click(postDayNoteHeader);
   $dayNoteBodyBtn.click(postDayNoteBody);
   $scheduleNoteBtn.click(postScheduleNote);
+  $copyDayBtn.click(copySchedulePks);
+  
+  var toolbar = document.getElementById("toolbar-sticky");
+  var sticky = toolbar.offsetTop;
+  window.onscroll = function() { stickyToolbar(); };
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
+    height: "auto",
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -97,7 +100,7 @@ $(document).ready(function() {
     header: {
       left: "",
       center: "title",
-      right: "printCalendar"
+      right: ""
     },
     
     /**
@@ -111,6 +114,9 @@ $(document).ready(function() {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-day-clicked");
       $addScheduleDate.val(date);
+      // Reset remove confirm
+      $removeScheduleBtn.css("display", "block");
+      $removeBtnConfirmContainer.css("display", "none");
       
       // Update text field for editing day note
       if (dayNoteHeaders.hasOwnProperty(date)) {
@@ -173,6 +179,9 @@ $(document).ready(function() {
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
         $curr_day_clicked.addClass("fc-day-clicked");
+        // Reset remove confirm
+        $removeScheduleBtn.css("display", "block");
+        $removeBtnConfirmContainer.css("display", "none");
         
         $addScheduleDate.val(formatted_date);
             
@@ -243,7 +252,7 @@ $(document).ready(function() {
     var depName = $("#id_department option[value='"+calDepartment+"']").text();
     $addScheduleDep.val(calDepartment);
     $viewLiveDep.val(calDepartment);
-    $(".fc-center").find("h2").text(depName + " Calendar: " + calDate.format("MMMM, YYYY"));
+    $(".fc-center").find("h2").text(depName + ": " + calDate.format("MMMM, YYYY"));
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
@@ -1194,9 +1203,8 @@ $(document).ready(function() {
 
   /** Give user warning dialog to choose if they want to remove schedule. */
   function removeSchedule() {
-    $removeModal = $("#removeModal");
-    $removeModal.css("margin-top", Math.max(0, ($(window).height() - $removeModal.height()) / 2));
-    $removeModal.modal('show');
+    $removeScheduleBtn.css("display", "none");
+    $removeBtnConfirmContainer.css("display", "block");
   }
   
   
@@ -1218,6 +1226,8 @@ $(document).ready(function() {
    */
   function removeEventAfterDelete(data) {
     var info = JSON.parse(data);
+    $removeScheduleBtn.css("display", "block");
+    $removeBtnConfirmContainer.css("display", "none");
     var schedulePk = info["schedule_pk"];
     // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
@@ -1338,32 +1348,7 @@ $(document).ready(function() {
     }
     employeeRowList.splice(eventRow, 1);
   }
-    
-  
-  /** Callback function for user to print calendar via print button on page */
-  function printCalendar() {
-    if(calActive) { 
-      // Show print warning modal
-      $printModal = $("#printModal");
-      $printModal.css("margin-top", Math.max(0, ($(window).height() - $printModal.height()) / 2));
-      $printModal.modal('show');
-    } else {
-      window.print();
-    }
-  }
-  
-  
-  /** Print draft calendar after user has been warned live version exists. */
-  function _printAfterWarning(event) {
-    window.print();
-  }
-  
-  
-  /** Redirect user to live calendar to print most up to date live calendar. */
-  function _goToLiveAfterPrintWarning(event) {
-    $viewLive.click();
-  }
-  
+
   
   /** Callback function to show user the eligible legend */
   function showEligibleLegend(event) {
@@ -1515,14 +1500,55 @@ $(document).ready(function() {
   }
   
   
+  function copySchedulePks() {
+    $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
+    if ($prev_day_clicked.length) {
+      var date = $addScheduleDate.val();
+      var schedulePks = [];
+      var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+      for (var i=0; i<fullCalEvents.length; i++) {
+        var start = moment(fullCalEvents[i].start);
+        var eventDate = start.format(DATE_FORMAT);
+        if (date == eventDate && fullCalEvents[i].isSchedule) {
+          schedulePks.push(fullCalEvents[i].id);
+        }
+      }
+      copySchedulePksList = schedulePks;
+    } else {
+      $alertDayNoteModal = $("#noteAlertModal");
+      $alertDayNoteModal.css("margin-top", Math.max(0, ($(window).height() - $alertDayNoteModal.height()) / 2));
+      $alertDayNoteModal.modal('show');
+    }
+  }
+  
+  
   function doubleClick() {
     var $fcDays = $(".fc-day");
     $fcDays.dblclick(dblClickHelper);
   }
   
   
-  function dblClickHelper() { 
-    //alert("Double clicked!");
+  function dblClickHelper() {
+    if (copySchedulePksList.length) {
+      $.post("copy_schedules",
+             {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList},
+             _createCopySchedules);
+    }
+  }
+  
+  
+  function _createCopySchedules(data) {
+    console.log(data);
+  }
+  
+  
+  /** Add/Remove class to toolbar to make it fixed/static on scroll */
+  function stickyToolbar() {
+    if (window.pageYOffset >= sticky) {
+      toolbar.classList.add("sticky");
+    } else {
+      toolbar.classList.remove("sticky");
+    }
   }
   
 }); 

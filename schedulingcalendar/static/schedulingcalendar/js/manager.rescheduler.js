@@ -28,12 +28,13 @@ $(document).ready(function() {
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $calendarLoaderForm = $("#load-calendar-form");
-  var $printDraftBtn = $("#print-live");
-  $printDraftBtn.click(printCalendar);
+  var $cramRowsBtn = $("#cram-rows");
+  $cramRowsBtn.click(cramRows);
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    editable: true,
+    height: "auto",
+    editable: false,
     events: [],
     eventBackgroundColor: "transparent",
     eventTextColor: "black",
@@ -135,7 +136,7 @@ $(document).ready(function() {
         
     // Change calendar title and schedule adding form title to new department
     var depName = $calendarLoaderForm.data("department-name");
-    var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"];
+    var cal_title = depName + ": " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"];
     $(".fc-center").find("h2").text(cal_title);
         
     // Delete any previously loaded events before displaying new events
@@ -182,9 +183,6 @@ $(document).ready(function() {
     // Make other month days displayed not gray'd out
     $(".fc-other-month").removeClass("fc-other-month");
     
-    // Add no-print to blank-events when no employee is assigned that week
-    addNoPrintToBlankEvents();
-
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
   }
@@ -445,39 +443,18 @@ $(document).ready(function() {
     
   
   /** Callback function for user to print calendar via print button on page */
-  function printCalendar() {
-    window.print();
+  function cramRows(event) {
+    var $cramRowsBtn = $("#cram-rows");
+    var cramRowsTxt = $cramRowsBtn.text();
+    console.log(cramRowsTxt);
+    if (cramRowsTxt == "Cram Rows Off") {
+      $(".fc-event-container a").addClass("cram-rows");
+      $cramRowsBtn.text("Cram Rows On");
+    } else {
+      $(".fc-event-container a").removeClass("cram-rows");
+      $cramRowsBtn.text("Cram Rows Off");
+    }
   }
-  
-  
-  
-  function addNoPrintToBlankEvents() {
-    var $fcContentSkeletons = $(".fc-content-skeleton tbody tr");
-    console.log($fcContentSkeletons);
-    
-    $fcContentSkeletons.each(function(i) {
-      var allEventsBlank = _checkIfAllEventsAreBlank($(this));
-      if (allEventsBlank) { _addNoPrintToBlankEvents($(this)); }
-    });
-  }
-  
-  
-  function _checkIfAllEventsAreBlank($fcTableRow) {
-    // Return true if all are blank, return false otherwise
-    var $fcRowEvents = $fcTableRow.find(".fc-event");
-    if (!$fcRowEvents.hasClass("blank-event")) {
-      return false;
-    } 
-    return true;
-  }
-  
-  
-  function _addNoPrintToBlankEvents($fcTableRow) {
-    //Add .no-print to each descendent class with .blank-event
-    var $blankEvents = $fcTableRow.find(".blank-event");
-    $blankEvents.addClass("no-print");
-  }
-  
 });
 
 /** Validate request get a calendar and associated data */

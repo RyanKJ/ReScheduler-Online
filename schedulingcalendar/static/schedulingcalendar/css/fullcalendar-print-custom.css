@@ -1,9 +1,15 @@
 @media print {
   .no-print, .no-print * { display: none; }
-  .fc-center > h2:nth-child(1) { font-size: 110%; }
+  .blank-event { display: none; }
+  .fc-center > h2:nth-child(1) { font-size: 140%; }
   .fc-content { font-size: 0.9em; font-weight: 700; margin-top: 0px; }
-  .live-cal-margin {margin: 0px !important; }
-  .fc-day  {padding-bottom: 0px !important; }
-  .fc-event-container *  {margin: 0px !important; padding: 0px !important; }
-  .fc-toolbar {margin: -5px !important; padding: -5px !important; }
-}
+  .live-cal-margin { margin: 0px !important; }
+  .fc-day  { padding-bottom: 0px !important; }
+  .fc-event-container * { margin: 0px 0px 0px 0px; padding: 0px; }
+  a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
+  .fc-toolbar { margin: -5px !important; padding: -5px !important; }
+  .fc tbody .fc-row .fc-content-skeleton tbody tr:last-child td { /* only works in newer browsers */
+    padding-bottom: 0.1em !important;
+  }
+  .fc-day-number.fleft { font-size: 0.8em; }
+} 

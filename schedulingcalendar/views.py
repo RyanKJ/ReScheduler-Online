@@ -34,7 +34,7 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
-                    ScheduleSwapDecisionForm, EditScheduleForm)
+                    ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -566,6 +566,25 @@ def edit_schedule(request):
                                     default=date_handler)
                                     
             return JsonResponse(json_info, safe=False)
+            
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")    
+def copy_schedules(request):
+    """Copy set of schedules pks with given date."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = CopySchedulesForm(request.POST)
+        if form.is_valid():
+            schedule_pks = form.cleaned_data['schedule_pks']
+            print "*************  schedule pks are: **********************", schedule_pks
+            json_info = json.dumps({'schedule_pks': "success!", 'cost_delta': 0},
+                                    default=date_handler)
+            return JsonResponse(json_info, safe=False)
+    
+    json_info = json.dumps({'schedule_pks': "failed to do anything", 'cost_delta': 0},
+                                    default=date_handler)
+    return JsonResponse(json_info, safe=False)
     
     
     

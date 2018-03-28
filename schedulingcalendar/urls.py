@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^calendar/add_employee_to_schedule$', views.add_employee_to_schedule, name='add_employee_to_schedule'),
     url(r'^calendar/remove_schedule$', views.remove_schedule, name='remove_schedule'),
     url(r'^calendar/edit_schedule$', views.edit_schedule, name='edit_schedule'),
+    url(r'^calendar/copy_schedules$', views.copy_schedules, name='copy_schedules'),
     url(r'^calendar/push_live$', views.push_live, name='push_live'),
     url(r'^calendar/set_active_state$', views.set_active_state, name='set_active_state'),
     url(r'^calendar/get_live_schedules$', views.get_live_schedules, name='get_live_schedules'),

@@ -3,7 +3,7 @@ from datetime import datetime
 from .models import (Employee, Department, DepartmentMembership, 
                      Vacation, Absence, RepeatUnavailability, DesiredTime, 
                      MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody)
-from custom_formfields import TzAwareTimeField
+from custom_formfields import TzAwareTimeField, MultipleIntField
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -223,7 +223,14 @@ class EditScheduleForm(forms.Form):
     end_time =  forms.TimeField(label='End Time', input_formats=TIME_FORMATS)
     hide_start = forms.BooleanField(label="", required=False)
     hide_end = forms.BooleanField(label="", required=False)
-                
+    
+    
+class CopySchedulesForm(forms.Form):
+    """Form for user to copy a set of schedules with given date."""
+    date = forms.DateField()
+    schedule_pks = MultipleIntField()
+    
+
                 
 class DepartmentMembershipForm(forms.ModelForm):
     """Form for creating and editing department memberships."""                                                                               

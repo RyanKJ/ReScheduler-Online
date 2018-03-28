@@ -28,14 +28,16 @@ $(document).ready(function() {
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
-  var $printDraftBtn = $("#print-live");
+  var $cramRowsBtn = $("#cram-rows");
   var $createScheduleSwapPetition = $("#create-schedule-swap-petition-btn");
   var $successfulScheduleSwapMsg = $("#successful-schedule-swap-msg");
   
   $createScheduleSwapPetition.click(_createScheduleSwapPetition);
-  $printDraftBtn.click(printCalendar);
+  $cramRowsBtn.click(cramRows);
   
   $fullCal.fullCalendar({
+    fixedWeekCount: false,
+    height: "auto",
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -143,7 +145,7 @@ $(document).ready(function() {
         
     // Change calendar title and schedule adding form title to new department
     var depName = $("#id_department option[value='"+info['department']+"']").text();
-    var cal_title = depName + " Calendar: " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
+    var cal_title = depName + ": " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
     $(".fc-center").find("h2").text(cal_title);
         
     // Delete any previously loaded events before displaying new events
@@ -466,8 +468,16 @@ $(document).ready(function() {
     
   
   /** Callback function for user to print calendar via print button on page */
-  function printCalendar() {
-    window.print();
+  function cramRows(event) {
+    var $cramRowsBtn = $("#cram-rows");
+    var cramRowsTxt = $cramRowsBtn.text();
+    if (cramRowsTxt === "Cram Rows Off") {
+      $(".fc-event-container").addClass(".cram-rows");
+      $cramRowsBtn.text("Cram Rows On");
+    } else {
+      $(".fc-event-container").removeClass(".cram-rows");
+      $cramRowsBtn.text("Cram Rows Off");
+    }
   } 
   
   

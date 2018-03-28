@@ -27,14 +27,29 @@ a:active {
   visibility: hidden;
 }
 
+.draft-calendar {
+  margin-bottom: 15px;
+}
+
 
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
+
+.sticky { 
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.sticky + .content {
+  padding-top: 55px;
+}
 
 .calendar-toolbar {
   background: linear-gradient(to bottom, #0079D7, #0a83eb);
   padding-bottom: 0px;
   margin-bottom: 5px;
+  z-index: 100;
 }
 
 .calendar-toolbar label {
@@ -244,6 +259,29 @@ a:active {
 }
 
 #remove-btn:hover {
+  background: #ef7c69;
+  cursor: pointer;
+}
+
+#remove-btn-confirm-container {
+  display: none;
+}
+
+#remove-btn-confirm {
+    background: linear-gradient(to bottom right, #ffc34d, #ef573d);
+    background: #f45c42;
+    border-bottom: 2px solid #ef7c69;
+    border-radius: 2px;
+    padding: 6px 3px 6px 3px;
+    margin: 15px 15px 0px 15px;
+    font-size: 120%;
+    font-weight: 300;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+}
+
+#remove-btn-confirm:hover {
   background: #ef7c69;
   cursor: pointer;
 }

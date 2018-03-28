@@ -17,7 +17,6 @@
   <div class="container-fluid">
     <!-- Modals used for warnings -->
     {% include "schedulingcalendar/_conflictModal.html" %}
-    {% include "schedulingcalendar/_printModal.html" %}
     {% include "schedulingcalendar/_removeModal.html" %}
     {% include "schedulingcalendar/_pushModal.html" %}
     {% include "schedulingcalendar/_successfulPushModal.html" %}
@@ -29,7 +28,7 @@
     {% include "schedulingcalendar/_employeelessModal.html" %}
     {% include "schedulingcalendar/_employeelessDepartmentModal.html" %}
     
-    <div class="row no-print calendar-toolbar">
+    <div id="toolbar-sticky" class="row no-print calendar-toolbar">
       <div class="col-md-7">
         <!-- Form for getting calendar -->
         <form id="load-calendar-form"
@@ -104,16 +103,16 @@
         </div>
         
         <!-- Misc Buttons -->
-        <div id="print-draft" class="calendar-push-btn">
-          Print Draft
-        </div>
         <div id="day-note" class="calendar-push-btn">
           Notes
+        </div>
+        <div id="copy-day" class="calendar-push-btn">
+          Copy Day
         </div>
       </div>
     </div>
 
-    <div class="row">
+    <div class="row content">
       <div class="col-md-2">
         <!-- Schedule Editor -->
         <aside class="schedule-editor no-print">
@@ -168,6 +167,9 @@
             <div class="edit-remove-btn-bg">
               <h3 id="edit-btn">Edit Schedule</h3>
               <h3 id="remove-btn">Remove Schedule</h3>
+              <div id="remove-btn-confirm-container">
+                <h3 id="remove-btn-confirm">Are You Sure?</h3>
+              </div>
             </div>
             
             <div id="eligable-list-header">
@@ -186,7 +188,7 @@
 
       <div class="col-md-10">
         <!-- Fullcalendar -->
-        <section>
+        <section class="draft-calendar">
           <div id="calendar"></div>
         </section>
       </div>
