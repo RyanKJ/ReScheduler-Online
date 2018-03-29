@@ -27,6 +27,7 @@ a:active {
   visibility: hidden;
 }
 
+.bold { font-weight: 700; }
 
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/

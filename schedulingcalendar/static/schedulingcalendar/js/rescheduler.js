@@ -90,7 +90,6 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: "auto",
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -264,7 +263,7 @@ $(document).ready(function() {
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"]; 
     
-    // Create fullcalendar events corresponding to schedule
+    // Create fullcalendar events corresponding to schedules
     if (displaySettings["unique_row_per_employee"]) {
       var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
     } else {
@@ -285,7 +284,7 @@ $(document).ready(function() {
           employeeAssigned: false,
           customSort: 1,
           eventRowSort: 2000,
-          className: "blank-event"
+          className: "blank-event bold"
         }
         events.push(event);
       }
@@ -314,8 +313,9 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
     
-    //Test double click
-    doubleClick();
+    // Set .fc-day elements to call a function on a double click
+    var $fcDays = $(".fc-day");
+    $fcDays.dblclick(dblClickHelper);
   }
   
   
@@ -1302,6 +1302,11 @@ $(document).ready(function() {
                           note);
     // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
+    
+    //
+    // Somewhere here lets edit the hours...
+    //
+    
     $event[0].title = str;
     $fullCal.fullCalendar("updateEvent", $event[0]);
     
@@ -1500,6 +1505,7 @@ $(document).ready(function() {
   }
   
   
+  /** Callback function load schedule pks into array to create copies later */
   function copySchedulePks() {
     $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
     if ($prev_day_clicked.length) {
@@ -1522,12 +1528,7 @@ $(document).ready(function() {
   }
   
   
-  function doubleClick() {
-    var $fcDays = $(".fc-day");
-    $fcDays.dblclick(dblClickHelper);
-  }
-  
-  
+  /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     if (copySchedulePksList.length) {
       $.post("copy_schedules",
@@ -1537,8 +1538,19 @@ $(document).ready(function() {
   }
   
   
+  /** Callback function to render copied schedules */
   function _createCopySchedules(data) {
     console.log(data);
+    var info = JSON.parse(data);
+    var schedules = info["schedules"];
+    // Create fullcalendar events corresponding to schedules
+    if (displaySettings["unique_row_per_employee"]) {
+      var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
+    } else {
+      var events = _schedulesToEvents(schedules, employeeNameDict);
+    }
+    // Render event collection
+    $fullCal.fullCalendar("renderEvents", events);
   }
   
   

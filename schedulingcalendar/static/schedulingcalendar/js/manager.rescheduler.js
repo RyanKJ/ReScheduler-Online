@@ -166,7 +166,8 @@ $(document).ready(function() {
           start: dayBodyNotes[i]["date"],
           allDay: true,
           isSchedule: false,
-          customSort: 1
+          customSort: 1,
+          className: "blank-event bold"
         }
         events.push(event);
       }

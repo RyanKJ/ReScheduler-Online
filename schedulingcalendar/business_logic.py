@@ -1048,6 +1048,7 @@ def create_live_schedules(user, live_calendar):
                                          department=live_calendar.department,
                                          employee__isnull=False))
     # Create mirror live schedules of schedule objects
+    live_schedules = []
     for schedule in schedules:
         live_schedule = LiveSchedule(user=schedule.user,
                                      schedule=schedule,
@@ -1060,7 +1061,9 @@ def create_live_schedules(user, live_calendar):
                                      schedule_note=schedule.schedule_note,
                                      department=schedule.department,
                                      employee=schedule.employee)
-        live_schedule.save()
+        live_schedules.append(live_schedule)
+        
+    LiveSchedule.objects.bulk_create(live_schedules)
         
         
 def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):

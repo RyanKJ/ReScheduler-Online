@@ -539,7 +539,7 @@ def edit_schedule(request):
     if request.method == 'POST':
         form = EditScheduleForm(request.POST)
         if form.is_valid():
-            schedule_pk = request.POST['schedule_pk']
+            schedule_pk = form.cleaned_data['schedule_pk']
             start_time = form.cleaned_data['start_time']
             end_time = form.cleaned_data['end_time']
             hide_start = form.cleaned_data['hide_start']
@@ -577,8 +577,30 @@ def copy_schedules(request):
         form = CopySchedulesForm(request.POST)
         if form.is_valid():
             schedule_pks = form.cleaned_data['schedule_pks']
-            print "*************  schedule pks are: **********************", schedule_pks
-            json_info = json.dumps({'schedule_pks': "success!", 'cost_delta': 0},
+            date = form.cleaned_data['date']
+            schedules = (Schedule.objects.select_related('employee')
+                                         .filter(user=logged_in_user, id__in=schedule_pks))
+            copied_schedules = []
+            for sch in schedules:
+                new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)
+                new_end_dt = sch.end_datetime.replace(year=date.year, month=date.month, day=date.day)
+                copy_schedule = Schedule(user=logged_in_user,
+                                         start_datetime=new_start_dt, 
+                                         end_datetime=new_end_dt,
+                                         hide_start_time=sch.hide_start_time,
+                                         hide_end_time=sch.hide_end_time,
+                                         schedule_note=sch.schedule_note,
+                                         department=sch.department,
+                                         employee=sch.employee)
+                copy_schedule.save()
+                copied_schedules.append(copy_schedule)
+            
+            schedules_as_dicts = []
+            for s in copied_schedules:
+                schedule_dict = model_to_dict(s)
+                schedules_as_dicts.append(schedule_dict)
+            
+            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': 0},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
     
