@@ -1070,9 +1070,7 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
     """Create a dict mapping dates to employees of department with time 
     requested off for that date.
     """
-    return
-    #dep_memberships = (DepartmentMembership.objects.filter(department=department).
-    #                                               .values('employee'))
+    dep_memberships = (DepartmentMembership.objects.filter(user=user, department=department))
     employee_pks = []
     for dep_mem in dep_memberships:
         employee_pks.append(dep_mem.employee.id)
@@ -1083,6 +1081,10 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
                                             department=department,
                                             employee__in=employee_pks)
     return dep_vacations
+    
+    
+def get_tro_dates_to_dict(tro_dates):
+    pass
                           
                           
 def eligable_list_to_dict(eligable_list):

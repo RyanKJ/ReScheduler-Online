@@ -549,6 +549,8 @@ def edit_schedule(request):
                                         
             # Construct start and end datetimes for schedule
             date = schedule.start_datetime.date()
+            old_start_datetime = schedule.start_datetime
+            old_end_datetime = schedule.end_datetime
             time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
             start_dt = pytz.timezone(time_zone).localize(start_dt)
@@ -562,7 +564,9 @@ def edit_schedule(request):
             schedule.hide_end_time = hide_end                 
             schedule.save()
             schedule_dict = model_to_dict(schedule)
-            json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0},
+            json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0,
+                                    'old_start_datetime': old_start_datetime, 
+                                    'old_end_datetime': old_end_datetime},
                                     default=date_handler)
                                     
             return JsonResponse(json_info, safe=False)

@@ -90,6 +90,7 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
+    height: "auto",
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -1264,12 +1265,6 @@ $(document).ready(function() {
     var endTime = $("#end-timepicker").val();
     var hideStart = $("#start-checkbox").prop('checked');
     var hideEnd = $("#end-checkbox").prop('checked');
-    
-    console.log(startTime);
-    console.log(endTime);
-    console.log(hideStart);
-    console.log(hideEnd);
-    
     if (event_id) {
       $.post("edit_schedule", 
              {schedule_pk: event_id, start_time: startTime, end_time: endTime,
@@ -1300,21 +1295,35 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           firstName, lastName, 
                           note);
-    // Update title string to reflect changes to schedule & rehighlight
+    // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
-    
-    //
-    // Somewhere here lets edit the hours...
-    //
-    
     $event[0].title = str;
+    
+    if (employeePk != null) {
+      // Get time duration of new schedule
+      var newStart = moment(startDateTime);
+      var newEnd = moment(endDateTime);
+      var newDuration = moment.duration(newEnd.diff(newStart));
+      var newHours = newDuration.asHours();
+      
+      // Get time duration of old schedule
+      var oldStart = moment(info["old_start_datetime"]);
+      var oldEnd = moment(info["old_end_datetime"]);
+      var oldDuration = moment.duration(oldEnd.diff(oldStart));
+      var oldHours = oldDuration.asHours();
+      
+      // Update hours
+      var difference = newHours - oldHours;
+      var $assignedEmployeeLi = $("#" + employeePk + " .eligible-hours");
+      var oldTotalHours = $assignedEmployeeLi.text();
+      var newTotalHours = parseFloat(oldTotalHours) + difference;
+      $assignedEmployeeLi.text(newTotalHours);
+    }
     $fullCal.fullCalendar("updateEvent", $event[0]);
     
-    //Highlight newly created event
+    //Highlight edited event
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
-    
-    //TODO: Add in cost change.
   }
   
   /** Helper function that returns true if employee assigned more than once on date */ 
