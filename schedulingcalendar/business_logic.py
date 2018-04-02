@@ -1029,7 +1029,7 @@ def single_employee_costs(start_dt, end_dt, employee, schedules, departments,
     
     workweek_costs = calculate_workweek_costs(workweek_hours_dict, 
                                               departments, business_data,
-                                              month_only)             
+                                              month_only)    
     return workweek_costs
     
     
@@ -1075,16 +1075,24 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
     for dep_mem in dep_memberships:
         employee_pks.append(dep_mem.employee.id)
         
-    dep_vacations = Vacation.objects.filter(user=logged_in_user,
+    dep_vacations = Vacation.objects.filter(user=user,
                                             start_datetime__gte=lower_bound_dt,
                                             end_datetime__lte=upper_bound_dt,
-                                            department=department,
                                             employee__in=employee_pks)
-    return dep_vacations
+    return {'vacations': dep_vacations}
     
     
 def get_tro_dates_to_dict(tro_dates):
-    pass
+    """Convert tro_dates into a dict ready for json serialization."""
+    vacations = tro_dates['vacations']
+    vacations_as_dicts = []
+    for v in vacations:
+        vacation_dict = model_to_dict(v)
+        vacations_as_dicts.append(vacation_dict)
+    
+    return {'vacations': vacations_as_dicts, 
+            'unavailabilities': [], 
+            'repeating_unavailabilities': []}
                           
                           
 def eligable_list_to_dict(eligable_list):

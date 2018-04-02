@@ -26,7 +26,8 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
 from .business_logic import (get_eligibles, eligable_list_to_dict,  
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
-                             remove_schedule_cost_change, create_live_schedules)
+                             remove_schedule_cost_change, create_live_schedules,
+                             get_tro_dates, get_tro_dates_to_dict)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
@@ -196,15 +197,17 @@ def get_schedules(request):
               is_active = None;
             
             # Get schedule and employee models from database appropriate for calendar
-            schedules = (Schedule.objects.select_related('employee')
-                                         .filter(user=logged_in_user,
+            schedules = (Schedule.objects.filter(user=logged_in_user,
                                                  start_datetime__gte=lower_bound_dt,
                                                  end_datetime__lte=upper_bound_dt,
                                                  department=department_id))
-            employees = set()
-            for s in schedules:
-                if s.employee:
-                    employees.add(s.employee)
+            dep_memberships = (DepartmentMembership.objects.filter(user=logged_in_user, department=department_id))
+            employee_ids = []
+            for dep_mem in dep_memberships:
+                employee_ids.append(dep_mem.employee.id)
+            employees = (Employee.objects.filter(user=logged_in_user, id__in=employee_ids)
+                                         .order_by('first_name', 'last_name'))
+                                                 
             # Check if any employees for this user exist to alert them if no employees exist
             # Or alert them if employees exist, but none are members of this department
             no_employees_exist = False
@@ -229,7 +232,11 @@ def get_schedules(request):
                                                        date__year=year,
                                                        date__month__gte=month - 1,
                                                        date__month__lte=month + 1,
-                                                       department=department_id)                                          
+                                                       department=department_id)    
+
+            # Get time requested off instances
+            tro_dates = get_tro_dates(logged_in_user, department_id, lower_bound_dt, upper_bound_dt)
+            tro_dict = get_tro_dates_to_dict(tro_dates)
                                                             
             # Convert schedules, employees and notes to dicts for json dump
             schedules_as_dicts = []
@@ -271,6 +278,7 @@ def get_schedules(request):
                              'employees': employees_as_dicts,
                              'day_note_header': day_note_header_as_dicts,
                              'day_note_body': day_note_body_as_dicts,
+                             'tro_dates': tro_dict,
                              'department_costs': department_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,
@@ -341,11 +349,15 @@ def get_live_schedules(request):
                     live_schedules = (LiveSchedule.objects.select_related('employee')
                                                   .filter(user=manager_user,
                                                           calendar=live_calendar,
-                                                          version=version))      
-                employees = set()
-                for s in live_schedules:
-                    if s.employee:
-                        employees.add(s.employee)
+                                                          version=version))
+                                                          
+                # Get employees
+                dep_memberships = (DepartmentMembership.objects.filter(user=manager_user, department=department_id))
+                employee_ids = []
+                for dep_mem in dep_memberships:
+                    employee_ids.append(dep_mem.employee.id)
+                employees = (Employee.objects.filter(user=manager_user, id__in=employee_ids)
+                                             .order_by('first_name', 'last_name'))
                         
                 # Get day notes to display for dates within range of month
                 day_note_header = DayNoteHeader.objects.filter(user=manager_user,

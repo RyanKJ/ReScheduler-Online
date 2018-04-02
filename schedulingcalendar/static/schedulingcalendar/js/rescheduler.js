@@ -19,13 +19,16 @@ $(document).ready(function() {
   var calDepartment = null;
   var calActive = null;
   var displaySettings = {};
+  var employees = [];
+  var employeeSortedIdList = []; // Ids sorted by first name, then last
+  var employeesAssigned = [];
   var employeeNameDict = {};
+  var troDates = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
   var scheduleNotes = {};
-  var employeeRowList = [];
   var copySchedulePksList = [];
   
   // Jquery object variables
@@ -221,12 +224,15 @@ $(document).ready(function() {
     // Clear out eligable list incase previous calendar was loaded
     $eligableList.empty();
     $scheduleInfo.css("display", "none");
-    employeeRowList = [];
+    employeesAssigned = [];
     _removeDayNoteHeaders();
     
     var info = JSON.parse(json_data);
     // Save display settings for calendar events
-    displaySettings = info["display_settings"]
+    displaySettings = info["display_settings"];
+    troDates = info['tro_dates'];
+    console.log("tro_dates");
+    console.log(info['tro_dates']);
     
     // Let user know if no employees exist at all via modal
     if (info["no_employees_exist"]) {
@@ -259,7 +265,8 @@ $(document).ready(function() {
         
     // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
-    var employees = info["employees"];
+    employees = info["employees"];
+    _createEmployeeSortedIdList(employees);
     employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"]; 
@@ -325,8 +332,11 @@ $(document).ready(function() {
     var scheduleEvents = [];
     var schedulesToDates = {};
     
+    var $fcDays = $(".fc-day");
+    console.log($fcDays);
+    
     // Create dict of schedules where dates are the keys, schedules as values
-    // Also create a list of employee pks that map index (row) to employee pk
+    // Also, compile list of employee pks assigned to any schedules
     for (var i=0;i<schedules.length;i++) {
       var startDateTime = moment(schedules[i]["start_datetime"]);
       var startDate = startDateTime.format(DATE_FORMAT);
@@ -336,16 +346,16 @@ $(document).ready(function() {
         schedulesToDates[startDate] = [];
         schedulesToDates[startDate].push(schedules[i]);
       }
-      // Create a employeeRowList mapping row numbers to employee pks
+      // Create list of employees assigned to any schedules
       var employeePk = schedules[i].employee;
-      if (employeePk&& !employeeRowList.includes(employeePk)) {
-        employeeRowList.push(employeePk);
+      if (employeePk && !employeesAssigned.includes(employeePk)) {
+        employeesAssigned.push(employeePk);
       }
     }
     // Iterate thru each date's schedules and create appropriate events
     for (var date in schedulesToDates) {
       if(schedulesToDates.hasOwnProperty(date)) {
-        var employeeAssignedOnDate = employeeRowList.slice(0);
+        var employeesNotAssignedOnThisDate = employeesAssigned.slice(0);
         var schedules = schedulesToDates[date];
         var employelessSchedules = [];
         // Create events for schedules with employees
@@ -353,10 +363,10 @@ $(document).ready(function() {
           var schedulePk = schedules[i]["id"];
           var schEmployePk = schedules[i]["employee"];
           if (schEmployePk != null) {
-            var eventRow = employeeRowList.indexOf(schEmployePk);
-            var employeeRowIndex = employeeAssignedOnDate.indexOf(schEmployePk);
+            var eventRow = employeeSortedIdList.indexOf(schEmployePk);
+            var employeeRowIndex = employeesNotAssignedOnThisDate.indexOf(schEmployePk);
             if (employeeRowIndex > -1) {
-              employeeAssignedOnDate.splice(employeeRowIndex, 1);
+              employeesNotAssignedOnThisDate.splice(employeeRowIndex, 1);
             }
             var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, eventRow)                    
             scheduleEvents.push(fullCalEvent);
@@ -366,9 +376,9 @@ $(document).ready(function() {
           }
         }
         // Create blank events for any empty employee rows for given date
-        for (var i=0;i<employeeAssignedOnDate.length;i++) {
-          var eventRowEmployeePk = employeeAssignedOnDate[i];
-          eventRow = employeeRowList.indexOf(eventRowEmployeePk);
+        for (var i=0;i<employeesNotAssignedOnThisDate.length;i++) {
+          var eventRowEmployeePk = employeesNotAssignedOnThisDate[i];
+          eventRow = employeeSortedIdList.indexOf(eventRowEmployeePk);
           var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
           scheduleEvents.push(fullCalEvent);
         }  
@@ -435,7 +445,7 @@ $(document).ready(function() {
     var str = _getBlankEventStr(date, employeePk);
     var fullCalEvent = {
       id: date + "-" + employeePk,
-      title: "",
+      title: str,
       start: date,
       end: date,
       allDay: true,
@@ -451,25 +461,28 @@ $(document).ready(function() {
   }
   
   
-  /** Helper functino to create str for blank event */
+  /** Helper function to create str for blank event */
   function _getBlankEventStr(date, employeePk) {
-    // 1) Given an employee we need to look at some data structure that tells 
-    //    us that for this date there is a vacation/unavailability. So something
-    //    like a dictionary where the keys map to an array of employee pks,
-    //    (Or could be vacations, but then we'd need to search it, maybe with 
-    //     a lambda function f(x) {x.employee})? So then if we find for a date
-    //     an employee pk, that means on that date that employee has
-    //    "Time Requested Off" and then the string becomes "**** TRO ****" or
-    //    something.
-    //
-    //    The issue then becomes: what if the order comes off because an employee
-    //    gets deleted or something? The order issue only comes from adding
-    //    and editing, removing schedules, which, when the user prints a live
-    //    calendar, the rows will be static
-    //    So this function is dreadfully simple, the only issue is passing the
-    //    dict from the backend.
+    var vacations = troDates['vacations'];
+    for (var i=0;i<vacations.length;i++) {
+      var vacation = vacations[i];
+      if (vacation.employee == employeePk) {
+          startDate = moment(vacation.start_datetime, DATE_FORMAT);
+          endDate = moment(vacation.end_datetime, DATE_FORMAT);
+          blankDate = moment(date);
+          if(blankDate.isSameOrAfter(startDate) && blankDate.isSameOrBefore(endDate)) {
+            return "*** TRO ***";
+          }
+      }
+    }
+    return "";
   }
   
+  
+  /** Helper function that creates a sorted list of employee pks */
+  function _createEmployeeSortedIdList(employees) {
+    employeeSortedIdList = employees.map(function(e) { return e.id; })
+  }
   
   /** Helper function for rendering day not headers for the full calendar */
   function _dayNoteHeaderRender(dayHeaderObj) {
@@ -485,8 +498,6 @@ $(document).ready(function() {
   /** Helper function to remove all day note headers */
   function _removeDayNoteHeaders() {
     var $dayNumberOfHeaderNotes = $(".day-number-of-header-note");
-    console.log("Remove Day Note Headers:")
-    console.log($dayNumberOfHeaderNotes);
     $dayNumberOfHeaderNotes.each(function( i ) {
       var dayNumber = $(this).text();
       var html = "<span class='fc-day-number'>" + dayNumber + "</span>"
@@ -1070,18 +1081,17 @@ $(document).ready(function() {
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     if (displaySettings["unique_row_per_employee"]) {
       var oldEventRow = $event[0].eventRowSort;
-      var newEventRow = employeeRowList.indexOf(schEmployeePk);
-      if (newEventRow == -1) { // Employee has never been assigned this month
-        employeeRowList.push(schEmployeePk);
-        newEventRow = employeeRowList.length - 1;
-        //Check if old employee unassaigned
+      var newEventRow = employeeSortedIdList.indexOf(schEmployeePk);
+      if (!employeesAssigned.includes(schEmployeePk)) { // Employee has never been assigned this month
+        employeesAssigned.push(schEmployeePk);
+        // Check if old employee unassaigned
         _createBlankEventsForNewRow(newEventRow, schEmployeePk, date);
       }
       $event[0].eventRowSort = newEventRow;
       // Create/delete blank schedules to keep row order
       if (oldEventRow != EMPLOYEELESS_EVENT_ROW) {
-        var eventRowEmployeePk = employeeRowList[oldEventRow];
-        var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, oldEventRow);
+        var eventRowEmployeeId = employeeSortedIdList[oldEventRow];
+        var fullCalEvent = _createBlankEvent(date, eventRowEmployeeId, oldEventRow);
         $fullCal.fullCalendar('renderEvent', fullCalEvent);
       }
       // If blank event exists, query it from fullcalendar and delete it
@@ -1102,11 +1112,6 @@ $(document).ready(function() {
   
   /** Helper function that creates blank events for each date for row */ 
   function _createBlankEventsForNewRow(newEventRow, eventRowEmployeePk, date) {
-    // TO DO: 
-    // 1) Collect all dates that have events
-    // 2) For each date (except given date), create blank event with row for employee
-    // 3) Render events
-    console.log("We got here")
     var fullCalEvents = $fullCal.fullCalendar("clientEvents");
     var datesWithEvents = [];
     var blankEvents = [];
@@ -1117,8 +1122,6 @@ $(document).ready(function() {
         datesWithEvents.push(eventDate);
       }
     }
-    console.log("create blank events for new row dates are: ");
-    console.log(datesWithEvents);
     for (var i=0; i<datesWithEvents.length; i++) {
       var blankEvent = _createBlankEvent(datesWithEvents[i], eventRowEmployeePk, newEventRow);
       blankEvents.push(blankEvent);
@@ -1156,9 +1159,10 @@ $(document).ready(function() {
       var eventsExistForDate = _checkIfAnyEventsOnDate(date);
       if (!eventsExistForDate) {
         blankEvents = [];
-        for (var i=0; i<employeeRowList.length; i++) {
-          var eventRowEmployeePk = employeeRowList[i];
-          var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, i);
+        for (var i=0; i<employeesAssigned.length; i++) {
+          var eventRowEmployeeId = employeesAssigned[i];
+          var blankEventRow = employeeSortedIdList.indexOf(eventRowEmployeeId);
+          var fullCalEvent = _createBlankEvent(date, eventRowEmployeeId, blankEventRow);
           blankEvents.push(fullCalEvent);
         }
         $fullCal.fullCalendar("renderEvents", blankEvents);   
@@ -1238,7 +1242,7 @@ $(document).ready(function() {
       var start = moment($event[0].start);
       var date = start.format(DATE_FORMAT);
       var eventRow = $event[0].eventRowSort;
-      var employeePk = employeeRowList[eventRow];
+      var employeePk = employeeSortedIdList[eventRow];
       // Check if employee is assigned more than once per day, if not, create 
       // a blank event to maintain row sort integrity
       if (!_employeeAssignedMoreThanOnceOnDate(date, employeePk)) {
@@ -1549,7 +1553,6 @@ $(document).ready(function() {
   
   /** Callback function to render copied schedules */
   function _createCopySchedules(data) {
-    console.log(data);
     var info = JSON.parse(data);
     var schedules = info["schedules"];
     // Create fullcalendar events corresponding to schedules

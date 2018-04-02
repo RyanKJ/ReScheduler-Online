@@ -19,7 +19,8 @@ $(document).ready(function() {
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
   var scheduleNotes = {};
-  var employeeRowList = [];
+  var employeeSortedIdList = []; // Ids sorted by first name, then last
+  var employeesAssigned = [];
   var employeeUserPk = null;
    
   // Jquery object variables
@@ -133,7 +134,7 @@ $(document).ready(function() {
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
     console.log(info)
-    employeeRowList = [];
+    employeesAssigned = [];
     // Save display settings for calendar events
     displaySettings = info["display_settings"]
     employeeUserPk = info["employee_user_pk"]
@@ -154,6 +155,7 @@ $(document).ready(function() {
     // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     var employees = info["employees"];
+    _createEmployeeSortedIdList(employees);
     var employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"];
@@ -204,7 +206,7 @@ $(document).ready(function() {
     var schedulesToDates = {};
     
     // Create dict of schedules where dates are the keys, schedules as values
-    // Also create a list of employee pks that map index (row) to employee pk
+    // Also, compile list of employee pks assigned to any schedules
     for (var i=0;i<schedules.length;i++) {
       var startDateTime = moment(schedules[i]["start_datetime"]);
       var startDate = startDateTime.format(DATE_FORMAT);
@@ -214,16 +216,16 @@ $(document).ready(function() {
         schedulesToDates[startDate] = [];
         schedulesToDates[startDate].push(schedules[i]);
       }
-      // Create a employeeRowList mapping row numbers to employee pks
+      // Create list of employees assigned to any schedules
       var employeePk = schedules[i].employee;
-      if (employeePk&& !employeeRowList.includes(employeePk)) {
-        employeeRowList.push(employeePk);
+      if (employeePk && !employeesAssigned.includes(employeePk)) {
+        employeesAssigned.push(employeePk);
       }
     }
     // Iterate thru each date's schedules and create appropriate events
     for (var date in schedulesToDates) {
       if(schedulesToDates.hasOwnProperty(date)) {
-        var employeeAssignedOnDate = employeeRowList.slice(0);
+        var employeesNotAssignedOnThisDate = employeesAssigned.slice(0);
         var schedules = schedulesToDates[date];
         var employelessSchedules = [];
         // Create events for schedules with employees
@@ -231,10 +233,10 @@ $(document).ready(function() {
           var schedulePk = schedules[i]["id"];
           var schEmployePk = schedules[i]["employee"];
           if (schEmployePk != null) {
-            var eventRow = employeeRowList.indexOf(schEmployePk);
-            var employeeRowIndex = employeeAssignedOnDate.indexOf(schEmployePk);
+            var eventRow = employeeSortedIdList.indexOf(schEmployePk);
+            var employeeRowIndex = employeesNotAssignedOnThisDate.indexOf(schEmployePk);
             if (employeeRowIndex > -1) {
-              employeeAssignedOnDate.splice(employeeRowIndex, 1);
+              employeesNotAssignedOnThisDate.splice(employeeRowIndex, 1);
             }
             var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, eventRow)                    
             scheduleEvents.push(fullCalEvent);
@@ -244,9 +246,9 @@ $(document).ready(function() {
           }
         }
         // Create blank events for any empty employee rows for given date
-        for (var i=0;i<employeeAssignedOnDate.length;i++) {
-          var eventRowEmployeePk = employeeAssignedOnDate[i];
-          eventRow = employeeRowList.indexOf(eventRowEmployeePk);
+        for (var i=0;i<employeesNotAssignedOnThisDate.length;i++) {
+          var eventRowEmployeePk = employeesNotAssignedOnThisDate[i];
+          eventRow = employeeSortedIdList.indexOf(eventRowEmployeePk);
           var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
           scheduleEvents.push(fullCalEvent);
         }  
@@ -323,6 +325,12 @@ $(document).ready(function() {
       className: "blank-event"
     }
     return fullCalEvent;
+  }
+  
+  
+  /** Helper function that creates a sorted list of employee pks */
+  function _createEmployeeSortedIdList(employees) {
+    employeeSortedIdList = employees.map(function(e) { return e.id; })
   }
   
   
