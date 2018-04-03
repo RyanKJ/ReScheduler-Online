@@ -1079,20 +1079,33 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
                                             start_datetime__gte=lower_bound_dt,
                                             end_datetime__lte=upper_bound_dt,
                                             employee__in=employee_pks)
-    return {'vacations': dep_vacations}
+                                            
+    unavailabilities = Absence.objects.filter(user=user,
+                                              start_datetime__gte=lower_bound_dt,
+                                              end_datetime__lte=upper_bound_dt,
+                                              employee__in=employee_pks)
+                                            
+                                            
+    return {'vacations': dep_vacations, 'unavailabilities': unavailabilities}
     
     
 def get_tro_dates_to_dict(tro_dates):
     """Convert tro_dates into a dict ready for json serialization."""
     vacations = tro_dates['vacations']
+    unavailabilities = tro_dates['unavailabilities']
+    
     vacations_as_dicts = []
     for v in vacations:
         vacation_dict = model_to_dict(v)
         vacations_as_dicts.append(vacation_dict)
+        
+    unavailabilities_as_dicts = []
+    for u in unavailabilities:
+        unavailabilities_dict = model_to_dict(u)
+        unavailabilities_as_dicts.append(unavailabilities_dict)
     
     return {'vacations': vacations_as_dicts, 
-            'unavailabilities': [], 
-            'repeating_unavailabilities': []}
+            'unavailabilities': unavailabilities_as_dicts}
                           
                           
 def eligable_list_to_dict(eligable_list):

@@ -231,8 +231,6 @@ $(document).ready(function() {
     // Save display settings for calendar events
     displaySettings = info["display_settings"];
     troDates = info['tro_dates'];
-    console.log("tro_dates");
-    console.log(info['tro_dates']);
     
     // Let user know if no employees exist at all via modal
     if (info["no_employees_exist"]) {
@@ -268,6 +266,7 @@ $(document).ready(function() {
     employees = info["employees"];
     _createEmployeeSortedIdList(employees);
     employeeNameDict = _employeePkToName(employees);
+    
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"]; 
     
@@ -330,22 +329,14 @@ $(document).ready(function() {
   /** Helper function to create fullcalendar events with unique rows */
   function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
     var scheduleEvents = [];
-    var schedulesToDates = {};
+    visibleDates = visibleFullCalDates();
     
-    var $fcDays = $(".fc-day");
-    console.log($fcDays);
-    
-    // Create dict of schedules where dates are the keys, schedules as values
-    // Also, compile list of employee pks assigned to any schedules
+    // Append schedules to appropriate date and compile list of employee pks
+    // assigned to any schedules
     for (var i=0;i<schedules.length;i++) {
       var startDateTime = moment(schedules[i]["start_datetime"]);
       var startDate = startDateTime.format(DATE_FORMAT);
-      if (schedulesToDates.hasOwnProperty(startDate)) {
-        schedulesToDates[startDate].push(schedules[i]);
-      } else {
-        schedulesToDates[startDate] = [];
-        schedulesToDates[startDate].push(schedules[i]);
-      }
+      visibleDates[startDate].push(schedules[i]);
       // Create list of employees assigned to any schedules
       var employeePk = schedules[i].employee;
       if (employeePk && !employeesAssigned.includes(employeePk)) {
@@ -353,10 +344,10 @@ $(document).ready(function() {
       }
     }
     // Iterate thru each date's schedules and create appropriate events
-    for (var date in schedulesToDates) {
-      if(schedulesToDates.hasOwnProperty(date)) {
+    for (var date in visibleDates) {
+      if(visibleDates.hasOwnProperty(date)) {
         var employeesNotAssignedOnThisDate = employeesAssigned.slice(0);
-        var schedules = schedulesToDates[date];
+        var schedules = visibleDates[date];
         var employelessSchedules = [];
         // Create events for schedules with employees
         for (var i=0;i<schedules.length;i++) {
@@ -443,6 +434,8 @@ $(document).ready(function() {
   /** Helper function to create a blank full calendar event */
   function _createBlankEvent(date, employeePk, eventRow) {
     var str = _getBlankEventStr(date, employeePk);
+    var className = "blank-event";
+    if (str) { className += " tro-event"}
     var fullCalEvent = {
       id: date + "-" + employeePk,
       title: str,
@@ -450,12 +443,11 @@ $(document).ready(function() {
       end: date,
       allDay: true,
       isSchedule: false,
-      isNote: false,
       employeeAssigned: false,
       customSort: 0,
       eventRowSort: eventRow,
       employeePk: -1,
-      className: "blank-event"
+      className: className
     }
     return fullCalEvent;
   }
@@ -464,14 +456,27 @@ $(document).ready(function() {
   /** Helper function to create str for blank event */
   function _getBlankEventStr(date, employeePk) {
     var vacations = troDates['vacations'];
-    for (var i=0;i<vacations.length;i++) {
-      var vacation = vacations[i];
-      if (vacation.employee == employeePk) {
-          startDate = moment(vacation.start_datetime, DATE_FORMAT);
-          endDate = moment(vacation.end_datetime, DATE_FORMAT);
+    var unavailabilities = troDates['unavailabilities'];
+    var troObjects = vacations.concat(unavailabilities);
+    for (var i=0;i<troObjects.length;i++) {
+      var tro = troObjects[i];
+      if (tro.employee == employeePk) {
+          startDate = moment(tro.start_datetime, DATE_FORMAT);
+          endDate = moment(tro.end_datetime, DATE_FORMAT);
           blankDate = moment(date);
           if(blankDate.isSameOrAfter(startDate) && blankDate.isSameOrBefore(endDate)) {
-            return "*** TRO ***";
+            // Construct employee name string based off of display settings
+            var displayLastNames = displaySettings["display_last_names"]; 
+            var displayLastNameFirstChar = displaySettings["display_first_char_last_name"]; 
+            
+            var lastName = "";
+            var employeeLastName = employeeNameDict[employeePk].lastName;
+            if (displayLastNameFirstChar) {
+              lastName = employeeLastName.charAt(0);
+            } else if (displayLastNames) {
+              lastName = employeeLastName;
+            }
+            return "*** TRO: " + employeeNameDict[employeePk].firstName + " " + lastName + " ***";
           }
       }
     }
@@ -483,6 +488,39 @@ $(document).ready(function() {
   function _createEmployeeSortedIdList(employees) {
     employeeSortedIdList = employees.map(function(e) { return e.id; })
   }
+  
+  
+  /** Creates object string dates of visible fullcal dates mapping to empty arrays*/
+  function visibleFullCalDates() {
+    startDate = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
+    endDate = $fullCal.fullCalendar('getView').end.format('YYYY-MM-DD');
+    visibleDatesList = _enumerateDaysBetweenDates(startDate, endDate);
+    
+    var visibleDatesObj = {};
+    
+    for(var i=0; i<visibleDatesList.length; i++) {
+      visibleDatesObj[visibleDatesList[i]] = [];
+    }
+    
+    return visibleDatesObj;
+  }
+  
+  
+  /** Create a list of all dates between a start and end date */
+  function _enumerateDaysBetweenDates(startDate, endDate) {
+    var dates = [];
+    
+    var currDate = moment(startDate).startOf('day');
+    var lastDate = moment(endDate).startOf('day');
+
+    dates.push(currDate.format(DATE_FORMAT));
+    while(currDate.add(1, 'days').diff(lastDate) < 0) {
+        dates.push(currDate.format(DATE_FORMAT));
+    }
+
+    return dates;
+  }
+  
   
   /** Helper function for rendering day not headers for the full calendar */
   function _dayNoteHeaderRender(dayHeaderObj) {
@@ -1112,18 +1150,20 @@ $(document).ready(function() {
   
   /** Helper function that creates blank events for each date for row */ 
   function _createBlankEventsForNewRow(newEventRow, eventRowEmployeePk, date) {
-    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
-    var datesWithEvents = [];
-    var blankEvents = [];
-    for (var i=0; i<fullCalEvents.length; i++) {
-      var start = moment(fullCalEvents[i].start);
-      var eventDate = start.format(DATE_FORMAT);
-      if (date != eventDate && fullCalEvents[i].isSchedule && !datesWithEvents.includes(eventDate)) {
-        datesWithEvents.push(eventDate);
-      }
+    startDate = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
+    endDate = $fullCal.fullCalendar('getView').end.format('YYYY-MM-DD');
+    visibleDateList = _enumerateDaysBetweenDates(startDate, endDate);
+    // We remove the date argument which represents the schedule of a newly 
+    // assigned employee, thus we don't want to create a blank event for it.
+    var dateIndex = visibleDateList.indexOf(date);
+    if (dateIndex > -1) {
+      visibleDateList.splice(dateIndex, 1);
     }
-    for (var i=0; i<datesWithEvents.length; i++) {
-      var blankEvent = _createBlankEvent(datesWithEvents[i], eventRowEmployeePk, newEventRow);
+    
+    // Create blank event for each date
+    var blankEvents = [];
+    for (var i=0; i < visibleDateList.length; i++) {
+      var blankEvent = _createBlankEvent(visibleDateList[i], eventRowEmployeePk, newEventRow);
       blankEvents.push(blankEvent);
     }
     $fullCal.fullCalendar("renderEvents", blankEvents);  
@@ -1249,7 +1289,7 @@ $(document).ready(function() {
         var blankEvent = _createBlankEvent(date, employeePk, eventRow);
         $fullCal.fullCalendar("renderEvent", blankEvent);
       }
-      $fullCal.fullCalendar("removeEvents", schedulePk);
+      $fullCal.fullCalendar("removeEvents", schedulePk)
     }
     // Clear out eligable list
     $eligableList.empty();
@@ -1259,6 +1299,37 @@ $(document).ready(function() {
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
+  }
+  
+  
+  /** Helper function removes employee from row & blank events if the employee
+      is no longer assigned to any schedules for the current selected month 
+      
+      This function is defunct because fullcalendar does not allow bulk 
+      event removal, which means the event removal function must be called
+      for each blank event. This is incredibly laggy for the user, so until 
+      a quicker solution can be found it will go unreferenced by 
+      removeEventAfterDelete
+  */ 
+  function _removeEmployeeFromRow(employeePk, eventRow) {
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    var blankEventsWithSameRowNumber = [];
+    for (var i=0; i<fullCalEvents.length; i++) {
+      if (fullCalEvents[i].eventRowSort == eventRow) {
+        if (fullCalEvents[i].employeeAssigned) { return; }
+        blankEventsWithSameRowNumber.push(fullCalEvents[i]);
+      }
+    }
+    for (var i=0; i<blankEventsWithSameRowNumber.length; i++) {
+      var blankEventId = blankEventsWithSameRowNumber[i].id
+      $fullCal.fullCalendar("removeEvents", blankEventId);
+    }
+    // Remove employee pk from assigned employees
+    employeeIndex = employeeAssigned.indexOf(employeePk);
+    if (employeeIndex > -1) {
+      employeesAssigned.splice(employeeIndex, 1);
+    }
+    return;
   }
   
     
@@ -1347,27 +1418,7 @@ $(document).ready(function() {
       return false;
     }
   }
-  
-  
-  /** Helper function removes employee from row & blank events if the employee
-      is no longer assigned to any schedules for the current selected month */ 
-  function _removeEmployeeFromRow(employeePk, eventRow) {
-    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
-    var blankEventsWithSameRowNumber = [];
-    for (var i=0; i<fullCalEvents.length; i++) {
-      if (fullCalEvents[i].eventRowSort == eventRow) {
-        if (fullCalEvents[i].employeeAssigned) { return; }
-        blankEventsWithSameRowNumber.push(fullCalEvents[i]);
-      }
-    }
-    for (var i=0; i<blankEventsWithSameRowNumber.length; i++) {
-      var blankEventId = blankEventsWithSameRowNumber[i].id
-      $fullCal.fullCalendar("removeEvents", blankEventId);
-    }
-    employeeRowList.splice(eventRow, 1);
-  }
-
-  
+   
   /** Callback function to show user the eligible legend */
   function showEligibleLegend(event) {
     $legendModal = $("#legendModal");

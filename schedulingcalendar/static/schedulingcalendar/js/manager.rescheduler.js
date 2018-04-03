@@ -19,8 +19,10 @@ $(document).ready(function() {
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
   var scheduleNotes = {};
+  var employeeNameDict = {};
   var employeeSortedIdList = []; // Ids sorted by first name, then last
   var employeesAssigned = [];
+  var troDates = {};
    
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -124,11 +126,12 @@ $(document).ready(function() {
    * fullCalendar view, title, and events.
    */
   function loadSchedules(json_data) {
-    console.log("successful response")
     var info = JSON.parse(json_data);
+    console.log(info);
     employeesAssigned = [];
     // Save display settings for calendar events
-    displaySettings = info["display_settings"]
+    displaySettings = info["display_settings"];
+    troDates = info['tro_dates'];
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
@@ -147,7 +150,7 @@ $(document).ready(function() {
     var schedules = info["schedules"];
     var employees = info["employees"];
     _createEmployeeSortedIdList(employees);
-    var employeeNameDict = _employeePkToName(employees);
+    employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"];
 
@@ -194,19 +197,14 @@ $(document).ready(function() {
   /** Helper function to create fullcalendar events with unique rows */
   function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
     var scheduleEvents = [];
-    var schedulesToDates = {};
+    visibleDates = visibleFullCalDates();
     
-    // Create dict of schedules where dates are the keys, schedules as values
-    // Also, compile list of employee pks assigned to any schedules
+    // Append schedules to appropriate date and compile list of employee pks
+    // assigned to any schedules
     for (var i=0;i<schedules.length;i++) {
       var startDateTime = moment(schedules[i]["start_datetime"]);
       var startDate = startDateTime.format(DATE_FORMAT);
-      if (schedulesToDates.hasOwnProperty(startDate)) {
-        schedulesToDates[startDate].push(schedules[i]);
-      } else {
-        schedulesToDates[startDate] = [];
-        schedulesToDates[startDate].push(schedules[i]);
-      }
+      visibleDates[startDate].push(schedules[i]);
       // Create list of employees assigned to any schedules
       var employeePk = schedules[i].employee;
       if (employeePk && !employeesAssigned.includes(employeePk)) {
@@ -214,10 +212,10 @@ $(document).ready(function() {
       }
     }
     // Iterate thru each date's schedules and create appropriate events
-    for (var date in schedulesToDates) {
-      if(schedulesToDates.hasOwnProperty(date)) {
+    for (var date in visibleDates) {
+      if(visibleDates.hasOwnProperty(date)) {
         var employeesNotAssignedOnThisDate = employeesAssigned.slice(0);
-        var schedules = schedulesToDates[date];
+        var schedules = visibleDates[date];
         var employelessSchedules = [];
         // Create events for schedules with employees
         for (var i=0;i<schedules.length;i++) {
@@ -302,9 +300,12 @@ $(document).ready(function() {
   
   /** Helper function to create a blank full calendar event */
   function _createBlankEvent(date, employeePk, eventRow) {
+    var str = _getBlankEventStr(date, employeePk);
+    var className = "blank-event";
+    if (str) { className += " tro-event"}
     var fullCalEvent = {
       id: date + "-" + employeePk,
-      title: "",
+      title: str,
       start: date,
       end: date,
       allDay: true,
@@ -313,15 +314,76 @@ $(document).ready(function() {
       customSort: 0,
       eventRowSort: eventRow,
       employeePk: -1,
-      className: "blank-event"
+      className: className
     }
     return fullCalEvent;
+  }
+  
+  
+  /** Helper function to create str for blank event */
+  function _getBlankEventStr(date, employeePk) {
+    var vacations = troDates['vacations'];
+    for (var i=0;i<vacations.length;i++) {
+      var vacation = vacations[i];
+      if (vacation.employee == employeePk) {
+          startDate = moment(vacation.start_datetime, DATE_FORMAT);
+          endDate = moment(vacation.end_datetime, DATE_FORMAT);
+          blankDate = moment(date);
+          if(blankDate.isSameOrAfter(startDate) && blankDate.isSameOrBefore(endDate)) {
+            // Construct employee name string based off of display settings
+            var displayLastNames = displaySettings["display_last_names"]; 
+            var displayLastNameFirstChar = displaySettings["display_first_char_last_name"]; 
+            
+            var lastName = "";
+            var employeeLastName = employeeNameDict[employeePk].lastName;
+            if (displayLastNameFirstChar) {
+              lastName = employeeLastName.charAt(0);
+            } else if (displayLastNames) {
+              lastName = employeeLastName;
+            }
+            return "*** TRO: " + employeeNameDict[employeePk].firstName + " " + lastName + " ***";
+          }
+      }
+    }
+    return "";
   }
   
   
   /** Helper function that creates a sorted list of employee pks */
   function _createEmployeeSortedIdList(employees) {
     employeeSortedIdList = employees.map(function(e) { return e.id; })
+  }
+  
+  
+  /** Creates object string dates of visible fullcal dates mapping to empty arrays*/
+  function visibleFullCalDates() {
+    startDate = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
+    endDate = $fullCal.fullCalendar('getView').end.format('YYYY-MM-DD');
+    visibleDatesList = _enumerateDaysBetweenDates(startDate, endDate);
+    
+    var visibleDatesObj = {};
+    
+    for(var i=0; i<visibleDatesList.length; i++) {
+      visibleDatesObj[visibleDatesList[i]] = [];
+    }
+    
+    return visibleDatesObj;
+  }
+  
+  
+  /** Create a list of all dates between a start and end date */
+  function _enumerateDaysBetweenDates(startDate, endDate) {
+    var dates = [];
+    
+    var currDate = moment(startDate).startOf('day');
+    var lastDate = moment(endDate).startOf('day');
+
+    dates.push(currDate.format(DATE_FORMAT));
+    while(currDate.add(1, 'days').diff(lastDate) < 0) {
+        dates.push(currDate.format(DATE_FORMAT));
+    }
+
+    return dates;
   }
   
   

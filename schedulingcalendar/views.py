@@ -319,7 +319,9 @@ def get_live_schedules(request):
             year = form.cleaned_data['year']
             month = form.cleaned_data['month']
             # Get date month for calendar for queries
-            cal_date = date(year, month, 1)
+            cal_date = datetime(year, month, 1)
+            lower_bound_dt = cal_date - timedelta(7)
+            upper_bound_dt = cal_date + timedelta(42)
             
             try:
                 live_calendar = LiveCalendar.objects.get(user=manager_user, 
@@ -358,6 +360,10 @@ def get_live_schedules(request):
                     employee_ids.append(dep_mem.employee.id)
                 employees = (Employee.objects.filter(user=manager_user, id__in=employee_ids)
                                              .order_by('first_name', 'last_name'))
+                                             
+                # Get time requested off instances
+                tro_dates = get_tro_dates(manager_user, department_id, lower_bound_dt, upper_bound_dt)
+                tro_dict = get_tro_dates_to_dict(tro_dates)
                         
                 # Get day notes to display for dates within range of month
                 day_note_header = DayNoteHeader.objects.filter(user=manager_user,
@@ -401,6 +407,7 @@ def get_live_schedules(request):
                                  'employees': employees_as_dicts,
                                  'day_note_header': day_note_header_as_dicts,
                                  'day_note_body': day_note_body_as_dicts,
+                                 'tro_dates': tro_dict,
                                  'version': version,
                                  'display_settings': business_dict,
                                  'employee_user_pk': employee_user_pk}
