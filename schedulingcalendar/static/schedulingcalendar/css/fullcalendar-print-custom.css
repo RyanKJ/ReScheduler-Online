@@ -1,7 +1,7 @@
 @media print {
   .no-print, .no-print * { display: none; }
   .blank-event:not(.tro-event) { display: none; }
-  .fc-center > h2:nth-child(1) { font-size: 140%; }
+  .fc-center > h2:nth-child(1) { font-size: 160%; font-weight: 700; }
   .fc-content { font-size: 0.9em; font-weight: 700; margin-top: 0px; }
   .live-cal-margin { margin: 0px !important; }
   .fc-day  { padding-bottom: 0px !important; }
@@ -12,4 +12,6 @@
     padding-bottom: 0.1em !important;
   }
   .fc-day-number.fleft { font-size: 0.8em; }
+  .fc-day-number { font-size: 1.15em; font-weight: 700;}
+  .blank-event.tro-event { opacity: 0.2 !important; }
 } 

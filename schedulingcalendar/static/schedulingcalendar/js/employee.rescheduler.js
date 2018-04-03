@@ -354,7 +354,7 @@ $(document).ready(function() {
             } else if (displayLastNames) {
               lastName = employeeLastName;
             }
-            return "*** TRO: " + employeeNameDict[employeePk].firstName + " " + lastName + " ***";
+            return "**TOR: " + employeeNameDict[employeePk].firstName + " " + lastName + "**";
           }
       }
     }

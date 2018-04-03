@@ -28,6 +28,7 @@ a:active {
 }
 
 .bold { font-weight: 700; }
+.blank-event.tro-event { opacity: 0.5; }
 
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
