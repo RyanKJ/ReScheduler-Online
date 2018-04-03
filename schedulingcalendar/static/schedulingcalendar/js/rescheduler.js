@@ -336,16 +336,19 @@ $(document).ready(function() {
     for (var i=0;i<schedules.length;i++) {
       var startDateTime = moment(schedules[i]["start_datetime"]);
       var startDate = startDateTime.format(DATE_FORMAT);
-      visibleDates[startDate].push(schedules[i]);
-      // Create list of employees assigned to any schedules
-      var employeePk = schedules[i].employee;
-      if (employeePk && !employeesAssigned.includes(employeePk)) {
-        employeesAssigned.push(employeePk);
+      // Ensure only schedules that have visible date on fullCalendar are rendered
+      if (visibleDates.hasOwnProperty(startDate)) {
+        visibleDates[startDate].push(schedules[i]);
+        // Create list of employees assigned to any schedules
+        var employeePk = schedules[i].employee;
+        if (employeePk && !employeesAssigned.includes(employeePk)) {
+          employeesAssigned.push(employeePk);
+        }
       }
     }
     // Iterate thru each date's schedules and create appropriate events
     for (var date in visibleDates) {
-      if(visibleDates.hasOwnProperty(date)) {
+      if (visibleDates.hasOwnProperty(date)) {
         var employeesNotAssignedOnThisDate = employeesAssigned.slice(0);
         var schedules = visibleDates[date];
         var employelessSchedules = [];
