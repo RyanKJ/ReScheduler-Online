@@ -202,6 +202,17 @@ $(document).ready(function() {
   }
   
   
+  // Load schedule upon loading page relative to current date
+  var nowDate = new Date();
+  var m = nowDate.getMonth();
+  var y = nowDate.getFullYear();
+  
+  $("#id_month").val(m + 1);
+  $("#id_year").val(y);
+  $("#id_employee_only").prop('checked', false);
+  $("#get-calendar-button").trigger("click"); 
+  
+  
   /** Helper function to create fullcalendar events with unique rows */
   function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
     var scheduleEvents = [];
@@ -435,18 +446,7 @@ $(document).ready(function() {
     $noCalendarModal.css("margin-top", Math.max(0, ($(window).height() - $noCalendarModal.height()) / 2));
     $noCalendarModal.modal('show');
   }
-  
-  
-  // Load schedule upon loading page relative to current date
-  var nowDate = new Date();
-  var m = nowDate.getMonth();
-  var y = nowDate.getFullYear();
-  
-  $("#id_month").val(m + 1);
-  $("#id_year").val(y);
-  $("#id_employee_only").prop('checked', false);
-  $("#get-calendar-button").trigger("click"); 
-    
+
   
   /**
    * Given an HTTP response of employee objects, create a mapping from employee

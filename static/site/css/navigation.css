@@ -1,3 +1,14 @@
 .navigation-font {
   font-family: 'Nunito', sans-serif;
 }
+
+.custom-nav-hamburger { 
+  border-color: transparent !important; 
+  border-radius: 2px !important;
+}
+  
+.custom-nav-hamburger:hover { background: #00BFFF !important; }
+
+.dropdown-menu > li > a { color: white !important; }
+
+.dropdown-menu > li:hover { background: #00BFFF; }

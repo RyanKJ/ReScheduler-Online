@@ -6,6 +6,11 @@
   margin-bottom: 10px; /* Added */
 }
 
+.custom-card-general {
+  max-width: 50rem;
+  margin: auto;
+}
+
 /* Used to hide and display date and time pickers to create a datetime picker */
 #hidden-datetime {
     position: absolute;

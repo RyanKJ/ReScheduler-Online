@@ -267,7 +267,7 @@ class BusinessData(models.Model):
     display_first_char_last_name = models.BooleanField(default=False)
     desired_hours_overshoot_alert = models.IntegerField('Desired Hours Overshoot Alert', default=5)
     sort_by_names = models.BooleanField(default=False)
-    unique_row_per_employee = models.BooleanField(default=False)
+    unique_row_per_employee = models.BooleanField(default=True)
     
     #Last schedule times/options selected
     schedule_start = models.TimeField('start time', default=time(8, 0, 0))
