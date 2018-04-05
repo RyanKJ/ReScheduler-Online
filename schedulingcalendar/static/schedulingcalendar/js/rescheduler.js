@@ -272,9 +272,9 @@ $(document).ready(function() {
     
     // Create fullcalendar events corresponding to schedules
     if (displaySettings["unique_row_per_employee"]) {
-      var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
+      var events = _schedulesToUniqueRowEvents(schedules);
     } else {
-      var events = _schedulesToEvents(schedules, employeeNameDict);
+      var events = _schedulesToEvents(schedules);
     }
     
     // Collection of day body notes to be rendered as fullcalendar events
@@ -322,12 +322,14 @@ $(document).ready(function() {
     
     // Set .fc-day elements to call a function on a double click
     var $fcDays = $(".fc-day");
+    var $fcContent = $(".fc-content-skeleton");
     $fcDays.dblclick(dblClickHelper);
+    $fcContent.dblclick(dblClickHelper);
   }
   
   
   /** Helper function to create fullcalendar events with unique rows */
-  function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
+  function _schedulesToUniqueRowEvents(schedules) {
     var scheduleEvents = [];
     visibleDates = visibleFullCalDates();
     
@@ -362,10 +364,10 @@ $(document).ready(function() {
             if (employeeRowIndex > -1) {
               employeesNotAssignedOnThisDate.splice(employeeRowIndex, 1);
             }
-            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, eventRow)                    
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], eventRow)                    
             scheduleEvents.push(fullCalEvent);
           } else { // Create events for employeeless schedules
-            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, EMPLOYEELESS_EVENT_ROW)                    
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], EMPLOYEELESS_EVENT_ROW)                    
             scheduleEvents.push(fullCalEvent);
           }
         }
@@ -383,11 +385,11 @@ $(document).ready(function() {
   
   
   /** Helper function to create fullcalendar events given schedules */
-  function _schedulesToEvents(schedules, employeeNameDict) {
+  function _schedulesToEvents(schedules) {
     var scheduleEvents = [];
     // Create fullcalendar event corresponding to schedule
     for (var i=0;i<schedules.length;i++) {
-      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, 1);
+      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], 1);
       scheduleEvents.push(fullCalEvent);
     }
     return scheduleEvents;
@@ -395,7 +397,7 @@ $(document).ready(function() {
   
   
   /** Helper function to create a single full calendar event given schedule */
-  function _scheduleToFullCalendarEvent(schedule, employeeNameDict, eventRow) {
+  function _scheduleToFullCalendarEvent(schedule, eventRow) {
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
@@ -1598,6 +1600,7 @@ $(document).ready(function() {
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     if (copySchedulePksList.length) {
+      $("body").css("cursor", "progress");
       $.post("copy_schedules",
              {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList},
              _createCopySchedules);
@@ -1611,12 +1614,42 @@ $(document).ready(function() {
     var schedules = info["schedules"];
     // Create fullcalendar events corresponding to schedules
     if (displaySettings["unique_row_per_employee"]) {
-      var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
+      var events = _copySchedulesToUniqueRowEvents(schedules);
     } else {
-      var events = _schedulesToEvents(schedules, employeeNameDict);
+      var events = _schedulesToEvents(schedules);
+      $fullCal.fullCalendar("renderEvents", events);
     }
+  }
+  
+  
+  /** Create fc-events for copied schedules and remove blank events */
+  function _copySchedulesToUniqueRowEvents(schedules) {
+    scheduleEvents = [];
+    blankEventIdsToRemove = [];
+    
+    for (var i=0;i<schedules.length;i++) {
+      var schedulePk = schedules[i]["id"];
+      var schEmployePk = schedules[i]["employee"];
+      var eventRow = EMPLOYEELESS_EVENT_ROW;
+      if (schEmployePk != null) { 
+        eventRow = employeeSortedIdList.indexOf(schEmployePk); 
+        // Get fc-event blank-id's to remove from fullcalendar
+        var startDateTime = moment(schedules[i]["start_datetime"]);
+        var startDate = startDateTime.format(DATE_FORMAT);
+        var blankId = startDate + "-" + schEmployePk;
+        blankEventIdsToRemove.push(blankId);
+      }
+      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], eventRow);                    
+      scheduleEvents.push(fullCalEvent);
+    }
+    
     // Render event collection
-    $fullCal.fullCalendar("renderEvents", events);
+    $fullCal.fullCalendar("renderEvents", scheduleEvents);
+    // Remove blank events corresponding to newly created copy schedules
+    for (var i=0;i<blankEventIdsToRemove.length;i++) {
+      $fullCal.fullCalendar("removeEvents", blankEventIdsToRemove[i]);
+    }
+    $("body").css("cursor", "default");
   }
   
   

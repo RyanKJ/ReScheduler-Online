@@ -42,8 +42,6 @@ a:active {
 .calendar-toolbar label {
   color: white;
   font-size: 16px;
-  margin-left: 7px;
-  margin-bottom: 10px;
   vertical-align: middle;
 }
 
@@ -181,11 +179,6 @@ a:active {
 
 .checkbox-custom label { 
   top: 3px;
-  left: -3px;
-}
-
-.checkbox-custom input[type=checkbox]:checked + label {
-	left: 14px;
 }
 
 .checkbox-custom-text {
@@ -398,11 +391,14 @@ li:last-child.cost-list {
 --------------------------------------------------------------------------------------------------*/
 .mobile-divider { display: none; }
 
+@media screen and (max-width: 930px) {
+  .calendar-loader-btn { margin-top: 4px; }
+}
+
 @media screen and (max-width: 767px) {
   .date-selectors { display:table; margin:0 auto; }
-  .mobile-span { display: block; text-align: right; margin: 10px 0px 10px 0px; }
+  .mobile-span { display: block; text-align: right; margin: 12px 0px 12px 0px; }
   .mobile-span-center { display: block; text-align: center; margin: 2px 0px 10px 0px; }
-  .calendar-toolbar .mobile-span label { margin: 12px 0px 0px 0px; }
   .mobile-divider { 
     display: block;
     height: 2px; 
@@ -415,6 +411,9 @@ li:last-child.cost-list {
  .select-cal-loader-checkbox { margin-bottom: 5px; }
  .calendar-loader-btn { margin-top: 10px; margin-bottom: 0px; }
  .calendar-push-btn { display: none; }
+ .select-calendar-year { width: 120px; }
+ .select-calendar-month { width: 120px; }
+ .select-calendar { position: static; }
 }
 
 

@@ -156,9 +156,9 @@ $(document).ready(function() {
 
     // Create fullcalendar events corresponding to schedule
     if (displaySettings["unique_row_per_employee"]) {
-      var events = _schedulesToUniqueRowEvents(schedules, employeeNameDict);
+      var events = _schedulesToUniqueRowEvents(schedules);
     } else {
-      var events = _schedulesToEvents(schedules, employeeNameDict);
+      var events = _schedulesToEvents(schedules);
     }
     
     // Collection of day body notes to be rendered as fullcalendar events
@@ -195,7 +195,7 @@ $(document).ready(function() {
   
   
   /** Helper function to create fullcalendar events with unique rows */
-  function _schedulesToUniqueRowEvents(schedules, employeeNameDict) {
+  function _schedulesToUniqueRowEvents(schedules) {
     var scheduleEvents = [];
     visibleDates = visibleFullCalDates();
     
@@ -230,10 +230,10 @@ $(document).ready(function() {
             if (employeeRowIndex > -1) {
               employeesNotAssignedOnThisDate.splice(employeeRowIndex, 1);
             }
-            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, eventRow)                    
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], eventRow)                    
             scheduleEvents.push(fullCalEvent);
           } else { // Create events for employeeless schedules
-            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, EMPLOYEELESS_EVENT_ROW)                    
+            var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], EMPLOYEELESS_EVENT_ROW)                    
             scheduleEvents.push(fullCalEvent);
           }
         }
@@ -251,11 +251,11 @@ $(document).ready(function() {
   
   
   /** Helper function to create fullcalendar events given schedules */
-  function _schedulesToEvents(schedules, employeeNameDict) {
+  function _schedulesToEvents(schedules) {
     var scheduleEvents = [];
     // Create fullcalendar event corresponding to schedule
     for (var i=0;i<schedules.length;i++) {
-      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], employeeNameDict, 1);
+      var fullCalEvent = _scheduleToFullCalendarEvent(schedules[i], 1);
       scheduleEvents.push(fullCalEvent);
     }
     return scheduleEvents;
@@ -263,7 +263,7 @@ $(document).ready(function() {
   
   
   /** Helper function to create a single full calendar event given schedule */
-  function _scheduleToFullCalendarEvent(schedule, employeeNameDict, eventRow) {
+  function _scheduleToFullCalendarEvent(schedule, eventRow) {
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
