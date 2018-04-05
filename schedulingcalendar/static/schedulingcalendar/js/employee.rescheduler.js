@@ -136,6 +136,7 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
+    console.log("info is: ", info);
     employeesAssigned = [];
     // Save display settings for calendar events
     displaySettings = info["display_settings"];
@@ -186,6 +187,8 @@ $(document).ready(function() {
         events.push(event);
       }
     }
+    console.log("event array is: ", events);
+    
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
     
