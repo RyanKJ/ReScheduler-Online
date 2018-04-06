@@ -163,7 +163,7 @@ def employee_calendar_page(request):
                                 .get(employee_user=logged_in_user))
     manager_user = employee.user
     
-    live_calendar_form = LiveCalendarForm(manager_user)
+    live_calendar_form = LiveCalendarForm(manager_user, employee)
     template = loader.get_template('schedulingcalendar/employeeCalendar.html')
     context = {'live_calendar_form': live_calendar_form}
 
@@ -313,7 +313,7 @@ def get_live_schedules(request):
                                 .get(employee_user=logged_in_user))
             employee_user_pk = employee.id
             manager_user = employee.user
-            form = LiveCalendarForm(manager_user, request.GET)
+            form = LiveCalendarForm(manager_user, employee, request.GET)
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']

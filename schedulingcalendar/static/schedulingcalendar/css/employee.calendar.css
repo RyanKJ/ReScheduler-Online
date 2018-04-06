@@ -30,6 +30,10 @@ a:active {
 .bold { font-weight: 700; }
 .blank-event.tro-event { opacity: 0.5; }
 
+.fc-list-item-time { display: none; }
+.fc-list-item-title { font-size: 120%; font-weight: 600; }
+.fc-list-heading { font-size: 140%; }
+
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 

@@ -63,11 +63,11 @@ class LiveCalendarForm(forms.Form):
     as employees themselves are not 'owners' of any departments.
     """
     
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, employee, *args, **kwargs):
         super(LiveCalendarForm, self).__init__(*args, **kwargs)
         
         # TODO: Add edge case where user has 0 departments
-        dep_choices = get_department_tuple(user)
+        dep_choices = get_department_tuple(user, employee)
         year_choices = self.get_year_choices()
         
         self.fields['department'].widget.choices = dep_choices
@@ -380,7 +380,7 @@ class ScheduleSwapDecisionForm(forms.Form):
     schedule_swap_pk = forms.IntegerField(label='schedule_swap_pk')
     
     
-def get_department_tuple(logged_user):
+def get_department_tuple(logged_user, employee=None):
     """Return a tuple of strings departments
     
     Args:
@@ -389,9 +389,16 @@ def get_department_tuple(logged_user):
         A tuple containing all departments of user where each element is a 
         tuple containing department id and name.
     """
+    dep_choices = [] 
     
-    departments = Department.objects.filter(user=logged_user).only('id', 'name')
-    dep_choices = [(dep.id, dep.name) for dep in departments]
+    if employee:
+        dep_membership = (DepartmentMembership.objects.select_related('department')
+                                                      .filter(employee=employee)
+                                                      .order_by('priority'))
+        dep_choices = [(dep_mem.department.id, dep_mem.department.name) for dep_mem in dep_membership]
+    else:
+        departments = Department.objects.filter(user=logged_user).only('id', 'name')
+        dep_choices = [(dep.id, dep.name) for dep in departments]
         
     return tuple(dep_choices)
     

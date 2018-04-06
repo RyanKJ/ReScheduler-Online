@@ -29,14 +29,8 @@
             </li>
             <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
           {% else %}
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Schedules<span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Calendar</a></li>
-                <li><a href="{% url 'schedulingcalendar:employee_list' %}">Schedule Swaps</a></li>
-              </ul>
-            </li>
-            <li><a href="{% url 'schedulingcalendar:employee_list' %}">My Availability</a></li>
+            <li><a href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a></li>
+            <li><a href="{% url 'schedulingcalendar:employee_list' %}">My Profile</a></li>
           {% endif %}
         {% else %}
           <li><a href="{% url 'login' %}">Login</a></li>

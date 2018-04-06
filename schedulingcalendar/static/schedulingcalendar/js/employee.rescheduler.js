@@ -192,6 +192,9 @@ $(document).ready(function() {
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
     
+    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+    console.log("fullCalender events are: ", fullCalEvents);
+    
     // Collection of day header notes to be rendered manually
     for (var i=0;i<dayHeaderNotes.length;i++) { 
       dayNoteHeaders[dayHeaderNotes[i]["date"]] = dayHeaderNotes[i];
@@ -200,6 +203,8 @@ $(document).ready(function() {
     
     //Make other month days displayed not gray'd out
     $(".fc-other-month").removeClass("fc-other-month");
+    
+    $fullCal.fullCalendar( 'rerenderEvents' );
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -210,7 +215,7 @@ $(document).ready(function() {
   var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
   var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
   if (w < 768) {
-    $fullCal.fullCalendar('changeView', 'listMonth');
+    $fullCal.fullCalendar('changeView', 'listYear');
   }
   
   // Load schedule upon loading page relative to current date
@@ -322,7 +327,7 @@ $(document).ready(function() {
       id: schedulePk,
       title: str,
       start: startDateTime,
-      end: endDateTime,
+      endDt: endDateTime, // cannot use normal end when allDay is true
       allDay: true,
       isSchedule: true,
       employeeAssigned: isEmployeeAssigned,
@@ -343,7 +348,6 @@ $(document).ready(function() {
       id: date + "-" + employeePk,
       title: str,
       start: date,
-      end: date,
       allDay: true,
       isSchedule: false,
       employeeAssigned: false,

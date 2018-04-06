@@ -20,55 +20,7 @@
   <div class="container-fluid">
     <div class="row no-print calendar-toolbar">
       <div class="col-md-9">
-  
-        <form id="load-calendar-form"
-              action="{% url 'schedulingcalendar:get_live_schedules' %}"
-              onsubmit="return(validateGetCalendarForm())"
-              method="get">
-          {% csrf_token %}
-          <span class="date-selectors">
-            <span class="mobile-span">
-              {{ live_calendar_form.department.errors }}
-              {{ live_calendar_form.department.label_tag }}
-              <div class="select-calendar select-calendar-department">
-                {{ live_calendar_form.department }}
-              </div>
-            </span>
-               
-            <span class="mobile-span">
-              {{ live_calendar_form.month.errors }}
-              {{ live_calendar_form.month.label_tag }}
-              <div class="select-calendar select-calendar-month">
-                {{ live_calendar_form.month }}
-              </div>
-            </span>
-            <span class="mobile-span">
-              {{ live_calendar_form.year.errors }}
-              {{ live_calendar_form.year.label_tag }}
-              <div class="select-calendar select-calendar-year">
-                {{ live_calendar_form.year }}
-              </div>
-            </span>
-          </span>
-          
-          
-          <span class="mobile-span-center">
-            <div class="select-cal-loader-checkbox">
-              <div class="checkbox-custom-container">
-                <div class="checkbox-custom">
-                  {{ live_calendar_form.employee_only.errors }}
-                  {{ live_calendar_form.employee_only }}
-                  {{ live_calendar_form.employee_only.label_tag }}
-                </div>
-                <span class="checkbox-custom-text">Show Only My Schedules</span>
-              </div>
-            </div>
-          </span>
-          <div class="mobile-divider"></div>
-          <span class="mobile-span-center">
-            <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-          </span>
-        </form>
+        {% include "schedulingcalendar/_employeeCalLoader.html" %}
       </div>
   
       <div class="col-md-3">
@@ -79,13 +31,9 @@
         <div id="cram-rows" class="calendar-push-btn">
           Cram Rows Off
         </div>
-      
       </div>
-      
     </div>
   
-  
-
     <div class="row">
       <div class="col-md">
         <div class="live-cal-margin">

@@ -423,7 +423,7 @@ $(document).ready(function() {
       id: schedulePk,
       title: str,
       start: startDateTime,
-      end: endDateTime,
+      endDt: endDateTime, // cannot use normal end when allDay is true
       allDay: true,
       isSchedule: true,
       isNote: false,
@@ -445,7 +445,6 @@ $(document).ready(function() {
       id: date + "-" + employeePk,
       title: str,
       start: date,
-      end: date,
       allDay: true,
       isSchedule: false,
       employeeAssigned: false,
