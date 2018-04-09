@@ -35,7 +35,8 @@ from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
-                    ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm)
+                    ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
+                    EmployeeDisplaySettingsForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, timedelta
 from itertools import chain
@@ -161,11 +162,12 @@ def employee_calendar_page(request):
     # Get manager corresponding to employee
     employee = (Employee.objects.select_related('user')
                                 .get(employee_user=logged_in_user))
+    employee_only = employee.see_only_my_schedules
     manager_user = employee.user
     
     live_calendar_form = LiveCalendarForm(manager_user, employee)
     template = loader.get_template('schedulingcalendar/employeeCalendar.html')
-    context = {'live_calendar_form': live_calendar_form}
+    context = {'live_calendar_form': live_calendar_form, 'employee_only': employee_only}
 
     return HttpResponse(template.render(context, request))
 
@@ -306,12 +308,14 @@ def get_live_schedules(request):
         if user_is_manager:
             employee = None
             employee_user_pk = None
+            override_list_view = False
             manager_user = logged_in_user
             form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         else:
             employee = (Employee.objects.select_related('user')
                                 .get(employee_user=logged_in_user))
             employee_user_pk = employee.id
+            override_list_view = employee.override_list_view
             manager_user = employee.user
             form = LiveCalendarForm(manager_user, employee, request.GET)
         if form.is_valid():
@@ -338,6 +342,8 @@ def get_live_schedules(request):
                     version = form.cleaned_data['version']
                 else:
                     employee_only = form.cleaned_data['employee_only']
+                    employee.see_only_my_schedules = employee_only
+                    employee.save()
                     version = live_calendar.version
                     
                 # Get schedule and employee models from database appropriate for calendar
@@ -410,7 +416,8 @@ def get_live_schedules(request):
                                  'tro_dates': tro_dict,
                                  'version': version,
                                  'display_settings': business_dict,
-                                 'employee_user_pk': employee_user_pk}
+                                 'employee_user_pk': employee_user_pk,
+                                 'override_list_view': override_list_view}
                 combined_json = json.dumps(combined_dict, default=date_handler)
                 
                 return JsonResponse(combined_json, safe=False)
@@ -889,6 +896,27 @@ def schedule_swap_disapproval(request):
         #TODO: Implement reponse for non-POST requests    
         json_info = json.dumps({'message': 'Could not disapprove schedule swap petition'})
         return JsonResponse(json_info, safe=False)
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeUpdateProfileSettings(UpdateView):
+    """Display employee settings and form to update these settings."""
+    template_name = 'schedulingcalendar/employeeProfile.html'
+    form_class = EmployeeDisplaySettingsForm
+    success_url = reverse_lazy('schedulingcalendar:employee_profile_settings')
+    
+    
+    def get(self, request, **kwargs):
+        self.object = Employee.objects.get(employee_user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = Employee.objects.get(employee_user=self.request.user)
+        return obj
         
                   
 @method_decorator(login_required, name='dispatch')

@@ -26,6 +26,7 @@ $(document).ready(function() {
   var troDates = {};
    
   // Jquery object variables
+  var $calendarLoaderForm = $("#load-calendar-form");
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
   var $addScheduleDate = $("#add-date");
@@ -136,12 +137,14 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     var info = JSON.parse(json_data);
-    console.log("info is: ", info);
     employeesAssigned = [];
     // Save display settings for calendar events
     displaySettings = info["display_settings"];
     employeeUserPk = info["employee_user_pk"];
     troDates = info['tro_dates'];
+    
+    // Set the view depending on employee user settings
+    if (info['override_list_view']) { $fullCal.fullCalendar('changeView', 'month'); }
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
@@ -187,13 +190,9 @@ $(document).ready(function() {
         events.push(event);
       }
     }
-    console.log("event array is: ", events);
-    
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
-    
     var fullCalEvents = $fullCal.fullCalendar("clientEvents");
-    console.log("fullCalender events are: ", fullCalEvents);
     
     // Collection of day header notes to be rendered manually
     for (var i=0;i<dayHeaderNotes.length;i++) { 
@@ -222,10 +221,12 @@ $(document).ready(function() {
   var nowDate = new Date();
   var m = nowDate.getMonth();
   var y = nowDate.getFullYear();
+  var employeeOnly = $calendarLoaderForm.data("show-only-employee-schedules");
+  console.log("employeeOnly is: ", employeeOnly);
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
-  $("#id_employee_only").prop('checked', false);
+  $("#id_employee_only").prop('checked', employeeOnly);
   $("#get-calendar-button").trigger("click"); 
   
   

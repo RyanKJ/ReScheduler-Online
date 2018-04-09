@@ -380,11 +380,23 @@ class ScheduleSwapDecisionForm(forms.Form):
     schedule_swap_pk = forms.IntegerField(label='schedule_swap_pk')
     
     
+class EmployeeDisplaySettingsForm(forms.ModelForm):
+    """Form for setting employee display settings"""
+    override_list_view = forms.BooleanField(label="", required=False,
+                                            widget=forms.CheckboxInput())
+                                            
+    class Meta:
+        model = Employee
+        fields = ['override_list_view']
+    
+    
 def get_department_tuple(logged_user, employee=None):
     """Return a tuple of strings departments
     
     Args:
         logged_user: current logged in user via django authentication system.
+        employee: employee mobel object, used to filter out only departments
+          that that employee belongs to.
     Returns:
         A tuple containing all departments of user where each element is a 
         tuple containing department id and name.

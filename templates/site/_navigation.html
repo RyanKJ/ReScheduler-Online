@@ -30,7 +30,7 @@
             <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
           {% else %}
             <li><a href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a></li>
-            <li><a href="{% url 'schedulingcalendar:employee_list' %}">My Profile</a></li>
+            <li><a href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a></li>
           {% endif %}
         {% else %}
           <li><a href="{% url 'login' %}">Login</a></li>

@@ -1,0 +1,37 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+
+{% block form_content %}
+  <h2 class="card-title text-center">My Profile</h2>
+  <br>
+  <div class="card">
+    <div class="card-block">
+      <form id="update-employee-settings-form"
+        name= "UpdateEmployeeSettingsForm"
+        action="{% url 'schedulingcalendar:employee_profile_settings' %}"
+        method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+          <div class="checkbox-custom-container">
+            <div class="checkbox-custom">
+              {{ form.override_list_view.errors }}
+              {{ form.override_list_view }}
+              {{ form.override_list_view.label_tag }}
+              {% if form.override_list_view.help_text %}
+                <p class="help">{{ form.override_list_view.help_text|safe }}</p>
+              {% endif %}
+            </div>
+            <span class="checkbox-custom-text">Always Display Month Calendar</span>
+          </div>
+        </div>
+        
+        <p class="card-text">A list of schedules displays automatically for 
+          small devices instead of a calendar. By clicking this button, the 
+          schedules will always display as a normal calendar even on a small 
+          screen.</p>
+          
+        <input type="submit" class="btn btn-primary" value="Save Settings">
+      </form>
+    </div>
+  </div>
+{% endblock form_content %}  
