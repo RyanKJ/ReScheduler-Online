@@ -70,6 +70,9 @@ $(document).ready(function() {
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
   var et_picker = $endTimePicker.pickatime("picker");
+  
+  st_picker.on({ set: getProtoEligibles });
+  et_picker.on({ set: getProtoEligibles });
     
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
@@ -93,7 +96,6 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: "auto",
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -851,6 +853,51 @@ $(document).ready(function() {
     // If employee assigned to schedule add highlight class to appropriate li
     _highlightAssignedEmployee(currAssignedEmployeeID);
   }
+  
+  
+  /** 
+   * Given HTTP response, process eligable list data and create proto eligable 
+   * list of employees. Unlike the normal eligibles, the li are inactive.
+   */    
+  function displayProtoEligables(data) {
+    clearEligables();
+    $scheduleInfo.css("display", "block");
+    
+    var info = JSON.parse(data);
+    var eligableList = info["eligable_list"];
+    if (displaySettings["sort_by_names"]) {
+      eligableList.sort(compareEmployeeName);
+    }
+    // Create li corresponding to eligable employees for proto schedule
+    for (var i=0;i<eligableList.length;i++) {  
+      var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
+      var warningFlag = _compileConflictFlags(eligableList[i]['availability']);
+      var eligableColorClasses = _compileColorClasses(eligableList[i]['employee'], 
+                                                      eligableList[i]['availability']);
+      eligableColorClasses += " proto-eligible-li";
+      var name = eligableList[i]['employee'].first_name + " " +  eligableList[i]['employee'].last_name  + " " +  warningFlag;  
+      var $li = $("<li>", {
+        "id": eligableList[i]['employee']['id'], 
+        "class": eligableColorClasses,
+        "data-employee-pk": eligableList[i]['employee'].id,
+        "data-warning-str": warningStr,
+        }
+      ).appendTo("#eligable-list");
+      // Create content inside each eligible li
+      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours'];
+      var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
+      var liHTML = "<div class='eligible-name'>" + name + "</div>" +
+                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + curr_hours + "</div>"
+      $li.html(liHTML);
+    }
+  }
+  
+  
+  function getProtoEligibles() {
+    console.log("Hello");
+  }
+  
+  
   
   /** Comparator function for sorting employees by last name, then first name */
   function compareEmployeeName(e1, e2) {

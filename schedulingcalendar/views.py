@@ -29,10 +29,10 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              remove_schedule_cost_change, create_live_schedules,
                              get_tro_dates, get_tro_dates_to_dict,
                              get_start_end_of_calendar)
-from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
-                    RepeatUnavailabilityForm, DesiredTimeForm, 
-                    MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
-                    LiveCalendarForm, LiveCalendarManagerForm,
+from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
+                    VacationForm, AbsentForm, RepeatUnavailabilityForm, 
+                    DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
+                    PushLiveForm, LiveCalendarForm, LiveCalendarManagerForm,
                     SetActiveStateLiveCalForm, ViewLiveCalendarForm, 
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
@@ -476,7 +476,7 @@ def add_schedule(request):
     else:
         # TODO: Case where invalid HTTP Request handling
         pass
-        
+       
      
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")    
@@ -494,7 +494,52 @@ def get_schedule_info(request):
     
     return JsonResponse(json_data, safe=False)
     
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def get_proto_schedule_info(request):
+    """Get eligible list for onChange response to add_schedule_form.
+    
+    This function is used to create a mock schedule to see what the eligible
+    list would be IF a user created a schedule with said parameters. It informs
+    the user what employee options they would have if they created the schedule.
+    """
+    
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ProtoScheduleForm(request.POST)
+        if form.is_valid():
+            department = form.cleaned_data['department']
+            date = form.cleaned_data['add_date']
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+            
+            # Construct start and end datetimes for schedule
+            time_zone = timezone.get_default_timezone_name()
+            start_dt = datetime.combine(date, start_time)
+            start_dt = pytz.timezone(time_zone).localize(start_dt)
+            end_dt = datetime.combine(date, end_time)
+            end_dt = pytz.timezone(time_zone).localize(end_dt)
 
+            # TODO: Assert department belongs to user after form cleaning?
+            dep = Department.objects.get(user=logged_in_user, pk=department)
+            schedule = Schedule(user=logged_in_user,
+                                start_datetime=start_dt, end_datetime=end_dt,
+                                department=dep)
+                                
+            schedule_dict = model_to_dict(schedule)
+            schedule_json = json.dumps(schedule_dict, default=date_handler)
+            
+            eligable_list = get_eligibles(schedule)
+            eligable_dict_list = eligable_list_to_dict(eligable_list)
+            json_data = json.dumps(eligable_dict_list, default=date_handler)
+            
+            return JsonResponse(json_data, safe=False)
+    else:
+        # TODO: Case where invalid HTTP Request handling
+        pass
+    
+    
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def add_employee_to_schedule(request):

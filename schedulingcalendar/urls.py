@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^calendar/add_schedule$', views.add_schedule, name='add_schedule'),
     url(r'^calendar/get_schedules$', views.get_schedules, name='get_schedules'),
     url(r'^calendar/get_schedule_info$', views.get_schedule_info, name='get_schedule_info'),
+    url(r'^calendar/get_proto_schedule_info$', views.get_proto_schedule_info, name='get_proto_schedule_info'),
     url(r'^calendar/add_employee_to_schedule$', views.add_employee_to_schedule, name='add_employee_to_schedule'),
     url(r'^calendar/remove_schedule$', views.remove_schedule, name='remove_schedule'),
     url(r'^calendar/edit_schedule$', views.edit_schedule, name='edit_schedule'),

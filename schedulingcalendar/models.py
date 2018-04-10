@@ -255,7 +255,7 @@ class BusinessData(models.Model):
     # Business Settings
     overtime = models.IntegerField('Overtime In Hours', default=40)
     overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
-    workweek_weekday_start = models.IntegerField('weekday', default=0)
+    workweek_weekday_start = models.IntegerField('weekday', default=6)
     workweek_time_start = models.TimeField('start time', default=time(0, 0, 0))
     min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability', 
                                            default=5)
