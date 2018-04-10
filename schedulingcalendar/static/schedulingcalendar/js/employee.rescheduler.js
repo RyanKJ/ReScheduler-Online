@@ -192,18 +192,12 @@ $(document).ready(function() {
     }
     // Render event collection
     $fullCal.fullCalendar("renderEvents", events);
-    var fullCalEvents = $fullCal.fullCalendar("clientEvents");
-    
+
     // Collection of day header notes to be rendered manually
-    for (var i=0;i<dayHeaderNotes.length;i++) { 
-      dayNoteHeaders[dayHeaderNotes[i]["date"]] = dayHeaderNotes[i];
-      _dayNoteHeaderRender(dayHeaderNotes[i]);
-    }
+    _dayNoteHeaderRender(dayHeaderNotes);
     
     //Make other month days displayed not gray'd out
     $(".fc-other-month").removeClass("fc-other-month");
-    
-    $fullCal.fullCalendar( 'rerenderEvents' );
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -222,7 +216,6 @@ $(document).ready(function() {
   var m = nowDate.getMonth();
   var y = nowDate.getFullYear();
   var employeeOnly = $calendarLoaderForm.data("show-only-employee-schedules");
-  console.log("employeeOnly is: ", employeeOnly);
   
   $("#id_month").val(m + 1);
   $("#id_year").val(y);
@@ -275,11 +268,15 @@ $(document).ready(function() {
           }
         }
         // Create blank events for any empty employee rows for given date
-        if (viewType === "month") {
-          for (var i=0;i<employeesNotAssignedOnThisDate.length;i++) {
-            var eventRowEmployeePk = employeesNotAssignedOnThisDate[i];
-            eventRow = employeeSortedIdList.indexOf(eventRowEmployeePk);
-            var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
+        for (var i=0;i<employeesNotAssignedOnThisDate.length;i++) {
+          var eventRowEmployeePk = employeesNotAssignedOnThisDate[i];
+          eventRow = employeeSortedIdList.indexOf(eventRowEmployeePk);
+          var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
+          console.log("className is: ", fullCalEvent.className);
+          if (viewType === "month") {
+            scheduleEvents.push(fullCalEvent);
+          } else if (viewType === "listYear" && fullCalEvent.className !== "blank-event") {
+            // Append only TOR blank events when in list view
             scheduleEvents.push(fullCalEvent);
           }
         }
@@ -431,13 +428,26 @@ $(document).ready(function() {
   
   
   /** Helper function for rendering day not headers for the full calendar */
-  function _dayNoteHeaderRender(dayHeaderObj) {
-    var date = dayHeaderObj["date"];
-    var $dayHeader = $("thead td[data-date="+date+"]");
-    var dayNumber = $dayHeader.children().first().text();
-    var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
-               "<span class='fc-day-number fleft'><b>" + dayHeaderObj["header_text"] + "</b></span>"
-    $dayHeader.html(HTML);
+  function _dayNoteHeaderRender(jsonHeaderNotes) {
+    var viewType = $fullCal.fullCalendar('getView').type;
+    
+    for (var i=0;i<jsonHeaderNotes.length;i++) { 
+      var dayHeaderObj = jsonHeaderNotes[i]
+      var date = dayHeaderObj["date"];
+      dayNoteHeaders[date] = dayHeaderObj;
+      
+      if (viewType === "month") {
+        var $dayHeader = $("thead td[data-date="+date+"]");
+        var dayNumber = $dayHeader.children().first().text();
+        var HTML = "<span class='fc-day-number fright'>" + dayNumber + "</span>" +
+                   "<span class='fc-day-number fleft'><b>" + dayHeaderObj["header_text"] + "</b></span>"
+        $dayHeader.html(HTML);
+      } else if (viewType === "listYear") {
+        var $dayWidgetHeader = $(".fc-list-heading[data-date="+date+"] > .fc-widget-header");
+        var HTML = "<br><div>" + dayHeaderObj["header_text"] + "</div>";
+        $dayWidgetHeader.append(HTML);
+      }
+    } 
   }
   
   

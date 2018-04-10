@@ -27,7 +27,8 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              date_handler, all_calendar_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
-                             get_tro_dates, get_tro_dates_to_dict)
+                             get_tro_dates, get_tro_dates_to_dict,
+                             get_start_end_of_calendar)
 from .forms import (CalendarForm, AddScheduleForm, VacationForm, AbsentForm,
                     RepeatUnavailabilityForm, DesiredTimeForm, 
                     MonthlyRevenueForm, BusinessDataForm, PushLiveForm,
@@ -183,11 +184,8 @@ def get_schedules(request):
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
             month = form.cleaned_data['month']
-
-            # Get date month for calendar for queries
             cal_date = datetime(year, month, 1)
-            lower_bound_dt = cal_date - timedelta(7)
-            upper_bound_dt = cal_date + timedelta(42)
+            lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(year, month)
             
             # Get live_calendar to find out if calendar is active
             try:
@@ -322,10 +320,8 @@ def get_live_schedules(request):
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
             month = form.cleaned_data['month']
-            # Get date month for calendar for queries
             cal_date = datetime(year, month, 1)
-            lower_bound_dt = cal_date - timedelta(7)
-            upper_bound_dt = cal_date + timedelta(42)
+            lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(year, month)
             
             try:
                 live_calendar = LiveCalendar.objects.get(user=manager_user, 

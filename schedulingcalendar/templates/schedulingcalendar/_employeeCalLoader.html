@@ -5,7 +5,7 @@
       action="{% url 'schedulingcalendar:get_live_schedules' %}"
       onsubmit="return(validateGetCalendarForm())"
       method="get"
-      data-show-only-employee-schedules="{{ employee_only }}">
+      data-show-only-employee-schedules="{% if employee_only %}true{% else %}false{% endif %}">
   {% csrf_token %}
   <span class="date-selectors">
     <span class="mobile-span">

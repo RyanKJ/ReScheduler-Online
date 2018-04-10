@@ -8,6 +8,7 @@ contained here.
 
 import json
 import bisect
+import calendar
 from datetime import date, datetime, timedelta, time
 from operator import itemgetter
 from django.utils import timezone
@@ -1033,13 +1034,45 @@ def single_employee_costs(start_dt, end_dt, employee, schedules, departments,
     return workweek_costs
     
     
+def get_start_end_of_calendar(year, month):
+    """Return start and end datetimes of a calendar, given first date of month.
+    
+    For any given calendar, the start and end dates of the month are not
+    necessarily the start and end dates of the calendar, because the calendar
+    includes days of months before and after the calendar's 'month' because 
+    a calendar displays the whole week the start and end of the month are
+    a part of. 
+    
+    For example, if the start of February is a Tuesday, then the calendar will
+    display Sunday and Monday of the last week of January as well.
+
+    Args:
+        year: Integer value of year.
+        month: Integer value of month.
+    Returns:
+        A tuple of the start and end datetimes of the calendar.
+    """
+    
+    cal_date = datetime(year, month, 1)
+    last_day_num_of_month = calendar.monthrange(year, month)[1]
+    last_date_of_month = datetime(year, month, last_day_num_of_month)
+    start_of_month_weekday = cal_date.isoweekday()
+    end_of_month_weekday = last_date_of_month.isoweekday()
+    lower_bound_dt = cal_date - timedelta(start_of_month_weekday % 7)
+    upper_bound_dt = (last_date_of_month 
+                      + timedelta(((6 - end_of_month_weekday) % 7) + 1) 
+                      - timedelta(seconds=1))
+    
+    return (lower_bound_dt, upper_bound_dt)
+
+    
+    
 def create_live_schedules(user, live_calendar):
     """Create live schedules for given date and department."""
     # Get date month for calendar for queries
     cal_date = datetime.combine(live_calendar.date, time.min)
-    lower_bound_dt = cal_date - timedelta(7)
-    upper_bound_dt = cal_date + timedelta(42)
-            
+    lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(cal_date.year, cal_date.month)
+    
     # Get schedule and employee models from database appropriate for calendar
     schedules = (Schedule.objects.select_related('employee', 'department')
                                  .filter(user=user,
