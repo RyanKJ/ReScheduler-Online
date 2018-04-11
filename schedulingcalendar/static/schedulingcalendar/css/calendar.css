@@ -347,6 +347,14 @@ ul#eligable-list {
   border-bottom: 1px solid #2d2400;
   text-decoration: none;
   color: #000;
+}
+
+#eligable-list li.proto-eligible-li {
+  border-bottom: 1px solid #777777;
+  color: #777777;
+}
+
+#eligable-list li:not(.proto-eligible-li) {
   cursor: pointer;
 }
 
@@ -373,27 +381,39 @@ ul#eligable-list {
   background: #ff8e8e;
 }
 
+.red-bg-eligible.proto-eligible-li {
+  background: #ffadad;
+}
+
 .orange-bg-eligible {
   background: #ffa968;
+}
+
+.orange-bg-eligible.proto-eligible-li {
+  background: #ffc69b;
 }
 
 .green-bg-eligible {
   background: #6ee261;
 }
 
-#eligable-list li:hover:not(.curr-assigned-employee) {
+.green-bg-eligible.proto-eligible-li {
+  background: #b0f7a8;
+}
+
+#eligable-list li:hover:not(.curr-assigned-employee):not(.proto-eligible-li) {
   background: #e5e5e5;
 }
 
-#eligable-list li.red-bg-eligible:hover:not(.curr-assigned-employee) {
+#eligable-list li.red-bg-eligible:hover:not(.curr-assigned-employee):not(.proto-eligible-li) {
   background: #ff6868;
 }
 
-#eligable-list li.orange-bg-eligible:hover:not(.curr-assigned-employee) {
+#eligable-list li.orange-bg-eligible:hover:not(.curr-assigned-employee):not(.proto-eligible-li) {
   background: #f28d65;
 }
 
-#eligable-list li.green-bg-eligible:hover:not(.curr-assigned-employee) {
+#eligable-list li.green-bg-eligible:hover:not(.curr-assigned-employee):not(.proto-eligible-li) {
   background: #0cd123;
 }
 

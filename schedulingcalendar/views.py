@@ -506,8 +506,8 @@ def get_proto_schedule_info(request):
     """
     
     logged_in_user = request.user
-    if request.method == 'POST':
-        form = ProtoScheduleForm(request.POST)
+    if request.method == 'GET':
+        form = ProtoScheduleForm(request.GET)
         if form.is_valid():
             department = form.cleaned_data['department']
             date = form.cleaned_data['add_date']
@@ -526,9 +526,6 @@ def get_proto_schedule_info(request):
             schedule = Schedule(user=logged_in_user,
                                 start_datetime=start_dt, end_datetime=end_dt,
                                 department=dep)
-                                
-            schedule_dict = model_to_dict(schedule)
-            schedule_json = json.dumps(schedule_dict, default=date_handler)
             
             eligable_list = get_eligibles(schedule)
             eligable_dict_list = eligable_list_to_dict(eligable_list)

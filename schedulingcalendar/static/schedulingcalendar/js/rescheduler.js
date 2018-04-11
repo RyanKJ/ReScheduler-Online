@@ -71,8 +71,9 @@ $(document).ready(function() {
   var st_picker = $startTimePicker.pickatime("picker");
   var et_picker = $endTimePicker.pickatime("picker");
   
-  st_picker.on({ set: getProtoEligibles });
-  et_picker.on({ set: getProtoEligibles });
+  $("#start-timepicker").change({date: $addScheduleDate.val()}, getProtoEligibles);
+  $("#end-timepicker").change({date: $addScheduleDate.val()}, getProtoEligibles);
+  $addScheduleDate.change({date: $addScheduleDate.val()}, getProtoEligibles);  
     
   $conflictAssignBtn.click(_assignEmployeeAfterWarning);
   $removeScheduleBtn.click(removeSchedule);
@@ -147,7 +148,7 @@ $(document).ready(function() {
         // Get eligibles for this schedule
         $.get("get_schedule_info", {pk: pk}, displayEligables);
       } else { //Non-schedule fc-event was clicked
-        clearEligables();
+        getProtoEligibles({data: {date: date}});
         $scheduleNoteText.val("Please Select A Schedule First");
         $scheduleNoteBtn.prop('disabled', true);
       }
@@ -177,9 +178,11 @@ $(document).ready(function() {
      * has just been clicked.
      */
     dayClick: function(date, jsEvent, view) {
+      $(".fc-event-clicked").removeClass("fc-event-clicked");
       var formatted_date = date.format(DATE_FORMAT);
       $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
+      getProtoEligibles({data: {date: formatted_date}});
           
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
@@ -191,7 +194,6 @@ $(document).ready(function() {
         $addScheduleDate.val(formatted_date);
             
         $(".fc-event-clicked").removeClass("fc-event-clicked");
-        clearEligables();
         
         // Update text field for editing day notes
         if (dayNoteHeaders.hasOwnProperty(formatted_date)) {
@@ -328,6 +330,18 @@ $(document).ready(function() {
     $fcDays.dblclick(dblClickHelper);
     $fcContent.dblclick(dblClickHelper);
   }
+  
+  
+  // Load schedule upon loading page relative to current date
+  var liveCalDate = new Date($calendarLoaderForm.data("date"));
+  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
+  var y = liveCalDate.getFullYear();
+  var dep = $calendarLoaderForm.data("department");
+  
+  $("#id_month").val(m + 1);
+  $("#id_year").val(y);
+  $("#id_department").val(dep);
+  $("#get-calendar-button").trigger("click"); 
   
   
   /** Helper function to create fullcalendar events with unique rows */
@@ -549,18 +563,6 @@ $(document).ready(function() {
       $dayHeader.html(html);
     });
   }
-  
-
-  // Load schedule upon loading page relative to current date
-  var liveCalDate = new Date($calendarLoaderForm.data("date"));
-  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
-  var y = liveCalDate.getFullYear();
-  var dep = $calendarLoaderForm.data("department");
-  
-  $("#id_month").val(m + 1);
-  $("#id_year").val(y);
-  $("#id_department").val(dep);
-  $("#get-calendar-button").trigger("click"); 
   
   
   /** Show user modal asking if they want to make current calendar state live. */
@@ -868,6 +870,14 @@ $(document).ready(function() {
     if (displaySettings["sort_by_names"]) {
       eligableList.sort(compareEmployeeName);
     }
+    // Get proto schedule duration
+    var schedule = info["schedule"]
+    var currAssignedEmployeeID = schedule["employee"];
+    var start = moment(schedule['start_datetime']);
+    var end = moment(schedule['end_datetime']);
+    var duration = moment.duration(end.diff(start));
+    var schedule_hours = duration.asHours();
+    
     // Create li corresponding to eligable employees for proto schedule
     for (var i=0;i<eligableList.length;i++) {  
       var warningStr = _compileConflictWarnings(eligableList[i]['availability']);
@@ -886,6 +896,7 @@ $(document).ready(function() {
       // Create content inside each eligible li
       var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours'];
       var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
+      curr_hours -= schedule_hours;
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
                    "<div title='" + desired_hours_title + "' class='eligible-hours'>" + curr_hours + "</div>"
       $li.html(liHTML);
@@ -893,10 +904,21 @@ $(document).ready(function() {
   }
   
   
-  function getProtoEligibles() {
-    console.log("Hello");
+  /** Get eligible list for potential schedule to be added. */ 
+  function getProtoEligibles(event) {
+    console.log("Got here 1");
+    var date = event.data.date;
+    var $scheduleClicked = $(".fc-event-clicked");
+    console.log("date is: ", date);
+    // Ensure a day has been clicked and no schedule currently clicked
+    if (date && !$scheduleClicked.length) {
+      var startTime = $("#start-timepicker").val();
+      var endTime = $("#end-timepicker").val();
+      $.get("get_proto_schedule_info",
+            {add_date: date, department: calDepartment, start_time: startTime, end_time: endTime},
+             displayProtoEligables);
+    }
   }
-  
   
   
   /** Comparator function for sorting employees by last name, then first name */
@@ -1047,7 +1069,6 @@ $(document).ready(function() {
   /** Clear out eligable list and hide the schedule info section */
   function clearEligables() {
     $eligableList.empty();
-    $scheduleInfo.css("display", "none");
   }
     
     
@@ -1342,14 +1363,14 @@ $(document).ready(function() {
       }
       $fullCal.fullCalendar("removeEvents", schedulePk)
     }
-    // Clear out eligable list
-    $eligableList.empty();
-    $scheduleInfo.css("display", "none");
     // Update cost display to reflect any cost changes
     addCostChange(info["cost_delta"]);
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
+    // Clear out eligable list
+    $eligableList.empty();
+    $("td.fc-day-clicked").trigger("click");
   }
   
   
@@ -1592,13 +1613,6 @@ $(document).ready(function() {
     $event_div.addClass("fc-event-clicked"); 
     // Update the collection of schedule notes for updating form text field
     scheduleNotes[schedulePk] = note;
-  }
-  
-  
-  /** Clear eligibles */
-  function clearEligables() {
-    $eligableList.empty();
-    $scheduleInfo.css("display", "none");
   }
   
   
