@@ -97,6 +97,7 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
+    height: 800,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -810,6 +811,8 @@ $(document).ready(function() {
    */    
   function displayEligables(data) {
     clearEligables();
+    $removeScheduleBtn.removeClass("inactive-btn");
+    $editScheduleBtn.removeClass("inactive-btn");
     $scheduleInfo.css("display", "block");
     
     var info = JSON.parse(data);
@@ -863,6 +866,8 @@ $(document).ready(function() {
    */    
   function displayProtoEligables(data) {
     clearEligables();
+    $removeScheduleBtn.addClass("inactive-btn");
+    $editScheduleBtn.addClass("inactive-btn");
     $scheduleInfo.css("display", "block");
     
     var info = JSON.parse(data);
@@ -1320,8 +1325,11 @@ $(document).ready(function() {
 
   /** Give user warning dialog to choose if they want to remove schedule. */
   function removeSchedule() {
-    $removeScheduleBtn.css("display", "none");
-    $removeBtnConfirmContainer.css("display", "block");
+    var $clickedEvent = $(".fc-event-clicked");
+    if ($clickedEvent.length) { // Ensure event to remove has been clicked
+      $removeScheduleBtn.css("display", "none");
+      $removeBtnConfirmContainer.css("display", "block");
+    }
   }
   
   
@@ -1368,9 +1376,10 @@ $(document).ready(function() {
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
-    // Clear out eligable list
-    $eligableList.empty();
-    $("td.fc-day-clicked").trigger("click");
+    // Inactivate schedule buttons and get proto eligibles
+    $removeScheduleBtn.addClass("inactive-btn");
+    $editScheduleBtn.addClass("inactive-btn");
+    getProtoEligibles({data: {date: $addScheduleDate.val()}});
   }
   
   
@@ -1407,16 +1416,19 @@ $(document).ready(function() {
     
   /** Change times and hide start/end booleans */
   function editSchedule(event) {
-    var event_id = $(".fc-event-clicked").parent().data("event-id");
-    var startTime = $("#start-timepicker").val();
-    var endTime = $("#end-timepicker").val();
-    var hideStart = $("#start-checkbox").prop('checked');
-    var hideEnd = $("#end-checkbox").prop('checked');
-    if (event_id) {
-      $.post("edit_schedule", 
-             {schedule_pk: event_id, start_time: startTime, end_time: endTime,
-              hide_start: hideStart, hide_end: hideEnd}, 
-             successfulScheduleEdit);
+    var $clickedEvent = $(".fc-event-clicked");
+    if ($clickedEvent.length) { // Ensure event to edit has been clicked
+      var event_id = $(".fc-event-clicked").parent().data("event-id");
+      var startTime = $("#start-timepicker").val();
+      var endTime = $("#end-timepicker").val();
+      var hideStart = $("#start-checkbox").prop('checked');
+      var hideEnd = $("#end-checkbox").prop('checked');
+      if (event_id) {
+        $.post("edit_schedule", 
+               {schedule_pk: event_id, start_time: startTime, end_time: endTime,
+                hide_start: hideStart, hide_end: hideEnd}, 
+               successfulScheduleEdit);
+      }
     }
   }
   

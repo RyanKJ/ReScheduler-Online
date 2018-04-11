@@ -1109,13 +1109,13 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
         employee_pks.append(dep_mem.employee.id)
         
     dep_vacations = Vacation.objects.filter(user=user,
-                                            start_datetime__gte=lower_bound_dt,
-                                            end_datetime__lte=upper_bound_dt,
+                                            start_datetime__lt=upper_bound_dt,
+                                            end_datetime__gt=lower_bound_dt,
                                             employee__in=employee_pks)
                                             
     unavailabilities = Absence.objects.filter(user=user,
-                                              start_datetime__gte=lower_bound_dt,
-                                              end_datetime__lte=upper_bound_dt,
+                                              start_datetime__lt=upper_bound_dt,
+                                              end_datetime__gt=lower_bound_dt,
                                               employee__in=employee_pks)
                                             
                                             

@@ -29,7 +29,7 @@
     {% include "schedulingcalendar/_employeelessDepartmentModal.html" %}
     
     <div id="toolbar-sticky" class="row no-print calendar-toolbar">
-      <div class="col-md-7">
+      <div class="col-lg-7 col-md-12">
         <!-- Form for getting calendar -->
         <form id="load-calendar-form"
               action="{% url 'schedulingcalendar:get_schedules' %}"
@@ -73,7 +73,7 @@
         </form>
       </div>
         
-      <div class="col-md-5">
+      <div class="col-lg-5 col-md-12">
         <!-- Buttons for live version of calendar that employees see -->
         <div id="push-live" class="calendar-push-btn">
           Push Live
@@ -113,7 +113,7 @@
     </div>
 
     <div class="row content">
-      <div class="col-md-2">
+      <div class="col-md-2 col-sm-3">
         <!-- Schedule Editor -->
         <aside class="schedule-editor no-print">
           <section class="schedule-adder">
@@ -186,7 +186,7 @@
         </aside>
       </div>
 
-      <div class="col-md-10">
+      <div class="col-md-10 col-sm-9">
         <!-- Fullcalendar -->
         <section class="draft-calendar">
           <div id="calendar"></div>

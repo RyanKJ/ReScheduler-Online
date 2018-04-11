@@ -242,10 +242,17 @@ a:active {
     color: #fff;
 }
 
-#edit-btn:hover {
+#edit-btn:hover:not(.inactive-btn) {
   background: #629dfc;
   cursor: pointer;
 }
+
+
+#edit-btn.inactive-btn {
+  background: #9ebff7;
+  border-bottom: 2px solid #c9ddff;
+}
+
 
 #remove-btn {
     background: linear-gradient(to bottom right, #ffc34d, #ef573d);
@@ -260,7 +267,12 @@ a:active {
     color: #fff;
 }
 
-#remove-btn:hover {
+#remove-btn.inactive-btn {
+  background: #ff9f8e;
+  border-bottom: 2px solid #fcb2a6;
+}
+
+#remove-btn:hover:not(.inactive-btn) {
   background: #ef7c69;
   cursor: pointer;
 }

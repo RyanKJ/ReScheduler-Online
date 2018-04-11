@@ -224,14 +224,12 @@ def get_schedules(request):
                     
             # Get day notes to display for dates within range of month
             day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
-                                                           date__year=year,
-                                                           date__month__gte=month - 1,
-                                                           date__month__lte=month + 1,
+                                                           date__lte=upper_bound_dt,
+                                                           date__gte=lower_bound_dt,
                                                            department=department_id)
             day_note_body = DayNoteBody.objects.filter(user=logged_in_user,
-                                                       date__year=year,
-                                                       date__month__gte=month - 1,
-                                                       date__month__lte=month + 1,
+                                                       date__lte=upper_bound_dt,
+                                                       date__gte=lower_bound_dt,
                                                        department=department_id)    
 
             # Get time requested off instances
@@ -369,14 +367,12 @@ def get_live_schedules(request):
                         
                 # Get day notes to display for dates within range of month
                 day_note_header = DayNoteHeader.objects.filter(user=manager_user,
-                                                               date__year=year,
-                                                               date__month__gte=month - 1,
-                                                               date__month__lte=month + 1,
+                                                               date__lte=upper_bound_dt,
+                                                               date__gte=lower_bound_dt,
                                                                department=department_id)
                 day_note_body = DayNoteBody.objects.filter(user=manager_user,
-                                                           date__year=year,
-                                                           date__month__gte=month - 1,
-                                                           date__month__lte=month + 1,
+                                                           date__lte=upper_bound_dt,
+                                                           date__gte=lower_bound_dt,
                                                            department=department_id)  
                 
                 # Convert live_schedules and employees to dicts for json dump
