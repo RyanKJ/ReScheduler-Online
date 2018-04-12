@@ -17,13 +17,13 @@
 			<ul class="nav navbar-nav navbar-right">
         {% if user.is_authenticated %}
           {% if user|has_group:"Managers" %}
+            <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Calendar</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Business<span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Schedules</a></li>
                 <li><a href="{% url 'schedulingcalendar:employee_list' %}">Employees</a></li>
                 <li><a href="{% url 'schedulingcalendar:department_list' %}">Departments</a></li>
-                <li><a href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Sales</a></li>
+                <li><a href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Monthly Revenue</a></li>
                 <li><a href="{% url 'schedulingcalendar:business_update' %}">Settings</a></li>
               </ul>
             </li>

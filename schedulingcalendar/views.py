@@ -409,7 +409,9 @@ def get_live_schedules(request):
                                  'version': version,
                                  'display_settings': business_dict,
                                  'employee_user_pk': employee_user_pk,
-                                 'override_list_view': override_list_view}
+                                 'override_list_view': override_list_view,
+                                 'lower_bound_dt': lower_bound_dt.isoformat(),
+                                 'upper_bound_dt': upper_bound_dt.isoformat()}
                 combined_json = json.dumps(combined_dict, default=date_handler)
                 
                 return JsonResponse(combined_json, safe=False)

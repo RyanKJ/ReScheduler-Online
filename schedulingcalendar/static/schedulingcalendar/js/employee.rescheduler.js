@@ -24,6 +24,7 @@ $(document).ready(function() {
   var employeesAssigned = [];
   var employeeUserPk = null;
   var troDates = {};
+  var dateRange = {start: null, end: null};
    
   // Jquery object variables
   var $calendarLoaderForm = $("#load-calendar-form");
@@ -148,6 +149,8 @@ $(document).ready(function() {
     
     // Get new calendar month view via date
     var format = "YYYY-MM-DDThh:mm:ss";
+    dateRange.start = moment(info['lower_bound_dt'], format);
+    dateRange.end = moment(info['upper_bound_dt'], format);
     var newCalDate = moment(info["date"], format);
     $fullCal.fullCalendar("gotoDate", newCalDate);
         
@@ -227,7 +230,7 @@ $(document).ready(function() {
   function _schedulesToUniqueRowEvents(schedules) {
     var viewType = $fullCal.fullCalendar('getView').type;
     var scheduleEvents = [];
-    visibleDates = visibleFullCalDates();
+    visibleDates = visibleFullCalDates(dateRange.start, dateRange.end);
     
     // Append schedules to appropriate date and compile list of employee pks
     // assigned to any schedules
@@ -396,11 +399,11 @@ $(document).ready(function() {
   
   
   /** Creates object string dates of visible fullcal dates mapping to empty arrays*/
-  function visibleFullCalDates() {
-    startDate = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
-    endDate = $fullCal.fullCalendar('getView').end.format('YYYY-MM-DD');
-    visibleDatesList = _enumerateDaysBetweenDates(startDate, endDate);
+  function visibleFullCalDates(startDate=null, endDate=null) {
+    if (!startDate) { startDate = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD'); }
+    if (!endDate) { endDate = $fullCal.fullCalendar('getView').end.format('YYYY-MM-DD'); }
     
+    visibleDatesList = _enumerateDaysBetweenDates(startDate, endDate);
     var visibleDatesObj = {};
     
     for(var i=0; i<visibleDatesList.length; i++) {
