@@ -97,7 +97,7 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: 800,
+    height: 780,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
