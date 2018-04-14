@@ -47,6 +47,21 @@ a:active {
   padding-top: 55px;
 }
 
+.sticky-cal { 
+  position: fixed;
+  top: 60px;
+  margin-right: 10px;
+}
+
+.sticky-cal + .content {
+  padding-top: 55px;
+}
+
+.stick-cal > #calendar {
+  position: relative;
+  right: 10px;
+}
+
 .calendar-toolbar {
   background: linear-gradient(to bottom, #0079D7, #0a83eb);
   padding-bottom: 0px;
@@ -208,15 +223,6 @@ a:active {
   padding-right: 7px;
   float: right;
   vertical-align: middle;
-}
-
-
-/* Schedule Editor styling
---------------------------------------------------------------------------------------------------*/
-
-.schedule-editor {
-  margin-top: 62px;
-  margin-left: 4px;
 }
 
 
@@ -435,7 +441,7 @@ ul#eligable-list {
 
 ul#cost-list {
   list-style-type: none;
-  margin: 0;
+  margin: 0px 0px 10px 0px;
   padding: 0;
 }
 
@@ -468,23 +474,28 @@ li:last-child.cost-list {
 /* Scheduler adder styling
 --------------------------------------------------------------------------------------------------*/
 
+.schedule-editor {
+  margin-left: 4px;
+}
+
 .schedule-adder{
     font: 95% Arial, Helvetica, sans-serif;
-    margin: 10px auto;
+	margin: 10px auto;
     margin-bottom: 0px;
     padding: 16px 16px 16px 16px;
+    margin-bottom: 0px;
     background: #F7F7F7;
 }
 
 .schedule-adder h1{
     background: #ffc34d;
     border-radius: 3px 3px 0px 0px;
-    padding: 12px 0;
+	padding-top: 8px;
+	padding-bottom: 8px;
     font-size: 180%;
-    font-weight: 300;
+    font-weight: 400;
     text-align: center;
     color: #fff;
-    margin: -16px -16px 16px -16px;
 }
 
 

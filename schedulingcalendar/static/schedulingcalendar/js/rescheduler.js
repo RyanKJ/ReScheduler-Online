@@ -92,12 +92,14 @@ $(document).ready(function() {
   $copyDayBtn.click(copySchedulePks);
   
   var toolbar = document.getElementById("toolbar-sticky");
+  var calendarDiv = document.getElementById("stick-cal");
   var sticky = toolbar.offsetTop;
-  window.onscroll = function() { stickyToolbar(); };
+
+  window.onscroll = function() { stickyToolbarAndCal(); };
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: 780,
+    height: 800,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -1726,13 +1728,16 @@ $(document).ready(function() {
   
   
   /** Add/Remove class to toolbar to make it fixed/static on scroll */
-  function stickyToolbar() {
+  function stickyToolbarAndCal() {
     if (window.pageYOffset >= sticky) {
       toolbar.classList.add("sticky");
+	  calendarDiv.classList.add("sticky-cal");
     } else {
       toolbar.classList.remove("sticky");
+	  calendarDiv.classList.remove("sticky-cal");
     }
   }
+
   
 }); 
     
