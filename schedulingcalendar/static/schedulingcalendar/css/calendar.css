@@ -564,3 +564,19 @@ li:last-child.cost-list {
 .schedule-adder input[type="button"]:hover{
     background: #ffd480;
 }
+
+
+/* Mobile styling
+--------------------------------------------------------------------------------------------------*/
+
+@media screen and (max-width: 1199px) {
+.sticky-cal { 
+    top: 100px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .sticky, .sticky-cal { position: static; }
+  
+}
+  

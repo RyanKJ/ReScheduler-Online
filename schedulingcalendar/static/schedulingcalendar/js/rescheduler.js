@@ -230,7 +230,6 @@ $(document).ready(function() {
   function loadSchedules(json_data) {
     // Clear out eligable list incase previous calendar was loaded
     $eligableList.empty();
-    $scheduleInfo.css("display", "none");
     employeesAssigned = [];
     _removeDayNoteHeaders();
     
@@ -247,12 +246,6 @@ $(document).ready(function() {
         _showEmployeelessDepartmentModal();
       }
     }
-    // Set default start and end time for time-pickers
-    st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
-    et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
-    $hideStart.prop('checked', displaySettings["hide_start"]);
-    $hideEnd.prop('checked', displaySettings["hide_end"]);
-    
     // Get new calendar month view via date
     calDate = moment(info["date"], DATE_FORMAT);
     $fullCal.fullCalendar("gotoDate", calDate);
@@ -264,6 +257,12 @@ $(document).ready(function() {
     $addScheduleDep.val(calDepartment);
     $viewLiveDep.val(calDepartment);
     $(".fc-center").find("h2").text(depName + ": " + calDate.format("MMMM, YYYY"));
+    
+    // Set default start and end time for time-pickers
+    st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
+    et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
+    $hideStart.prop('checked', displaySettings["hide_start"]);
+    $hideEnd.prop('checked', displaySettings["hide_end"]);
         
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
@@ -332,6 +331,12 @@ $(document).ready(function() {
     var $fcContent = $(".fc-content-skeleton");
     $fcDays.dblclick(dblClickHelper);
     $fcContent.dblclick(dblClickHelper);
+    
+    // Click first visible day
+    var firstDay = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
+    $addScheduleDate.val(firstDay);
+    $(".fc-day-clicked").removeClass("fc-day-clicked");
+    $("td[data-date="+firstDay+"]").addClass("fc-day-clicked");
   }
   
   
@@ -913,10 +918,8 @@ $(document).ready(function() {
   
   /** Get eligible list for potential schedule to be added. */ 
   function getProtoEligibles(event) {
-    console.log("Got here 1");
     var date = event.data.date;
     var $scheduleClicked = $(".fc-event-clicked");
-    console.log("date is: ", date);
     // Ensure a day has been clicked and no schedule currently clicked
     if (date && !$scheduleClicked.length) {
       var startTime = $("#start-timepicker").val();

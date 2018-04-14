@@ -412,12 +412,23 @@ li:last-child.cost-list {
     margin: 0 auto; 
   }
   
- .select-cal-loader-checkbox { margin-bottom: 5px; }
- .calendar-loader-btn { margin-top: 10px; margin-bottom: 0px; }
- .calendar-push-btn { display: none; }
- .select-calendar-year { width: 120px; }
- .select-calendar-month { width: 120px; }
- .select-calendar { position: static; }
+  .select-cal-loader-checkbox { margin-bottom: 5px; }
+  .calendar-loader-btn { margin-top: 10px; margin-bottom: 0px; }
+  .calendar-push-btn { display: none; }
+  .select-calendar-year { width: 120px; }
+  .select-calendar-month { width: 120px; }
+  .select-calendar { position: static; }
+ 
+  .checkbox-custom { width: 40px; height: 40px; }
+  .checkbox-custom label { 
+    left: 5px;
+    width: 30px;
+  	height: 30px;
+    border-radius: 8%;
+  }
+  
+  .checkbox-custom input[type=checkbox]:checked + label { left: 5px; }
+  .select-cal-loader-checkbox { }
 }
 
 
