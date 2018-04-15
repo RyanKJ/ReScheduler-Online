@@ -232,6 +232,7 @@ $(document).ready(function() {
     $eligableList.empty();
     employeesAssigned = [];
     _removeDayNoteHeaders();
+    copySchedulePksList = [];
     
     var info = JSON.parse(json_data);
     // Save display settings for calendar events
@@ -329,6 +330,8 @@ $(document).ready(function() {
     // Set .fc-day elements to call a function on a double click
     var $fcDays = $(".fc-day");
     var $fcContent = $(".fc-content-skeleton");
+    $fcDays.off("dblclick", dblClickHelper); // handlers stack, so we remove any old handlers first
+    $fcContent.off("dblclick", dblClickHelper);
     $fcDays.dblclick(dblClickHelper);
     $fcContent.dblclick(dblClickHelper);
     
@@ -1677,6 +1680,7 @@ $(document).ready(function() {
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     if (copySchedulePksList.length) {
+      console.log("copied schedule pks are: ", copySchedulePksList);
       $("body").css("cursor", "progress");
       $.post("copy_schedules",
              {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList},

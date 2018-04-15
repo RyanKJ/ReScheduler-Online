@@ -369,7 +369,7 @@ class MonthlyRevenueForm(forms.ModelForm):
         
 class DayNoteHeaderForm(forms.ModelForm):
     """Form for creating and editing day note headers."""                                                    
-                                
+                    
     class Meta:
         model = DayNoteHeader
         fields = ['date', 'header_text', 'department']
@@ -404,10 +404,12 @@ class EmployeeDisplaySettingsForm(forms.ModelForm):
     """Form for setting employee display settings"""
     override_list_view = forms.BooleanField(label="", required=False,
                                             widget=forms.CheckboxInput())
+    see_all_departments = forms.BooleanField(label="", required=False,
+                                             widget=forms.CheckboxInput())
                                             
     class Meta:
         model = Employee
-        fields = ['override_list_view']
+        fields = ['override_list_view', 'see_all_departments']
     
     
 def get_department_tuple(logged_user, employee=None):
@@ -421,15 +423,15 @@ def get_department_tuple(logged_user, employee=None):
         A tuple containing all departments of user where each element is a 
         tuple containing department id and name.
     """
-    dep_choices = [] 
+    dep_choices = []
     
-    if employee:
+    if employee and not employee.see_all_departments:
         dep_membership = (DepartmentMembership.objects.select_related('department')
                                                       .filter(employee=employee)
                                                       .order_by('priority'))
         dep_choices = [(dep_mem.department.id, dep_mem.department.name) for dep_mem in dep_membership]
     else:
-        departments = Department.objects.filter(user=logged_user).only('id', 'name')
+        departments = Department.objects.filter(user=logged_user).only('id', 'name').order_by('name')
         dep_choices = [(dep.id, dep.name) for dep in departments]
         
     return tuple(dep_choices)

@@ -23,12 +23,27 @@
             </div>
             <span class="checkbox-custom-text">Always Display Month Calendar</span>
           </div>
-        </div>
-        
-        <p class="card-text">A list of schedules displays automatically for 
-          small devices instead of a calendar. By clicking this button, the 
+          <p class="card-text">If this setting is off, a list of schedules displays 
+          automatically for small devices instead of a calendar. If it is on, the 
           schedules will always display as a normal calendar even on a small 
           screen.</p>
+          <br><br>
+          
+          <div class="checkbox-custom-container">
+            <div class="checkbox-custom">
+              {{ form.see_all_departments.errors }}
+              {{ form.see_all_departments }}
+              {{ form.see_all_departments.label_tag }}
+              {% if form.see_all_departments.help_text %}
+                <p class="help">{{ form.see_all_departments.help_text|safe }}</p>
+              {% endif %}
+            </div>
+            <span class="checkbox-custom-text">See All Departments</span>
+          </div>
+        </div>
+        <p class="card-text">If this setting is off, you will only see the 
+        schedules for departments that you belong to. If it is on, you can see
+        all current schedules for all departments.</p>
           
         <input type="submit" class="btn btn-primary" value="Save Settings">
       </form>

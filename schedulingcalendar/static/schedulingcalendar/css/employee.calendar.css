@@ -418,17 +418,7 @@ li:last-child.cost-list {
   .select-calendar-year { width: 120px; }
   .select-calendar-month { width: 120px; }
   .select-calendar { position: static; }
- 
-  .checkbox-custom { width: 40px; height: 40px; }
-  .checkbox-custom label { 
-    left: 5px;
-    width: 30px;
-  	height: 30px;
-    border-radius: 8%;
-  }
-  
-  .checkbox-custom input[type=checkbox]:checked + label { left: 5px; }
-  .select-cal-loader-checkbox { }
+  .select-cal-loader-checkbox {max-height: 40px; }
 }
 
 

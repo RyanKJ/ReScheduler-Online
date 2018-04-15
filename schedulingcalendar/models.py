@@ -23,8 +23,9 @@ class Employee(models.Model):
     workmans_comp = models.FloatField('workmans comp', default=0)
     social_security = models.FloatField('social security', default=6.2)
     # Calendar display settings
-    override_list_view = models.BooleanField(default=False)
+    override_list_view = models.BooleanField(default=True)
     see_only_my_schedules = models.BooleanField(default=False)
+    see_all_departments = models.BooleanField(default=False)
 
     
     def __str__(self):             

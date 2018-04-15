@@ -50,16 +50,11 @@ a:active {
 .sticky-cal { 
   position: fixed;
   top: 60px;
-  margin-right: 10px;
+  width: 82%;
 }
 
 .sticky-cal + .content {
   padding-top: 55px;
-}
-
-.stick-cal > #calendar {
-  position: relative;
-  right: 10px;
 }
 
 .calendar-toolbar {
@@ -572,11 +567,12 @@ li:last-child.cost-list {
 @media screen and (max-width: 1199px) {
 .sticky-cal { 
     top: 100px;
+    width: 65%;
   }
 }
 
 @media screen and (max-width: 767px) {
   .sticky, .sticky-cal { position: static; }
-  
+  .sticky-cal { width: 100%;}
 }
   

@@ -114,3 +114,17 @@ main {
 input[type=checkbox] {
 	visibility: hidden;
 }
+
+@media screen and (max-width: 767px) {
+  .checkbox-custom { width: 36px; height: 36px; }
+  .checkbox-custom label { 
+    left: 3px;
+    width: 30px;
+  	height: 30px;
+    border-radius: 8%;
+  }
+  .checkbox-custom input[type=checkbox]:checked + label { left: 3px; }
+  .checkbox-custom-text { top: 6px; }
+  .checkbox-custom:before { width: 0px; }
+
+}
