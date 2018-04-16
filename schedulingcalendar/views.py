@@ -486,7 +486,7 @@ def get_schedule_info(request):
     schedule = (Schedule.objects.select_related('department', 'employee', 'user')
                                 .get(user=logged_in_user, pk=schedule_pk))
     
-    eligable_list = get_eligibles(schedule)
+    eligable_list = get_eligibles(logged_in_user, schedule)
     eligable_dict_list = eligable_list_to_dict(eligable_list)
     json_data = json.dumps(eligable_dict_list, default=date_handler)
     
@@ -525,7 +525,7 @@ def get_proto_schedule_info(request):
                                 start_datetime=start_dt, end_datetime=end_dt,
                                 department=dep)
             
-            eligable_list = get_eligibles(schedule)
+            eligable_list = get_eligibles(logged_in_user, schedule)
             eligable_dict_list = eligable_list_to_dict(eligable_list)
             json_data = json.dumps(eligable_dict_list, default=date_handler)
             

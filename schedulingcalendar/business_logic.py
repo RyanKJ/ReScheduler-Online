@@ -19,7 +19,7 @@ from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar)
 
 
-def get_eligibles(schedule):
+def get_eligibles(user, schedule):
     """Return a sorted list of eligible employees along with info.
     
     The eligible list is a sorted list of dictionaries containing an employee, 
@@ -50,6 +50,7 @@ def get_eligibles(schedule):
                  assigned and how many hours a week the employee desires.
                  
     Args:
+        user: django authenticated manager user.
         schedule: schedule to calculate employee eligability for assignment. 
     Returns:
         A dict containing the schedule pk and eligible list. The eligible list 
@@ -59,10 +60,10 @@ def get_eligibles(schedule):
     
     eligables = []
     
-    dep_membership = DepartmentMembership.objects.filter(department=schedule.department)
+    dep_membership = DepartmentMembership.objects.filter(user=user, department=schedule.department)
     for dep_mem in dep_membership:
         employee = dep_mem.employee
-        availability = get_availability(employee, schedule)
+        availability = get_availability(user, employee, schedule)
         # Get the multiple-criterion tuple for sorting an employee
         availability_score = _calculate_availability_score(availability)
         dep_priority_score = _calculate_dep_priority_score(dep_mem)
@@ -206,7 +207,7 @@ def _calculate_desired_hours_score(hours_scheduled, employee):
     return hours_scheduled - employee.desired_hours
     
     
-def get_availability(employee, schedule):
+def get_availability(user, employee, schedule):
     """Create the availability dictionary for employee given a schedule.
     
     Availability is a dictionary containing information about conflicts an
@@ -245,6 +246,7 @@ def get_availability(employee, schedule):
              greater than the employer's legal overtime limit.
         
     Args:
+        user: django authenticated manager user.
         employee: Employee model object.
         schedule: Schedule model object.
     Returns:
@@ -257,21 +259,21 @@ def get_availability(employee, schedule):
     availability = {}
     
     # Get schedules employee is assigned to that overlap with schedule
-    schedules = (Schedule.objects.filter(employee=employee.id,
+    schedules = (Schedule.objects.filter(user=user, employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)
                                  .exclude(pk=schedule.pk))
     availability['(S)'] = schedules
     
     # Get vacations employee is assigned to that overlap with schedule
-    vacations = (Vacation.objects.filter(employee=employee.id,
+    vacations = (Vacation.objects.filter(user=user, employee=employee.id,
                                          start_datetime__lt=schedule.end_datetime,
                                          end_datetime__gt=schedule.start_datetime)) 
                             
     availability['(V)'] = vacations
     
     # Get absences employee is assigned to that overlap with schedule
-    absences = (Absence.objects.filter(employee=employee.id,
+    absences = (Absence.objects.filter(user=user, employee=employee.id,
                                        start_datetime__lt=schedule.end_datetime,
                                        end_datetime__gt=schedule.start_datetime)) 
     availability['(A)'] = absences
@@ -280,7 +282,8 @@ def get_availability(employee, schedule):
     sch_weekday = schedule.start_datetime.weekday()
     start_time = schedule.start_datetime.time()
     end_time = schedule.end_datetime.time()
-    unav_repeat_naive = RepeatUnavailability.objects.filter(employee=employee.id,
+    unav_repeat_naive = RepeatUnavailability.objects.filter(user=user, 
+                                                            employee=employee.id,
                                                             weekday=sch_weekday)
     unav_repeat_aware = []
     for un_av in unav_repeat_naive:
@@ -293,7 +296,8 @@ def get_availability(employee, schedule):
     availability['(U)'] = unav_repeat_aware
 
     # Get desired times employee is assigned overlapping with schedule
-    desired_times_naive = DesiredTime.objects.filter(employee=employee.id,
+    desired_times_naive = DesiredTime.objects.filter(user=user, 
+                                                     employee=employee.id,
                                                      weekday=sch_weekday)
     desired_times_aware = []
     for desired_time in desired_times_naive:
@@ -306,9 +310,9 @@ def get_availability(employee, schedule):
     availability['Desired Times'] = desired_times_aware
 
     # Check current hours worked for later evaluation of overtime       
-    total_workweek_hours = calculate_weekly_hours_with_sch(employee, schedule)
+    total_workweek_hours = calculate_weekly_hours_with_sch(user, employee, schedule)
     availability['Hours Scheduled'] = total_workweek_hours
-    availability['(O)'] = check_for_overtime(total_workweek_hours, schedule.user)
+    availability['(O)'] = check_for_overtime(total_workweek_hours, user)
             
     return availability
     
@@ -323,7 +327,7 @@ def check_for_overtime(hours, user):
         return False
     
     
-def calculate_weekly_hours_with_sch(employee, schedule):
+def calculate_weekly_hours_with_sch(user, employee, schedule):
     """Calculate # of hours employee will be working if assigned to schedule.
     
     Given the employer's stated start of the week, say Friday, sum up the total
@@ -332,6 +336,7 @@ def calculate_weekly_hours_with_sch(employee, schedule):
     the employee is working 40 hours already, then the returned value is 48.
     
     Args:
+        user: django authenticated manager user.
         employee: Employee model object.
         schedule: Schedule model object.
     Returns:
@@ -339,7 +344,7 @@ def calculate_weekly_hours_with_sch(employee, schedule):
         that with, including the hours of the schedule they may be assigned to.
     """
     
-    curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, schedule.user)
+    curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, user)
     if schedule.employee == employee:
         return curr_hours
     else:
@@ -531,7 +536,7 @@ def all_calendar_costs(user, month, year):
         representing dollar cost.
     """  
     
-    departments = Department.objects.filter(user=user)
+    departments = Department.objects.filter(user=user).order_by('name')
     business_data = BusinessData.objects.get(user=user)
     
     department_costs = {}

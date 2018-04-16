@@ -50,7 +50,7 @@ a:active {
 .sticky-cal { 
   position: fixed;
   top: 60px;
-  width: 82%;
+  width: 81.75%;
 }
 
 .sticky-cal + .content {
@@ -380,11 +380,35 @@ ul#eligable-list {
   max-width: 80%;
 }
 
-.eligible-hours {
-  display: inline-block;
-  float: right;
+.hour-wrapper { 
+  position: relative; 
+  display: inline-block; 
+  float: right; 
   margin-right: 5px;
 }
+
+.eligible-hours {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-block;
+  float: left;
+  text-align: right;
+  width: 36px;
+}
+
+.desired-hours {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: none;
+  text-align: right;
+  width: 36px;
+}
+
+.hour-wrapper:hover .eligible-hours { display: none; }
+.hour-wrapper:hover .desired-hours { display: inline-block; }
+
 
 .blue-bg-eligible, #eligable-list li.curr-assigned-employee {
   background: #59bcff;
@@ -454,7 +478,6 @@ ul#cost-list {
 
 li.cost-list {
   font: 200 18px/1.5 Helvetica, Verdana, sans-serif;
-  text-align: center;
   border-bottom: 1px solid #ccc;
   text-decoration: none;
   color: #000;
@@ -464,6 +487,9 @@ li:last-child.cost-list {
   border: none;
   font-weight: bold;
 }
+
+.cost-dep-name { text-align: center; margin-left: 5px; }
+.cost-percentage { float: right; margin-right: 5px; }
 
 
 /* Scheduler adder styling

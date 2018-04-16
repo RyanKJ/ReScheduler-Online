@@ -688,24 +688,18 @@ $(document).ready(function() {
   /** Display calendar cost li elements. */
   function displayCalendarCosts() {
     $costList.empty();
-    if (avgMonthlyRev == -1) { // -1 means no sales data currently exists
-        var $li = $("<li>", {
-        "id": "no-calendar-cost-data",
-        "text": "There is no sales data",
-        "class": "cost-list",
-        }
+    for (department_key in departmentCosts) { 
+      var department = departmentCosts[department_key]
+      var percentage = "";
+      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
+      var costWithCommas = numberWithCommans(Math.round(department['cost']));
+      var $li = $("<li>", {
+        "id": "calendar-cost-" + department_key,
+        "class": "cost-list"}
       ).appendTo("#cost-list");
-    } else {
-        for (department_key in departmentCosts) { 
-          var department = departmentCosts[department_key]
-          var percentage = _getPercentage(department['cost'], avgMonthlyRev);
-          var $li = $("<li>", {
-            "id": "calendar-cost-" + department_key,
-            "text": department['name'] + ": " + percentage + "%",
-            "class": "cost-list",
-            }
-          ).appendTo("#cost-list");
-        }
+      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+costWithCommas+"</span>";
+      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
+      $li.html(liHTML); 
     }
   }
 
@@ -716,20 +710,28 @@ $(document).ready(function() {
   }
   
   
+  /** Convert number to number with integers for readability. */ 
+  function numberWithCommans(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  
+  
   /** Calculate the change of cost to a calendar */
   function addCostChange(costChange) {
-    if (avgMonthlyRev != -1) { // -1 means no sales data currently exists
-      for (department_key in costChange) { 
-        // Get new cost of department
-        var department = departmentCosts[department_key];
-        var oldCost = department['cost'];
-        var newCost = oldCost + costChange[department_key];
-        department['cost'] = newCost;
-        // Set new cost and text for appropriate cost-li
-        percentage = _getPercentage(newCost, avgMonthlyRev);
-        var $departmentCostLi = $("#calendar-cost-" + department_key);
-        $departmentCostLi.text(department['name'] + ": " + percentage + "%");
-      }
+    for (department_key in costChange) { 
+      // Get new cost of department
+      var department = departmentCosts[department_key];
+      var oldCost = department['cost'];
+      var newCost = oldCost + costChange[department_key];
+      department['cost'] = newCost;
+      var newCostWithCommas = numberWithCommans(Math.round(newCost));
+      // Set new cost and text for appropriate cost-li
+      var percentage = "";
+      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
+      var $departmentCostLi = $("#calendar-cost-" + department_key);
+      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+newCostWithCommas+"</span>";
+      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
+      $departmentCostLi.html(liHTML);
     }
   }
     
@@ -855,14 +857,17 @@ $(document).ready(function() {
         }
       ).appendTo("#eligable-list");
       // Create content inside each eligible li
-      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours'];
+      var desired_hours = eligableList[i]['employee']['desired_hours'];
       var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
       if (currAssignedEmployeeID != eligableList[i]['employee']['id']) {
         curr_hours -= schedule_hours;
       }
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
-                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + curr_hours + "</div>"
-      $li.html(liHTML);
+                   "<div class='hour-wrapper'>" +
+                     "<div class='desired-hours'>" + desired_hours + "</div>" +
+                     "<div class='eligible-hours'>" + curr_hours + "</div>" +
+                   "</div>"
+      $li.html(liHTML); 
     }
     
     // If employee assigned to schedule add highlight class to appropriate li
@@ -909,11 +914,14 @@ $(document).ready(function() {
         }
       ).appendTo("#eligable-list");
       // Create content inside each eligible li
-      var desired_hours_title = "Desired Hours: " + eligableList[i]['employee']['desired_hours'];
+      var desired_hours = eligableList[i]['employee']['desired_hours'];
       var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
       curr_hours -= schedule_hours;
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
-                   "<div title='" + desired_hours_title + "' class='eligible-hours'>" + curr_hours + "</div>"
+                   "<div class='hour-wrapper'>" +
+                     "<div class='desired-hours'>" + desired_hours + "</div>" +
+                     "<div class='eligible-hours'>" + curr_hours + "</div>" +
+                   "</div>"
       $li.html(liHTML);
     }
   }
@@ -1100,16 +1108,16 @@ $(document).ready(function() {
    * employee, and if previously selected different employee, subtract hours
    */ 
   function _updateCurrHours(employeeID, scheduleLength) {
-    var $newlyAssignedEmployee = $("#" + employeeID + " .eligible-hours");
+    var $newlyAssignedEmployee = $("#" + employeeID + "> .hour-wrapper > .eligible-hours");
     var oldHours = $newlyAssignedEmployee.text();
     var newHours = parseFloat(oldHours) + scheduleLength;
     $newlyAssignedEmployee.text(newHours);
     var $previousAssignedEmployee = $(".curr-assigned-employee");
     if ($previousAssignedEmployee.length) {
-      var $PreviousEmployeeHours = $previousAssignedEmployee.children(" .eligible-hours");
-      var oldHours = $PreviousEmployeeHours.text();
+      var $previousEmployeeHours = $previousAssignedEmployee.find(".eligible-hours");
+      var oldHours = $previousEmployeeHours.text();
       var newHours = parseFloat(oldHours) - scheduleLength;
-      $PreviousEmployeeHours.text(newHours);
+      $previousEmployeeHours.text(newHours);
     }
   }
 
