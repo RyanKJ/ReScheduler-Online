@@ -703,19 +703,7 @@ $(document).ready(function() {
     }
   }
 
-    
-  /** Compute percentage of two numbers and convert to integer format. */ 
-  function _getPercentage(numerator, denominator) {
-    return Math.round((numerator / denominator) * 100);
-  }
-  
-  
-  /** Convert number to number with integers for readability. */ 
-  function numberWithCommans(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  
-  
+
   /** Calculate the change of cost to a calendar */
   function addCostChange(costChange) {
     for (department_key in costChange) { 
@@ -733,6 +721,18 @@ $(document).ready(function() {
       if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
       $departmentCostLi.html(liHTML);
     }
+  }
+  
+  
+  /** Compute percentage of two numbers and convert to integer format. */ 
+  function _getPercentage(numerator, denominator) {
+    return Math.round((numerator / denominator) * 100);
+  }
+  
+  
+  /** Convert number to number with integers for readability. */ 
+  function numberWithCommans(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
     
   
