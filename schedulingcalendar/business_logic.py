@@ -643,44 +643,6 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
     return workweek_hours
     
     
-def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
-    """Calculate the costs of workweek_hours data-structure and return cost.
-    
-    Args:
-        workweek_hours: Dict of employees and their hours in that workweek.
-        departments: List of all departments for managing user.
-        business_data: Django model of business data for managing user
-        month_only: Boolean to determine if to count all of the workweek costs
-            or only days in the workweek that overlap with the month.
-    Returns:
-        A dict of key values mapping department to float number costs in
-        dollars.
-    """
-    
-    # TODO: Add hourly associated benefits cost like social security, workmans comp
-    ovr_t_multiplier = business_data.overtime_multiplier
-    workweek_costs = {}
-    
-    for department in departments:
-        workweek_costs[department.id] = 0
-    workweek_costs['total'] = 0
-    
-    for employee in workweek_hours:
-        dep_hours = workweek_hours[employee]
-        
-        for department in dep_hours:
-            if month_only:
-                regular_cost = dep_hours[department]['hours_in_month'] * employee.wage
-                over_t_cost = dep_hours[department]['ovr_t_in_month'] * employee.wage * ovr_t_multiplier
-            else:
-                regular_cost = dep_hours[department]['hours'] * employee.wage
-                over_t_cost = dep_hours[department]['overtime_hours'] * employee.wage * ovr_t_multiplier
-            
-            workweek_costs[department] += regular_cost + over_t_cost
-        
-    return workweek_costs    
-    
-        
 def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedules, 
                             month=None, year=None):
     """Calculate the number of hours and overtime hours for given schedules
@@ -809,6 +771,44 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
                 employee_hours[schedule.department.id]['hours_in_month'] += schedule_hours
     
     return employee_hours       
+    
+    
+def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
+    """Calculate the costs of workweek_hours data-structure and return cost.
+    
+    Args:
+        workweek_hours: Dict of employees and their hours in that workweek.
+        departments: List of all departments for managing user.
+        business_data: Django model of business data for managing user
+        month_only: Boolean to determine if to count all of the workweek costs
+            or only days in the workweek that overlap with the month.
+    Returns:
+        A dict of key values mapping department to float number costs in
+        dollars.
+    """
+    
+    # TODO: Add hourly associated benefits cost like social security, workmans comp
+    ovr_t_multiplier = business_data.overtime_multiplier
+    workweek_costs = {}
+    
+    for department in departments:
+        workweek_costs[department.id] = 0
+    workweek_costs['total'] = 0
+    
+    for employee in workweek_hours:
+        dep_hours = workweek_hours[employee]
+        
+        for department in dep_hours:
+            if month_only:
+                regular_cost = dep_hours[department]['hours_in_month'] * employee.wage
+                over_t_cost = dep_hours[department]['ovr_t_in_month'] * employee.wage * ovr_t_multiplier
+            else:
+                regular_cost = dep_hours[department]['hours'] * employee.wage
+                over_t_cost = dep_hours[department]['overtime_hours'] * employee.wage * ovr_t_multiplier
+            
+            workweek_costs[department] += regular_cost + over_t_cost
+        
+    return workweek_costs    
     
     
 def remove_schedule_cost_change(user, schedule, departments, business_data,
