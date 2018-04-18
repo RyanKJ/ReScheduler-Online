@@ -24,7 +24,7 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication)
 from .business_logic import (get_eligibles, eligable_list_to_dict,  
-                             date_handler, all_calendar_costs, 
+                             date_handler, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
                              get_tro_dates, get_tro_dates_to_dict,
@@ -197,10 +197,11 @@ def get_schedules(request):
               is_active = None;
             
             # Get schedule and employee models from database appropriate for calendar
-            schedules = (Schedule.objects.filter(user=logged_in_user,
+            schedules = (Schedule.objects.select_related('employee')
+                                         .filter(user=logged_in_user,
                                                  start_datetime__gte=lower_bound_dt,
-                                                 end_datetime__lte=upper_bound_dt,
-                                                 department=department_id))
+                                                 end_datetime__lte=upper_bound_dt)
+                                         .order_by('start_datetime', 'end_datetime'))
             dep_memberships = (DepartmentMembership.objects.filter(user=logged_in_user, department=department_id))
             employee_ids = []
             for dep_mem in dep_memberships:
@@ -243,8 +244,9 @@ def get_schedules(request):
             day_note_body_as_dicts = []
             
             for s in schedules:
-                schedule_dict = model_to_dict(s)
-                schedules_as_dicts.append(schedule_dict)
+                if s.department.id == department_id:
+                    schedule_dict = model_to_dict(s)
+                    schedules_as_dicts.append(schedule_dict)
             for e in employees:
                 employee_dict = model_to_dict(e)
                 employees_as_dicts.append(employee_dict)
@@ -254,10 +256,6 @@ def get_schedules(request):
             for day_body in day_note_body:
                 day_body_dict = model_to_dict(day_body)
                 day_note_body_as_dicts.append(day_body_dict)
-                
-            # Get calendar costs to display to user
-            department_costs = all_calendar_costs(logged_in_user, month, year)
-            avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
             
             # Get business data for display settings on calendar
             business_data = BusinessData.objects.get(user=logged_in_user)
@@ -268,6 +266,10 @@ def get_schedules(request):
             department = Department.objects.get(pk=department_id)
             business_data.last_cal_department_loaded = department
             business_data.save()
+            
+            # Get calendar costs to display to user
+            department_costs = all_calendar_hours_and_costs(logged_in_user, schedules, month, year, business_data)
+            avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
               
             # Combine all appropriate data into dict for serialization
             combined_dict = {'date': cal_date.isoformat(),

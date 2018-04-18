@@ -349,11 +349,10 @@ class BusinessDataForm(forms.ModelForm):
     class Meta:
         model = BusinessData
         fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
-                  'workweek_time_start', 'min_time_for_break', 'break_time_in_min', 
-                  'display_am_pm', 'display_minutes', 'display_nonzero_minutes', 
-                  'display_last_names', 'display_first_char_last_name', 
-                  'desired_hours_overshoot_alert', 'sort_by_names',
-                  'unique_row_per_employee']
+                  'workweek_time_start', 'display_am_pm', 'display_minutes', 
+                  'display_nonzero_minutes', 'display_last_names', 
+                  'display_first_char_last_name', 'desired_hours_overshoot_alert', 
+                  'sort_by_names', 'unique_row_per_employee']
         
         
 class MonthlyRevenueForm(forms.ModelForm):

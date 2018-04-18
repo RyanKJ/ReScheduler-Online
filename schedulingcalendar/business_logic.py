@@ -348,7 +348,10 @@ def calculate_weekly_hours_with_sch(user, employee, schedule):
     if schedule.employee == employee:
         return curr_hours
     else:
-        return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
+        min_time_for_break = employee.min_time_for_break
+        break_time_min = employee.break_time_in_min
+        return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
+                                              None, None, min_time_for_break, break_time_min)
     
     
 def calculate_weekly_hours(employee, dt, user):
@@ -390,6 +393,8 @@ def calculate_weekly_hours(employee, dt, user):
     
     # TODO: Take getting workweek out of method: unnecessary queries
     workweek_datetimes = get_start_end_of_weekday(dt, user)
+    min_time_for_break = employee.min_time_for_break
+    break_time_min = employee.break_time_in_min
     schedules = (Schedule.objects.filter(user=user,
                                          employee=employee,
                                          start_datetime__gte=workweek_datetimes['start'],
@@ -404,12 +409,14 @@ def calculate_weekly_hours(employee, dt, user):
     
     for schedule in schedules:
         if last_end_dt <= schedule.end_datetime: # Case 1
-            hours += time_dur_in_hours(schedule.start_datetime, schedule.end_datetime)
+            hours += time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
+                                       None, None, min_time_for_break, break_time_min)
             last_end_dt = schedule.end_datetime
         elif last_end_dt >= schedule.end_datetime: # Case 2
             continue
         else: # Case 3
-            hours += time_dur_in_hours(last_end_dt, schedule.end_datetime)
+            hours += time_dur_in_hours(last_end_dt, schedule.end_datetime, 
+                                       None, None, min_time_for_break, break_time_min)
             last_end_dt = schedule.end_datetime
     
     return hours
@@ -517,14 +524,9 @@ def get_avg_monthly_revenue(user, month):
         return sum / num_of_data_points
     else:
         return -1
-    
-    
-def non_wage_monthly_costs(user, month, year, department):
-    """Calculate the cost of benefits for a given calendar."""
-    return 0
-    
+     
 
-def all_calendar_costs(user, month, year):
+def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     """Calculate cost of given month of schedules, including benefits.
     
     Args:
@@ -537,15 +539,14 @@ def all_calendar_costs(user, month, year):
     """  
     
     departments = Department.objects.filter(user=user).order_by('name')
-    business_data = BusinessData.objects.get(user=user)
+    month_costs = {}
     
-    department_costs = {}
     workweeks = []
     
     # Create dict for department costs
     for department in departments:
-        department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'Total', 'cost': 0}                                       
+        month_costs[department.id] = {'name': department.name, 'cost': 0}
+    month_costs['total'] = {'name': 'Total', 'cost': 0}                                       
     
     # Get all workweeks with any intersection with month
     beginning_of_month = timezone.make_aware(datetime(year, month, 1))
@@ -557,20 +558,23 @@ def all_calendar_costs(user, month, year):
         # If start of workweek is contained in month, add workweek
         if ith_workweek['start'].month == month:
             workweeks.append(ith_workweek)
-        
+            
     # Sum up costs for each workweek and add to department costs
     for workweek in workweeks:
-        hours = workweek_hours(user, workweek['start'], workweek['end'], 
-                               departments, business_data, month, year)
+        hours = employee_hours(user, workweek['start'], workweek['end'], 
+                               schedules, departments, business_data, month, year)
         costs = calculate_workweek_costs(hours, departments, business_data, True)
         
         for dep_id in costs:
-            department_costs[dep_id]['cost'] += costs[dep_id]
+            month_costs[dep_id]['cost'] += costs[dep_id]
 
-    return department_costs
+    print "********* list of workweek times are: "
+    for w in workweeks:
+        print w['start']
+    return month_costs
     
  
-def workweek_hours(user, start_dt, end_dt, departments, business_data, 
+def employee_hours(user, start_dt, end_dt, schedules, departments, business_data, 
                    month=None, year=None):
     """Return a dict containing working hours of employees given workweek.
     
@@ -635,15 +639,17 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
     
     # For each employee, get total hours worked that week
     for employee in workweek_hours:
-        hours = workweek_hours_detailed(start_dt, end_dt, departments,
+        hours = employee_hours_detailed(start_dt, end_dt, employee, departments,
                                         business_data, workweek_hours[employee],
                                         month, year)
-        workweek_hours[employee] = hours
+        week_hours = hours['week_hours']
+        workweek_hours[employee] = week_hours
         
     return workweek_hours
     
     
-def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, business_data, schedules, 
+def employee_hours_detailed(workweek_start_dt, workweek_end_dt, employee, 
+                            departments, business_data, schedules, 
                             month=None, year=None):
     """Calculate the number of hours and overtime hours for given schedules
     as they occur chronologically and according to which department those 
@@ -689,6 +695,7 @@ def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, bus
     Args:
         workweek_start_dt: Python datetime representing start of workweek
         workweek_end_dt: Python datetime representing end of workweek
+        employee: Employee model instance who's hours we are calculating for the week
         departments: Queryset of all departments for user.
         business_data: Django model of business data for user
         schedules: Sorted queryset of schedules to be calculated. Usually all 
@@ -700,15 +707,16 @@ def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, bus
             outside that month.)
         year: integer value of year. Optional value similar to month.
     Returns:
-        A dict containing the values of how many hours and overtime hours
-        the schedules will add up to given the start and end times of a
-        workweek.
+        A dict containing the number of non-overtime hours and overtime hours
+        for individual schedules, each day in the workweek, and the overall
+        workweek itself. Also, for the weekly hours, there is a hours only 
+        in month for calculating strictly month costs as well.
     """
                      
     # Create hours dict to keep track of hours for each department
     overtime = business_data.overtime
-    min_time_for_break = business_data.min_time_for_break
-    break_time_min = business_data.break_time_in_min
+    min_time_for_break = employee.min_time_for_break
+    break_time_min = employee.break_time_in_min
     
     schedule_hours = {}
     day_hours = {}
@@ -732,19 +740,21 @@ def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, bus
     # Choose a date far in past to ensure the first workweek_end_dt > last_end_dt
     last_end_dt = timezone.now() - timedelta(31337)
     
-    # For each schedule, we get the time duration, not counting overlapping
-    # time if 2 schedules have some or complete overlap.
+    # For each schedule, we get the time duration, not counting overlapping time
     for schedule in schedules:
-        if last_end_dt <= schedule.end_datetime: # Case 1
+        # Case where schedule ends after previous schedule
+        if last_end_dt <= schedule.end_datetime:
             schedule_duration = time_dur_in_hours(schedule.start_datetime, 
                                                   schedule.end_datetime,
                                                   workweek_start_dt, workweek_end_dt, 
                                                   min_time_for_break, 
                                                   break_time_min)
             last_end_dt = schedule.end_datetime
-        elif last_end_dt >= schedule.end_datetime: # Case 2
+        # Case where schedule ends before previous schedule ends, we don't count it
+        elif last_end_dt >= schedule.end_datetime:
             schedule_duration = 0
-        else: # Case 3
+        # Case where schedule ends after previous schedule, but starts before it
+        else:
             schedule_duration = time_dur_in_hours(last_end_dt, 
                                                   schedule.end_datetime,
                                                   workweek_start_dt, workweek_end_dt,
@@ -801,25 +811,8 @@ def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, bus
             if sch_month == month and sch_year == year:
                 week_hours['total']['hours_in_month'] += schedule_duration
                 week_hours[schedule.department.id]['hours_in_month'] += schedule_duration
-    
-    print
-    print
-    print "**** For the workweek starting on:", workweek_start_dt, "and ending on: ", workweek_end_dt
-    print "********************** schedule hours are: "
-    for s, v in schedule_hours.iteritems():
-        print s, v
-    print "********************** day hours are: "
-    for day, v in day_hours.iteritems():
-        print day, v
-    print "********************** week hours are: "
-    for week, v in week_hours.iteritems():
-        print week, v
-    print 
-    print
-    print
-    
-    
-    return week_hours
+
+    return {'schedule_hours': schedule_hours, 'day_hours': day_hours, 'week_hours': week_hours}
     
     
 def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
@@ -858,6 +851,11 @@ def calculate_workweek_costs(workweek_hours, departments, business_data, month_o
             workweek_costs[department] += regular_cost + over_t_cost
         
     return workweek_costs    
+    
+    
+def non_wage_monthly_costs(user, month, year, department):
+    """Calculate the cost of benefits for a given calendar."""
+    return 0
     
     
 def remove_schedule_cost_change(user, schedule, departments, business_data,
@@ -1072,10 +1070,10 @@ def single_employee_costs(start_dt, end_dt, employee, schedules, departments,
         all departments of managing user.
     """
     
-    workweek_hours = workweek_hours_detailed(start_dt, end_dt, departments, 
-                                             business_data, schedules, 
-                                             month, year)
-    workweek_hours_dict = {employee: workweek_hours}
+    hours = employee_hours_detailed(start_dt, end_dt, employee, departments, 
+                                    business_data, schedules, month, year)
+    week_hours = hours['week_hours']
+    workweek_hours_dict = {employee: week_hours}
     
     if month and year:
         month_only = True

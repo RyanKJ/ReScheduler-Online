@@ -189,34 +189,6 @@
               <p class="help">{{ form.workweek_time_start.help_text|safe }}</p>
             {% endif %}
           </div>
-          <!-- Minimum Number Of Hours Of Schedule Needed For A Break Time -->
-          <div class="form-group">
-            {{ form.min_time_for_break.errors }}
-            {{ form.min_time_for_break.label_tag }}
-            <p class="card-text">Minimum duration in hours for a schedule means
-                               that only schedules that are equal to or longer 
-                               than the provided minimum duration will have 
-                               the average break subtracted from assumed 
-                               clocked-in time. Schedules less than the minimum
-                               duration will have no breaktime subtracted from
-                               the schedule's hourly duration. These two numbers
-                               are used to make the calculation of scheduling 
-                               costs more accurate by factoring in average 
-                               break time per schedule.</p>
-            {{ form.min_time_for_break|add_class:'form-control' }}
-            {% if form.min_time_for_break.help_text %}
-              <p class="help">{{ form.min_time_for_break.help_text|safe }}</p>
-            {% endif %}
-          </div>
-          <!-- Lunch Break Time In Minutes -->
-          <div class="form-group">
-            {{ form.break_time_in_min.errors }}
-            {{ form.break_time_in_min.label_tag }}
-            {{ form.break_time_in_min|add_class:'form-control' }}
-            {% if form.break_time_in_min.help_text %}
-              <p class="help">{{ form.break_time_in_min.help_text|safe }}</p>
-            {% endif %}
-          </div>
         </div>
       </div>
     </div>

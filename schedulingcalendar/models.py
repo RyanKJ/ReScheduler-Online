@@ -26,6 +26,11 @@ class Employee(models.Model):
     override_list_view = models.BooleanField(default=True)
     see_only_my_schedules = models.BooleanField(default=False)
     see_all_departments = models.BooleanField(default=False)
+    # Break time settings
+    min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability', 
+                                           default=5)
+    break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
+                                            default=30)
 
     
     def __str__(self):             
@@ -258,10 +263,6 @@ class BusinessData(models.Model):
     overtime_multiplier = models.FloatField('Overtime Multiplier', default=1.5)
     workweek_weekday_start = models.IntegerField('weekday', default=6)
     workweek_time_start = models.TimeField('start time', default=time(0, 0, 0))
-    min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability', 
-                                           default=5)
-    break_time_in_min = models.IntegerField('Average Break Length In Minutes Per Eligable Schedule', 
-                                            default=30)
                                             
     # Calendar Display Settings
     display_am_pm = models.BooleanField(default=False)
