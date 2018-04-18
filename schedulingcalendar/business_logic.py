@@ -643,7 +643,7 @@ def workweek_hours(user, start_dt, end_dt, departments, business_data,
     return workweek_hours
     
     
-def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedules, 
+def workweek_hours_detailed(workweek_start_dt, workweek_end_dt, departments, business_data, schedules, 
                             month=None, year=None):
     """Calculate the number of hours and overtime hours for given schedules
     as they occur chronologically and according to which department those 
@@ -687,8 +687,8 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     be incorrect.
     
     Args:
-        start_dt: Python datetime representing start of workweek
-        end_dt: Python datetime representing end of workweek
+        workweek_start_dt: Python datetime representing start of workweek
+        workweek_end_dt: Python datetime representing end of workweek
         departments: Queryset of all departments for user.
         business_data: Django model of business data for user
         schedules: Sorted queryset of schedules to be calculated. Usually all 
@@ -709,68 +709,117 @@ def workweek_hours_detailed(start_dt, end_dt, departments, business_data, schedu
     overtime = business_data.overtime
     min_time_for_break = business_data.min_time_for_break
     break_time_min = business_data.break_time_in_min
-    employee_hours = {}
     
+    schedule_hours = {}
+    day_hours = {}
+    week_hours = {}
+    
+    # Get all dates within workweek
+    for i in range(0, 7):
+        date = workweek_start_dt.date() + timedelta(i)
+        day_hours[date] = {}
+    
+    # Create dicts containing hour information for each week and individual day
     for dep in departments:
-        employee_hours[dep.id] = {'hours': 0, 'overtime_hours': 0, 
-                                  'hours_in_month': 0, 'ovr_t_in_month': 0}
-    employee_hours['total'] = {'hours': 0, 'overtime_hours': 0, 
-                               'hours_in_month': 0, 'ovr_t_in_month': 0}
+        week_hours[dep.id] = {'hours': 0, 'overtime_hours': 0, 'hours_in_month': 0, 'ovr_t_in_month': 0}
+        for date in day_hours:
+            day_hours[date][dep.id] = {'hours': 0, 'overtime_hours': 0}  
+    # Also create dicts containing hour information for total sum across departments
+    week_hours['total'] = {'hours': 0, 'overtime_hours': 0, 'hours_in_month': 0, 'ovr_t_in_month': 0}
+    for date in day_hours:
+            day_hours[date]['total'] = {'hours': 0, 'overtime_hours': 0}
     
-    # Choose a date far in past to ensure the first end_dt > last_end_dt
+    # Choose a date far in past to ensure the first workweek_end_dt > last_end_dt
     last_end_dt = timezone.now() - timedelta(31337)
     
+    # For each schedule, we get the time duration, not counting overlapping
+    # time if 2 schedules have some or complete overlap.
     for schedule in schedules:
         if last_end_dt <= schedule.end_datetime: # Case 1
-            schedule_hours = time_dur_in_hours(schedule.start_datetime, 
-                                               schedule.end_datetime,
-                                               start_dt, end_dt, 
-                                               min_time_for_break, 
-                                               break_time_min)
+            schedule_duration = time_dur_in_hours(schedule.start_datetime, 
+                                                  schedule.end_datetime,
+                                                  workweek_start_dt, workweek_end_dt, 
+                                                  min_time_for_break, 
+                                                  break_time_min)
             last_end_dt = schedule.end_datetime
         elif last_end_dt >= schedule.end_datetime: # Case 2
-            continue
+            schedule_duration = 0
         else: # Case 3
-            schedule_hours = time_dur_in_hours(last_end_dt, 
-                                               schedule.end_datetime,
-                                               start_dt, end_dt,
-                                               min_time_for_break, 
-                                               break_time_min)
+            schedule_duration = time_dur_in_hours(last_end_dt, 
+                                                  schedule.end_datetime,
+                                                  workweek_start_dt, workweek_end_dt,
+                                                  min_time_for_break, 
+                                                  break_time_min)
             last_end_dt = schedule.end_datetime
             
-        # Calculate hours in the workweek
-        overall_hours = employee_hours['total']['hours'] + schedule_hours
-        if overall_hours > overtime:
-            overtime_hours = overall_hours - overtime
-            regular_hours = schedule_hours - overtime_hours
+        # Calculate hours in the workweek, first checking if adding the next
+        # schedule's duration will put that employee's total workweek hours
+        # into overtime, if so, calculate overtime hours as well.
+        overall_non_overtime_hours = week_hours['total']['hours'] + schedule_duration
+        if overall_non_overtime_hours > overtime:
+            overtime_hours = overall_non_overtime_hours - overtime
+            regular_hours = schedule_duration - overtime_hours
             
-            # Add all regular and overtime hours in workweek
-            employee_hours['total']['hours'] += regular_hours
-            employee_hours[schedule.department.id]['hours'] += regular_hours
-            employee_hours['total']['overtime_hours'] += overtime_hours
-            employee_hours[schedule.department.id]['overtime_hours'] += overtime_hours
+            # Save hour information for each individual schedule
+            schedule_hours[schedule.id] = (regular_hours, overtime_hours, schedule_duration)
+            
+            # Save hour information for each day
+            day_hours[schedule.start_datetime.date()]['total']['hours'] += regular_hours
+            day_hours[schedule.start_datetime.date()][schedule.department.id]['hours'] += regular_hours
+            day_hours[schedule.start_datetime.date()]['total']['overtime_hours'] += overtime_hours
+            day_hours[schedule.start_datetime.date()][schedule.department.id]['overtime_hours'] += overtime_hours
+            
+            # Save hour information for week
+            week_hours['total']['hours'] += regular_hours
+            week_hours[schedule.department.id]['hours'] += regular_hours
+            week_hours['total']['overtime_hours'] += overtime_hours
+            week_hours[schedule.department.id]['overtime_hours'] += overtime_hours
             
             # Add all hours in workweek only if schedule is strictly in month
             sch_month = schedule.start_datetime.month
             sch_year = schedule.start_datetime.year
             if sch_month == month and sch_year == year:
-                employee_hours['total']['hours_in_month'] += regular_hours
-                employee_hours[schedule.department.id]['hours_in_month'] += regular_hours
-                employee_hours['total']['ovr_t_in_month'] += overtime_hours
-                employee_hours[schedule.department.id]['ovr_t_in_month'] += overtime_hours
+                week_hours['total']['hours_in_month'] += regular_hours
+                week_hours[schedule.department.id]['hours_in_month'] += regular_hours
+                week_hours['total']['ovr_t_in_month'] += overtime_hours
+                week_hours[schedule.department.id]['ovr_t_in_month'] += overtime_hours
         else:
-            # Add all regular and overtime hours in workweek
-            employee_hours['total']['hours'] += schedule_hours
-            employee_hours[schedule.department.id]['hours'] += schedule_hours
+            # Save hour information for each individual schedule
+            schedule_hours[schedule.id] = (schedule_duration, 0, schedule_duration)
+            
+            # Save hour information for each day
+            day_hours[schedule.start_datetime.date()]['total']['hours'] += schedule_duration
+            day_hours[schedule.start_datetime.date()][schedule.department.id]['hours'] += schedule_duration
+            
+            # Save hour information for week
+            week_hours['total']['hours'] += schedule_duration
+            week_hours[schedule.department.id]['hours'] += schedule_duration
                 
             # Add all hours in workweek only if schedule is strictly in month
             sch_month = schedule.start_datetime.month
             sch_year = schedule.start_datetime.year
             if sch_month == month and sch_year == year:
-                employee_hours['total']['hours_in_month'] += schedule_hours
-                employee_hours[schedule.department.id]['hours_in_month'] += schedule_hours
+                week_hours['total']['hours_in_month'] += schedule_duration
+                week_hours[schedule.department.id]['hours_in_month'] += schedule_duration
     
-    return employee_hours       
+    print
+    print
+    print "**** For the workweek starting on:", workweek_start_dt, "and ending on: ", workweek_end_dt
+    print "********************** schedule hours are: "
+    for s, v in schedule_hours.iteritems():
+        print s, v
+    print "********************** day hours are: "
+    for day, v in day_hours.iteritems():
+        print day, v
+    print "********************** week hours are: "
+    for week, v in week_hours.iteritems():
+        print week, v
+    print 
+    print
+    print
+    
+    
+    return week_hours
     
     
 def calculate_workweek_costs(workweek_hours, departments, business_data, month_only=False):
