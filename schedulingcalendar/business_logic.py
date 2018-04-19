@@ -551,26 +551,33 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     # Get all workweeks with any intersection with month
     beginning_of_month = timezone.make_aware(datetime(year, month, 1))
     first_workweek = get_start_end_of_weekday(beginning_of_month, user)
+    first_workweek['schedules'] = []
     workweeks.append(first_workweek)
     for i in range(1, 6):
         ith_day = first_workweek['start'] + timedelta((i * 7) + 1)
         ith_workweek = get_start_end_of_weekday(ith_day, user)
+        ith_workweek['schedules'] = []
         # If start of workweek is contained in month, add workweek
         if ith_workweek['start'].month == month:
             workweeks.append(ith_workweek)
             
+    # Filter out employeeless schedules then append schedules to the workweek they belong to
+    schedules = [sch for sch in schedules if sch.employee]
+    for sch in schedules:
+        for workweek in workweeks:
+            if sch.start_datetime >= workweek['start'] and sch.start_datetime < workweek['end']:
+                workweek['schedules'].append(sch)
+                break
+            
     # Sum up costs for each workweek and add to department costs
     for workweek in workweeks:
         hours = employee_hours(user, workweek['start'], workweek['end'], 
-                               schedules, departments, business_data, month, year)
+                               workweek['schedules'], departments, business_data, month, year)
         costs = calculate_workweek_costs(hours, departments, business_data, True)
         
         for dep_id in costs:
             month_costs[dep_id]['cost'] += costs[dep_id]
 
-    print "********* list of workweek times are: "
-    for w in workweeks:
-        print w['start']
     return month_costs
     
  
@@ -621,13 +628,6 @@ def employee_hours(user, start_dt, end_dt, schedules, departments, business_data
         week and if month and year are supplied, how many hours an employee
         works in a workweek that only intersect with the month.
     """
-
-    schedules = (Schedule.objects.select_related('department', 'employee')
-                                 .filter(user=user,
-                                         end_datetime__gt=start_dt,
-                                         start_datetime__lt=end_dt)
-                                 .exclude(employee=None)
-                                 .order_by('start_datetime', 'end_datetime'))
                                  
     workweek_hours = {}
                                                

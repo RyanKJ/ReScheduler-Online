@@ -196,7 +196,7 @@ def get_schedules(request):
             except LiveCalendar.DoesNotExist:
               is_active = None;
             
-            # Get schedule and employee models from database appropriate for calendar
+            # Get schedule and employee models from database
             schedules = (Schedule.objects.select_related('employee')
                                          .filter(user=logged_in_user,
                                                  start_datetime__gte=lower_bound_dt,
