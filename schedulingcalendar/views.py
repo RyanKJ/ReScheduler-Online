@@ -268,7 +268,7 @@ def get_schedules(request):
             business_data.save()
             
             # Get calendar costs to display to user
-            department_costs = all_calendar_hours_and_costs(logged_in_user, schedules, month, year, business_data)
+            hours_and_costs = all_calendar_hours_and_costs(logged_in_user, schedules, month, year, business_data)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
               
             # Combine all appropriate data into dict for serialization
@@ -279,7 +279,7 @@ def get_schedules(request):
                              'day_note_header': day_note_header_as_dicts,
                              'day_note_body': day_note_body_as_dicts,
                              'tro_dates': tro_dict,
-                             'department_costs': department_costs,
+                             'hours_and_costs': hours_and_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,
                              'is_active': is_active,

@@ -313,7 +313,8 @@ $(document).ready(function() {
     }
     
     //Calculate and display calendar costs
-    departmentCosts = info["department_costs"];
+    console.log("hours and costs are: ", info["hours_and_costs"])
+    departmentCosts = info["hours_and_costs"]['month_costs'];
     avgMonthlyRev = info["avg_monthly_revenue"];
     displayCalendarCosts();
     
