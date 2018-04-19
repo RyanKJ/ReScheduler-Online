@@ -785,7 +785,7 @@ def employee_hours_detailed(workweek_start_dt, workweek_end_dt, employee,
             week_hours['total']['overtime_hours'] += overtime_hours
             week_hours[schedule.department.id]['overtime_hours'] += overtime_hours
             
-            # Add all hours in workweek only if schedule is strictly in month
+            # Save hour information for week only if schedule is strictly in month
             sch_month = schedule.start_datetime.month
             sch_year = schedule.start_datetime.year
             if sch_month == month and sch_year == year:
@@ -805,7 +805,7 @@ def employee_hours_detailed(workweek_start_dt, workweek_end_dt, employee,
             week_hours['total']['hours'] += schedule_duration
             week_hours[schedule.department.id]['hours'] += schedule_duration
                 
-            # Add all hours in workweek only if schedule is strictly in month
+            # Save hour information for week only if schedule is strictly in month
             sch_month = schedule.start_datetime.month
             sch_year = schedule.start_datetime.year
             if sch_month == month and sch_year == year:
