@@ -546,7 +546,7 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     # Create dict for department costs
     for department in departments:
         month_costs[department.id] = {'name': department.name, 'cost': 0}
-    month_costs['total'] = {'name': 'Total', 'cost': 0}                                       
+    month_costs['total'] = {'name': 'Total', 'cost': 0}
     
     # Get all workweeks with any intersection with month
     beginning_of_month = timezone.make_aware(datetime(year, month, 1))
