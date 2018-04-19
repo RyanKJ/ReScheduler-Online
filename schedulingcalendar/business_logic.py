@@ -586,6 +586,7 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
         
         # Calculate day costs
         day_costs = calculate_day_costs(employee_hours, departments, business_data)
+        hours_and_costs['day_hours_costs'].update(day_costs)
         
         # Calculate workweek costs
         workweek_costs = calculate_workweek_costs(employee_hours, departments, business_data, False)
@@ -901,55 +902,31 @@ def calculate_day_costs(hours, departments, business_data):
         day_hours_for_week = hours[employee]['day_hours']
         
         for date in day_hours_for_week:
-            if date in day_costs:
-                day_hours = day_costs[date]
-                for dep in day_hours:
-                    regular_hours = day_hours[dep]['hours']
-                    overtime_hours = day_hours[dep]['overtime_hours']
+            # We set the first time we see a date as the initial hours to aggregate
+            if not date.isoformat() in day_costs:
+                for dep in day_hours_for_week[date]:
+                    day_hours_for_week[date][dep]['cost'] = 0
+                    regular_hours = day_hours_for_week[date][dep]['hours']
+                    overtime_hours = day_hours_for_week[date][dep]['overtime_hours']
                     regular_cost = regular_hours * employee.wage
                     over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
-                    
-                    day_costs[date][dep]['hours'] += regular_hours
-                    day_costs[date][dep]['overtime_hours'] += overtime_hours
-                    day_costs[date][dep]['cost'] += regular_cost + over_t_cost
+                    day_hours_for_week[date][dep]['cost'] += regular_cost + over_t_cost
+                day_costs[date.isoformat()] = day_hours_for_week[date]
             else:
-                day_hours = day_costs[date]
-                for date in day_hours:
-                    day_hours = day_costs[date]
-                    day_costs[date] = {}
-                    for dep in day_hours:
-                        regular_hours = day_hours[dep]['hours']
-                        overtime_hours = day_hours[dep]['overtime_hours']
-                        regular_cost = regular_hours * employee.wage
-                        over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
+                single_day_cost = day_costs[date]
+                for dep in single_day_cost:
+                  regular_hours = day_hours_for_week[date][dep]['hours']
+                  overtime_hours = day_hours_for_week[date][dep]['overtime_hours']
+                  regular_cost = regular_hours * employee.wage
+                  over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
                         
-                        day_costs[date][dep]['hours'] += regular_hours
-                        day_costs[date][dep]['overtime_hours'] += overtime_hours
-                        day_costs[date][dep]['cost'] += regular_cost + over_t_cost
-                
+                  single_day_cost[dep]['hours'] += regular_hours
+                  single_day_cost[dep]['overtime_hours'] += overtime_hours
+                  single_day_cost[dep]['cost'] += regular_cost + over_t_cost
+                  
+    return day_costs
           
                     
-                
-                
-        """
-        # Create dicts containing hour information for each week and individual day
-        for dep in departments:
-            week_hours[dep.id] = {'hours': 0, 'overtime_hours': 0, 'hours_in_month': 0, 'ovr_t_in_month': 0}
-            for date in day_hours:
-                day_hours[date][dep.id] = {'hours': 0, 'overtime_hours': 0}  
-        
-        
-        for department in day_hours:
-                regular_hours = day_hours[department]['hours']
-                overtime_hours = day_hours[department]['overtime_hours']
-                regular_cost = regular_hours * employee.wage
-                over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
-                
-            day_costs[department]['hours'] += regular_hours
-            day_costs[department]['overtime_hours'] += overtime_hours
-            day_costs[department]['cost'] += regular_cost + over_t_cost
-        """
-    return day_costs
 
 
 def calculate_schedule_costs(hours, all_schedule_hours_dicts, business_data): 
