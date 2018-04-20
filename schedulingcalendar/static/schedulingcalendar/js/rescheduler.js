@@ -100,7 +100,7 @@ $(document).ready(function() {
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: 800,
+    height: 780,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -128,7 +128,7 @@ $(document).ready(function() {
       $removeScheduleBtn.css("display", "block");
       $removeBtnConfirmContainer.css("display", "none");
       
-      var $hourAndCostDisplay = $(".fc-left");
+      var $hourAndCostDisplay = $("#day-cost-info");
       var costStr = "Cost for day "+date+" is : "+hoursAndCosts['day_hours_costs'][date]['total']['cost'];
       costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
       $hourAndCostDisplay.text(costStr);
@@ -193,20 +193,22 @@ $(document).ready(function() {
       $prev_day_clicked = $(".fc-day-clicked");
       getProtoEligibles({data: {date: formatted_date}});
       
-      var $hourAndCostDisplay = $(".fc-left");
+      var $hourAndCostDisplay = $("#day-cost-info");
       var costStr = "Cost for day "+formatted_date+" is : "+hoursAndCosts['day_hours_costs'][formatted_date]['total']['cost'];
       costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
       $hourAndCostDisplay.text(costStr);
       
+      // Reset remove confirm
+      $removeScheduleBtn.css("display", "block");
+      $removeBtnConfirmContainer.css("display", "none");
+      // Disable schedule notes
+      $scheduleNoteText.val("Please Select A Schedule First");
+      $scheduleNoteBtn.prop('disabled', true);
+      
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
         $curr_day_clicked.addClass("fc-day-clicked");
-        // Reset remove confirm
-        $removeScheduleBtn.css("display", "block");
-        $removeBtnConfirmContainer.css("display", "none");
-        
         $addScheduleDate.val(formatted_date);
-            
         $(".fc-event-clicked").removeClass("fc-event-clicked");
         
         // Update text field for editing day notes
@@ -222,8 +224,6 @@ $(document).ready(function() {
         } else {
           $dayNoteBodyText.val(""); // No note exists, reset text field
         }
-        $scheduleNoteText.val("Please Select A Schedule First");
-        $scheduleNoteBtn.prop('disabled', true);
       }
     }
   });
@@ -339,6 +339,7 @@ $(document).ready(function() {
    
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
+    $("#calendar-costs").css("visibility", "visible");
     
     // Set .fc-day elements to call a function on a double click
     var $fcDays = $(".fc-day");
@@ -355,19 +356,7 @@ $(document).ready(function() {
     $("td[data-date="+firstDay+"]").addClass("fc-day-clicked");
   }
   
-  
-  // Load schedule upon loading page relative to current date
-  var liveCalDate = new Date($calendarLoaderForm.data("date"));
-  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
-  var y = liveCalDate.getFullYear();
-  var dep = $calendarLoaderForm.data("department");
-  
-  $("#id_month").val(m + 1);
-  $("#id_year").val(y);
-  $("#id_department").val(dep);
-  $("#get-calendar-button").trigger("click"); 
-  
-  
+ 
   /** Helper function to create fullcalendar events with unique rows */
   function _schedulesToUniqueRowEvents(schedules) {
     var scheduleEvents = [];
@@ -1765,8 +1754,18 @@ $(document).ready(function() {
 	  calendarDiv.classList.remove("sticky-cal");
     }
   }
-
   
+  
+  // Load schedule upon loading page relative to current date
+  var liveCalDate = new Date($calendarLoaderForm.data("date"));
+  var m = liveCalDate.getMonth() + 1; //Moment uses January as 0, Python as 1
+  var y = liveCalDate.getFullYear();
+  var dep = $calendarLoaderForm.data("department");
+  
+  $("#id_month").val(m + 1);
+  $("#id_year").val(y);
+  $("#id_department").val(dep);
+  $("#get-calendar-button").trigger("click"); 
 }); 
     
 

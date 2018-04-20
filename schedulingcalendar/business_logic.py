@@ -901,12 +901,11 @@ def calculate_day_costs(hours, departments, business_data):
             # If we have not seen the date before, set day_cost[date] = day_hours_for_week[date]
             if not date.isoformat() in day_costs_for_week:
                 for dep in day_hours_for_week[date]:
-                    day_hours_for_week[date][dep]['cost'] = 0
                     regular_hours = day_hours_for_week[date][dep]['hours']
                     overtime_hours = day_hours_for_week[date][dep]['overtime_hours']
                     regular_cost = regular_hours * employee.wage
                     over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
-                    day_hours_for_week[date][dep]['cost'] += regular_cost + over_t_cost
+                    day_hours_for_week[date][dep]['cost'] = regular_cost + over_t_cost
                 day_costs_for_week[date.isoformat()] = day_hours_for_week[date]
             else:
                 day_cost = day_costs_for_week[date.isoformat()]

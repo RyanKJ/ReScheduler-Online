@@ -221,6 +221,52 @@ a:active {
 }
 
 
+/* Day and week calendar cost/hours styling
+--------------------------------------------------------------------------------------------------*/
+
+#calendar-costs {
+  visibility: hidden;
+  position: absolute;
+  top: 12px;
+}
+
+.cost-hours-popovers {
+  position: absolute;
+}
+
+#week-cost-popover {
+  top: 20px;
+}
+
+.cost-button {
+  background: white;
+  border: solid #dddddd 1px;
+  border-radius: 2px;
+}
+
+.cost-button:hover {
+  background: #F7F7F7;
+}
+
+.cost-dropdown {
+  background: white;
+  width: 400px;
+}
+
+.dropdown-right {
+  float: right;
+}
+
+#day-cost-info {
+  width: 200px;
+}
+
+#week-cost-info {
+  width: 200px;
+}
+
+
+
 /* Eligable list styling
 --------------------------------------------------------------------------------------------------*/
 
