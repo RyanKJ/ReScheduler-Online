@@ -24,6 +24,7 @@ $(document).ready(function() {
   var employeesAssigned = [];
   var employeeNameDict = {};
   var troDates = {};
+  var hoursAndCosts = {};
   var departmentCosts = {};
   var avgMonthlyRev = -1;
   var dayNoteHeaders = {};
@@ -127,6 +128,11 @@ $(document).ready(function() {
       $removeScheduleBtn.css("display", "block");
       $removeBtnConfirmContainer.css("display", "none");
       
+      var $hourAndCostDisplay = $(".fc-left");
+      var costStr = "Cost for day "+date+" is : "+hoursAndCosts['day_hours_costs'][date]['total']['cost'];
+      costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
+      $hourAndCostDisplay.text(costStr);
+      
       // Update text field for editing day note
       if (dayNoteHeaders.hasOwnProperty(date)) {
         dayNoteHeaderText = dayNoteHeaders[date]["header_text"];
@@ -186,7 +192,12 @@ $(document).ready(function() {
       $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
       getProtoEligibles({data: {date: formatted_date}});
-          
+      
+      var $hourAndCostDisplay = $(".fc-left");
+      var costStr = "Cost for day "+formatted_date+" is : "+hoursAndCosts['day_hours_costs'][formatted_date]['total']['cost'];
+      costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
+      $hourAndCostDisplay.text(costStr);
+      
       if (!$curr_day_clicked.is($prev_day_clicked)) {
         $prev_day_clicked.removeClass("fc-day-clicked");
         $curr_day_clicked.addClass("fc-day-clicked");
@@ -315,6 +326,7 @@ $(document).ready(function() {
     //Calculate and display calendar costs
     console.log("hours and costs are: ", info["hours_and_costs"])
     departmentCosts = info["hours_and_costs"]['month_costs'];
+    hoursAndCosts = info["hours_and_costs"];
     avgMonthlyRev = info["avg_monthly_revenue"];
     displayCalendarCosts();
     
