@@ -250,20 +250,29 @@ a:active {
 
 .cost-dropdown {
   background: white;
-  width: 400px;
+  width: 725px;
 }
 
 .dropdown-right {
   float: right;
 }
 
-#day-cost-info {
-  width: 200px;
+.day-cost-div {
+  display: inline-block;
+  width: 350px;
+  border-right: solid #dddddd 1px;
+  margin-left: 5px;
 }
 
-#week-cost-info {
-  width: 200px;
+.week-cost-div {
+  display: inline-block;
+  margin-left: 15px;
+  width: 350px;
 }
+
+table.cost-table { text-align: center; }
+.cost-table th { padding-left: 5px; padding-right: 5px; }
+td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; } 
 
 
 
@@ -646,5 +655,10 @@ li:last-child.cost-list {
 @media screen and (max-width: 767px) {
   .sticky, .sticky-cal { position: static; }
   .sticky-cal { width: 100%;}
+  .day-cost-div, .week-cost-div { display: block; }
+  .day-cost-div { border-bottom: solid #dddddd 1px; border-right: 0px; padding-bottom: 5px; }
+  .week-cost-div { margin-left: 5px; }
+  .cost-dropdown { width: 350px; }
+  
 }
   

@@ -119,7 +119,7 @@ def calendar_page(request):
     logged_in_user = request.user
     
     # Check that user has at least 1 department before loading calendar
-    departments = Department.objects.filter(user=logged_in_user)
+    departments = Department.objects.filter(user=logged_in_user).order_by('name')
     if not departments:
         return redirect('/departments/')
     
@@ -151,7 +151,8 @@ def calendar_page(request):
                'day_note_body_form': day_note_body_form,
                'schedule_note_form': schedule_note_form,
                'date': date,
-               'department': department.id}
+               'department': department.id,
+               'departments': departments}
 
     return HttpResponse(template.render(context, request))
     

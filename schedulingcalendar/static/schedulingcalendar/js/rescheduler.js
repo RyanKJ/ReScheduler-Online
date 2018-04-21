@@ -127,11 +127,8 @@ $(document).ready(function() {
       // Reset remove confirm
       $removeScheduleBtn.css("display", "block");
       $removeBtnConfirmContainer.css("display", "none");
-      
-      var $hourAndCostDisplay = $("#day-cost-info");
-      var costStr = "Cost for day "+date+" is : "+hoursAndCosts['day_hours_costs'][date]['total']['cost'];
-      costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
-      $hourAndCostDisplay.text(costStr);
+      // Render day and week costs/hour information
+      renderDayAndWeekCosts(date);
       
       // Update text field for editing day note
       if (dayNoteHeaders.hasOwnProperty(date)) {
@@ -192,6 +189,8 @@ $(document).ready(function() {
       $curr_day_clicked = $("td[data-date="+formatted_date+"]");
       $prev_day_clicked = $(".fc-day-clicked");
       getProtoEligibles({data: {date: formatted_date}});
+      // Render day and week costs/hour information
+      renderDayAndWeekCosts(formatted_date);
       
       var $hourAndCostDisplay = $("#day-cost-info");
       var costStr = "Cost for day "+formatted_date+" is : "+hoursAndCosts['day_hours_costs'][formatted_date]['total']['cost'];
@@ -1753,6 +1752,16 @@ $(document).ready(function() {
       toolbar.classList.remove("sticky");
 	  calendarDiv.classList.remove("sticky-cal");
     }
+  }
+  
+  
+  /** Render day and week hours and costs */
+  function renderDayAndWeekCosts(date) {
+    // Do something
+    var $hourAndCostDisplay = $("#day-cost-info");
+    var costStr = "Cost for day "+date+" is : "+hoursAndCosts['day_hours_costs'][date]['total']['cost'];
+    costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
+    $hourAndCostDisplay.text(costStr);
   }
   
   
