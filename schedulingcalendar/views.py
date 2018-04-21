@@ -223,6 +223,8 @@ def get_schedules(request):
                     if not all_dep_employees:
                         no_employees_exist_for_department = True
                     
+            # Get departments of user for manipulating parts of calendar view
+            departments = Department.objects.filter(user=logged_in_user).order_by('name')
                     
             # Get day notes to display for dates within range of month
             day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
@@ -241,6 +243,7 @@ def get_schedules(request):
             # Convert schedules, employees and notes to dicts for json dump
             schedules_as_dicts = []
             employees_as_dicts = []
+            departments_as_dicts = {}
             day_note_header_as_dicts = []
             day_note_body_as_dicts = []
             
@@ -250,7 +253,9 @@ def get_schedules(request):
                     schedules_as_dicts.append(schedule_dict)
             for e in employees:
                 employee_dict = model_to_dict(e)
-                employees_as_dicts.append(employee_dict)
+                employees_as_dicts.append(employee_dict) 
+            for d in departments:
+                departments_as_dicts[d.id] = d.name
             for day_hdr in day_note_header:
                 day_hdr_dict = model_to_dict(day_hdr)
                 day_note_header_as_dicts.append(day_hdr_dict)
@@ -269,12 +274,13 @@ def get_schedules(request):
             business_data.save()
             
             # Get calendar costs to display to user
-            hours_and_costs = all_calendar_hours_and_costs(logged_in_user, schedules, month, year, business_data)
+            hours_and_costs = all_calendar_hours_and_costs(logged_in_user, departments, schedules, month, year, business_data)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
               
             # Combine all appropriate data into dict for serialization
             combined_dict = {'date': cal_date.isoformat(),
                              'department': department_id,
+                             'departments': departments_as_dicts,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
                              'day_note_header': day_note_header_as_dicts,

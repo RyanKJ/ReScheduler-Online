@@ -230,14 +230,6 @@ a:active {
   top: 12px;
 }
 
-.cost-hours-popovers {
-  position: absolute;
-}
-
-#week-cost-popover {
-  top: 20px;
-}
-
 .cost-button {
   background: white;
   border: solid #dddddd 1px;
@@ -250,24 +242,24 @@ a:active {
 
 #cost-dropdown {
   background: white;
-  width: 725px;
+  width: 660px;
 }
 
-.dropdown-right {
-  float: right;
+.total-row {
+  border-top: solid #dddddd 1px;
 }
 
 .day-cost-div {
   display: inline-block;
-  width: 350px;
+  width: 315px;
   border-right: solid #dddddd 1px;
   margin-left: 5px;
 }
 
 .week-cost-div {
   display: inline-block;
-  margin-left: 15px;
-  width: 350px;
+  margin-left: 20px;
+  width: 315px;
 }
 
 table.cost-table { text-align: center; }

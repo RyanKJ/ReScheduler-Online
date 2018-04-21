@@ -454,7 +454,7 @@ def get_start_end_of_weekday(dt, user):
     start_date_of_week = dt.date() - timedelta(day_difference)
     start_dt = datetime.combine(start_date_of_week, start_time_of_week)
     start_datetime_of_week = timezone.make_aware(start_dt)
-    end_datetime_of_week = start_datetime_of_week + timedelta(7)
+    end_datetime_of_week = start_datetime_of_week + timedelta(7) - timedelta(seconds=1)
     
     return {'start': start_datetime_of_week, 'end': end_datetime_of_week}
     
@@ -526,7 +526,7 @@ def get_avg_monthly_revenue(user, month):
         return -1
      
 
-def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
+def all_calendar_hours_and_costs(user, departments, schedules, month, year, business_data):
     """Calculate hours cost of given month of schedules, including benefits.
     
     This function keeps track of the regular hours, overtime hours, benefits
@@ -535,6 +535,7 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     
     Args:
         user: Django authenticated user.
+        departments: All departments for user.
         schedules: All schedules for the user for the given calendar view.
         month: Integer value of month.
         year: Integer value of year.
@@ -546,11 +547,10 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     
     hours_and_costs = {'schedule_hours_costs': {}, 'day_hours_costs': {}, 
                        'workweek_hours_costs': [], 'month_costs': {}}
-    departments = Department.objects.filter(user=user).order_by('name')
     workweeks = []
    
     # Get all workweeks with any intersection with month
-    beginning_of_month = timezone.make_aware(datetime(year, month, 1))
+    beginning_of_month = timezone.make_aware(datetime(year, month, 1, 1))
     first_workweek = get_start_end_of_weekday(beginning_of_month, user)
     first_workweek['schedules'] = []
     workweeks.append(first_workweek)
@@ -601,40 +601,24 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
     return hours_and_costs
     
  
-def all_employee_hours(user, start_dt, end_dt, schedules, departments, business_data, 
-                   month=None, year=None):
-    """Return a dict containing working hours of employees given workweek.
+def all_employee_hours(user, week_start, week_end, schedules, departments, business_data, 
+                       month=None, year=None):
+    """Return a dict containing working hours of all employees in a workweek.
     
     A workweek is defined as the start and end datetimes of a workweek. Since
     an employer can determine the start day and time of a workweek, workweeks
     are arbitrary with respect to employer. This function returns a dict
-    containing employee django models as keys and dict as its value. These 
-    sub-dicts contain key/value pairs where the department pk is the key and 
-    the value is yet another dict containing the regular and overtime number
-    of hours for that deparment in general, then the regular
+    containing employee django models as keys and their hours worked as values.
     
-    The nest of dicts looks something like:
-      {
-        employee_object {
-          department_pk {
-            hours: float value
-            overtime_hours: float value
-            hours_in_month: float value
-            ovr_t_in_month: float value
-          }
-          ... More department pks
-        }
-        ... More employee models 
-      }
-        
-    This data-structure allows for us to easily compute the total cost of each
-    department for a gien workweek and also to know the regular and overtime
-    hous that strictly fall within a given month.
+    The hours worked is returned by a helper function, employee_hours_detailed,
+    and each hour value is a dict containing hour information for the employee
+    organized by each schedule, each day the schedule belongs to, and the 
+    workweek itself.
     
     Args:
         user: django authenticated user
-        start_dt: Python datetime representing start of workweek
-        end_dt: Python datetime representing end of workweek
+        week_start: Python datetime representing start of workweek
+        week_end: Python datetime representing end of workweek
         departments: Queryset of all departments for user.
         business_data: Django model of business data for user
         month: integer value of month. If value present, this function
@@ -659,7 +643,7 @@ def all_employee_hours(user, start_dt, end_dt, schedules, departments, business_
     
     # For each employee, get hours for each schedule, day, and week
     for employee in employee_hours:
-        hours = employee_hours_detailed(start_dt, end_dt, employee, departments,
+        hours = employee_hours_detailed(week_start, week_end, employee, departments,
                                         business_data, employee_hours[employee],
                                         month, year)
         employee_hours[employee] = hours
@@ -923,6 +907,15 @@ def calculate_day_costs(hours, departments, business_data):
           
 
 def calculate_schedule_costs(hours, all_schedule_hours_dicts, business_data): 
+    """Calculate the costs of each schedule.
+    
+    Args:
+        hours: Dict of employees and their hours in that workweek.
+        all_schedule_hours_dicts: Final dict product containing all hours
+          and cost information for the particular calendar.
+        business_data: Django model of business data for managing user
+    """
+
     # TODO: Add hourly associated benefits cost like social security, workmans comp
     ovr_t_multiplier = business_data.overtime_multiplier
 

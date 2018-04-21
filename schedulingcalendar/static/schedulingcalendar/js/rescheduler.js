@@ -23,6 +23,7 @@ $(document).ready(function() {
   var employeeSortedIdList = []; // Ids sorted by first name, then last
   var employeesAssigned = [];
   var employeeNameDict = {};
+  var departments = {};
   var troDates = {};
   var hoursAndCosts = {};
   var departmentCosts = {};
@@ -96,15 +97,20 @@ $(document).ready(function() {
   $scheduleNoteBtn.click(postScheduleNote);
   $copyDayBtn.click(copySchedulePks);
   
+  // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
   var calendarDiv = document.getElementById("stick-cal");
   var sticky = toolbar.offsetTop;
-
   window.onscroll = function() { stickyToolbarAndCal(); };
+  
+  // Set up initial height and resize function to resize the calendar
+  var initialHeight = window.innerHeight * .85
+  window.onresize = resizeCalendar;
+  
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
-    height: 780,
+    height: initialHeight,
     editable: false,
     events: [],
     eventBackgroundColor: "transparent",
@@ -337,6 +343,9 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
     $("#calendar-costs").css("visibility", "visible");
+    
+    // Set departments for use in various functions
+    departments = info["departments"];
     
     // Set .fc-day elements to call a function on a double click
     var $fcDays = $(".fc-day");
@@ -1755,21 +1764,26 @@ $(document).ready(function() {
   
   /** Render day and week hours and costs */
   function renderDayAndWeekCosts(date) {
-    // Display day hours and cost
-    var dayCosts = hoursAndCosts['day_hours_costs'][date];
-    for (var department in dayCosts) {
-      if (!dayCosts.hasOwnProperty(department)) {
-          continue;
+    // Check if cost/hour information exists for particular day (If not it's all 0)
+    if (!hoursAndCosts['day_hours_costs'].hasOwnProperty(date)) {
+      _resetDayCosts(date);
+    } else {
+      // Display day hours and cost
+      var dayCosts = hoursAndCosts['day_hours_costs'][date];
+      for (var department in dayCosts) {
+        if (!dayCosts.hasOwnProperty(department)) {
+            continue;
+        }
+        var $depRow = $dayCostTable.find("tr[data-dep-id="+department+"]");
+        var $depHours = $depRow.find("td[data-col=hours]");
+        var $depOvertime = $depRow.find("td[data-col=overtime]");
+        var $depCost = $depRow.find("td[data-col=cost]");
+        
+        $depHours.text(dayCosts[department]['hours']);
+        $depOvertime.text(dayCosts[department]['overtime_hours']);
+        commaCost = numberWithCommas(Math.round(dayCosts[department]['cost']));
+        $depCost.text("$" + commaCost);
       }
-      var $depRow = $dayCostTable.find("tr[data-dep-id="+department+"]");
-      var $depHours = $depRow.find("td[data-col=hours]");
-      var $depOvertime = $depRow.find("td[data-col=overtime]");
-      var $depCost = $depRow.find("td[data-col=cost]");
-      
-      $depHours.text(dayCosts[department]['hours']);
-      $depOvertime.text(dayCosts[department]['overtime_hours']);
-      commaCost = numberWithCommas(Math.round(dayCosts[department]['cost']));
-      $depCost.text("$" + commaCost);
     }
     // Find what workweek the day clicked belongs to
     var weekCosts = {};
@@ -1778,7 +1792,7 @@ $(document).ready(function() {
     for (var i=0; i < allWorkweekCosts.length; i++) {
       var weekStart = allWorkweekCosts[i]['date_range']['start'];
       var weekEnd = allWorkweekCosts[i]['date_range']['end'];
-      if (moment(date).isBetween(weekStart, weekEnd)) { 
+      if (moment(date).isSameOrAfter(weekStart) && moment(date).isSameOrBefore(weekEnd)) { 
         weekCosts = allWorkweekCosts[i]['hours_cost'];
         weekDuration = allWorkweekCosts[i]['date_range'];
         break;
@@ -1807,6 +1821,40 @@ $(document).ready(function() {
     $dayCostTitle.text(dayTitle);
     $weekCostTitle.text(weekStart + " - " + weekEnd);
   }
+  
+  
+  /** Helper function to set day costs/hours to 0 if no information. */ 
+  function _resetDayCosts(date) {
+    for (var department in departments) {
+        if (!departments.hasOwnProperty(department)) {
+            continue;
+        }
+        var $depRow = $dayCostTable.find("tr[data-dep-id="+department+"]");
+        var $depHours = $depRow.find("td[data-col=hours]");
+        var $depOvertime = $depRow.find("td[data-col=overtime]");
+        var $depCost = $depRow.find("td[data-col=cost]");
+        
+        $depHours.text(0);
+        $depOvertime.text(0);
+        $depCost.text("$0");
+    }
+    var $depRow = $dayCostTable.find("tr[data-dep-id=total]");
+    var $depHours = $depRow.find("td[data-col=hours]");
+    var $depOvertime = $depRow.find("td[data-col=overtime]");
+    var $depCost = $depRow.find("td[data-col=cost]");
+        
+    $depHours.text(0);
+    $depOvertime.text(0);
+    $depCost.text("$0");
+  }
+  
+  
+  /** Resize height of calendar to fit viewport when window is resized. */ 
+  function resizeCalendar() {
+    var newCalHeight = window.innerHeight * .85
+    $fullCal.fullCalendar('option', 'height', newCalHeight);
+  }
+  
   
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));
