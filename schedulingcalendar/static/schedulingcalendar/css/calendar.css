@@ -248,7 +248,7 @@ a:active {
   background: #F7F7F7;
 }
 
-.cost-dropdown {
+#cost-dropdown {
   background: white;
   width: 725px;
 }

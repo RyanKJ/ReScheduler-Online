@@ -67,6 +67,10 @@ $(document).ready(function() {
   var $dayNoteBodyText = $("#id_body_text");
   var $scheduleNoteBtn = $("#schedule-note-btn");
   var $scheduleNoteText = $("#id_schedule_text");
+  var $dayCostTable = $("#day-cost-info");
+  var $weekCostTable = $("#week-cost-info");
+  var $dayCostTitle = $("#day-cost-title");
+  var $weekCostTitle = $("#week-cost-title");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -191,12 +195,6 @@ $(document).ready(function() {
       getProtoEligibles({data: {date: formatted_date}});
       // Render day and week costs/hour information
       renderDayAndWeekCosts(formatted_date);
-      
-      var $hourAndCostDisplay = $("#day-cost-info");
-      var costStr = "Cost for day "+formatted_date+" is : "+hoursAndCosts['day_hours_costs'][formatted_date]['total']['cost'];
-      costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
-      $hourAndCostDisplay.text(costStr);
-      
       // Reset remove confirm
       $removeScheduleBtn.css("display", "block");
       $removeBtnConfirmContainer.css("display", "none");
@@ -693,7 +691,7 @@ $(document).ready(function() {
       var department = departmentCosts[department_key]
       var percentage = "";
       if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
-      var costWithCommas = numberWithCommans(Math.round(department['cost']));
+      var costWithCommas = numberWithCommas(Math.round(department['cost']));
       var $li = $("<li>", {
         "id": "calendar-cost-" + department_key,
         "class": "cost-list"}
@@ -713,7 +711,7 @@ $(document).ready(function() {
       var oldCost = department['cost'];
       var newCost = oldCost + costChange[department_key];
       department['cost'] = newCost;
-      var newCostWithCommas = numberWithCommans(Math.round(newCost));
+      var newCostWithCommas = numberWithCommas(Math.round(newCost));
       // Set new cost and text for appropriate cost-li
       var percentage = "";
       if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
@@ -732,7 +730,7 @@ $(document).ready(function() {
   
   
   /** Convert number to number with integers for readability. */ 
-  function numberWithCommans(x) {
+  function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
     
@@ -1757,13 +1755,58 @@ $(document).ready(function() {
   
   /** Render day and week hours and costs */
   function renderDayAndWeekCosts(date) {
-    // Do something
-    var $hourAndCostDisplay = $("#day-cost-info");
-    var costStr = "Cost for day "+date+" is : "+hoursAndCosts['day_hours_costs'][date]['total']['cost'];
-    costStr += " Cost for week is : "+hoursAndCosts['workweek_hours_costs'][0]['hours_cost']['total']['cost'];
-    $hourAndCostDisplay.text(costStr);
+    // Display day hours and cost
+    var dayCosts = hoursAndCosts['day_hours_costs'][date];
+    for (var department in dayCosts) {
+      if (!dayCosts.hasOwnProperty(department)) {
+          continue;
+      }
+      var $depRow = $dayCostTable.find("tr[data-dep-id="+department+"]");
+      var $depHours = $depRow.find("td[data-col=hours]");
+      var $depOvertime = $depRow.find("td[data-col=overtime]");
+      var $depCost = $depRow.find("td[data-col=cost]");
+      
+      $depHours.text(dayCosts[department]['hours']);
+      $depOvertime.text(dayCosts[department]['overtime_hours']);
+      commaCost = numberWithCommas(Math.round(dayCosts[department]['cost']));
+      $depCost.text("$" + commaCost);
+    }
+    // Find what workweek the day clicked belongs to
+    var weekCosts = {};
+    var weekDuration = {};
+    var allWorkweekCosts = hoursAndCosts['workweek_hours_costs'];
+    for (var i=0; i < allWorkweekCosts.length; i++) {
+      var weekStart = allWorkweekCosts[i]['date_range']['start'];
+      var weekEnd = allWorkweekCosts[i]['date_range']['end'];
+      if (moment(date).isBetween(weekStart, weekEnd)) { 
+        weekCosts = allWorkweekCosts[i]['hours_cost'];
+        weekDuration = allWorkweekCosts[i]['date_range'];
+        break;
+      }
+    }
+    // Display week hours and cost
+    for (var department in weekCosts) {
+      if (!weekCosts.hasOwnProperty(department)) {
+          continue;
+      }
+      var $depRow = $weekCostTable.find("tr[data-dep-id="+department+"]");
+      var $depHours = $depRow.find("td[data-col=hours]");
+      var $depOvertime = $depRow.find("td[data-col=overtime]");
+      var $depCost = $depRow.find("td[data-col=cost]");
+      
+      $depHours.text(weekCosts[department]['hours']);
+      $depOvertime.text(weekCosts[department]['overtime_hours']);
+      commaCost = numberWithCommas(Math.round(weekCosts[department]['cost']));
+      $depCost.text("$" + commaCost);
+    }
+    // Render day and week titles
+    var dayTitle = moment(date).format("dddd, MMMM Do");
+    var weekStart = moment(weekDuration['start']).format("MMMM Do");
+    var weekEnd = moment(weekDuration['end']).format("MMMM Do");
+    
+    $dayCostTitle.text(dayTitle);
+    $weekCostTitle.text(weekStart + " - " + weekEnd);
   }
-  
   
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));

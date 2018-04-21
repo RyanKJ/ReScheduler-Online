@@ -590,7 +590,7 @@ def all_calendar_hours_and_costs(user, schedules, month, year, business_data):
         
         # Calculate workweek costs
         workweek_costs = calculate_workweek_costs(employee_hours, departments, business_data, False)
-        workweek_times = (workweek['start'].isoformat(), workweek['end'].isoformat())
+        workweek_times = {'start': workweek['start'].isoformat(), 'end': workweek['end'].isoformat()}
         hours_and_costs['workweek_hours_costs'].append({'date_range': workweek_times, 'hours_cost': workweek_costs})
             
         # Calculate month costs

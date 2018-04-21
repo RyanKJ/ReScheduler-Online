@@ -116,18 +116,18 @@
       <div class="col-lg-10 col-md-8 col-sm-8">
         <!-- Fullcalendar -->
         <section class="draft-calendar" id="stick-cal">
-          <div id="calendar-costs">
-            <div class="btn-group dropright">
-              <button type="button" class="btn btn-secondary dropdown-toggle cost-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <div id="calendar-costs" class="no-print">
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary cost-button" data-toggle="collapse" data-target="#cost-dropdown">
                 Day & Week Costs &raquo;
               </button>
-              <div class="dropdown-menu cost-dropdown">
+              <div id="cost-dropdown" class="dropdown-menu">
                 <!-- Dropdown menu links -->
                 <div class="day-cost-div">
-                  <h4 id="day-cost-title">Day Hours & Costs</h4>
+                  <h4 id="day-cost-title">Please Select A Day</h4>
                   <table id="day-cost-info" class="cost-table">
                     <tr>
-                      <th class="cost-dep-name" >Department</th>
+                      <th class="cost-dep-name">Department</th>
                       <th>Hours</th>
                       <th>Overtime Hours</th>
                       <th>Cost</th>
@@ -149,7 +149,7 @@
                   </table>
                 </div>
                 <div class="week-cost-div">
-                  <h4 id="week-cost-title">Week Hours & Costs</h4>
+                  <h4 id="week-cost-title">Select A Day To Display Week Info</h4>
                   <table id="week-cost-info" class="cost-table">
                     <tr>
                       <th class="cost-dep-name">Department</th>
