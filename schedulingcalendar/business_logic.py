@@ -1003,10 +1003,10 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
             new_dep_hours = new_day_hours_cost[date][dep]['hours']
             new_dep_overtime = new_day_hours_cost[date][dep]['overtime_hours']
             new_dep_cost = new_day_hours_cost[date][dep]['cost']
-            
-            new_dep_hours =- old_dep_hours
-            new_dep_overtime =- old_dep_overtime
-            new_dep_cost =- old_dep_cost
+
+            new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours - old_dep_hours
+            new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+            new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost - old_dep_cost
             
     # Calculate difference between old and new week hours/costs
     new_week_hours_cost = new_hours_cost['workweek_hours_costs'][0]['hours_cost']
@@ -1020,20 +1020,18 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
         new_dep_overtime = new_week_hours_cost[dep]['overtime_hours']
         new_dep_cost = new_week_hours_cost[dep]['cost'] 
             
-        new_dep_hours =- old_dep_hours
-        new_dep_overtime =- old_dep_overtime
-        new_dep_cost =- old_dep_cost
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours - old_dep_hours
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost - old_dep_cost
         
     # Calculate difference between old and new month costs
     new_month_cost = new_hours_cost['month_costs']
     old_month_cost = old_hours_cost['month_costs']
-    print "************ new_month_cost is: ", new_hours_cost['month_costs']
-    print "************ old_month_cost is: ", old_hours_cost['month_costs']
     for dep in new_month_cost:
         old_dep_cost = old_month_cost[dep]['cost']
         new_dep_cost = new_month_cost[dep]['cost']
-        new_dep_cost = new_dep_cost - old_dep_cost
-              
+        new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost - old_dep_cost
+    
     return new_hours_cost
     
     

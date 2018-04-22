@@ -560,8 +560,8 @@ def add_employee_to_schedule(request):
     # Get cost of assigning new employee to schedule
     departments = Department.objects.filter(user=logged_in_user)
     business_data = BusinessData.objects.get(user=logged_in_user)
-    cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
-                                          departments, business_data, cal_date)
+    #cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
+    #                                      departments, business_data, cal_date)
     
     # Assign new employee to schedule
     schedule.employee = new_employee
@@ -571,7 +571,7 @@ def add_employee_to_schedule(request):
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(new_employee)
     data = {'schedule': schedule_dict, 'employee': employee_dict, 
-            'cost_delta': cost_delta}
+            'cost_delta': {'month_costs': {}}}
     json_data = json.dumps(data, default=date_handler)
     
     return JsonResponse(json_data, safe=False)

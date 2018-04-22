@@ -714,10 +714,14 @@ $(document).ready(function() {
 
   /** Calculate the change of cost to a calendar */
   function addCostChange(costChange) {
-    for (department_key in costChange) { 
+    console.log("costChange is ", costChange)
+    console.log("departmentCosts is ", departmentCosts)
+    for (department_key in costChange) {
       // Get new cost of department
+      console.log("department key is ", department_key)
       var department = departmentCosts[department_key];
       var oldCost = department['cost'];
+      console.log("old cost is:", oldCost)
       var newCost = oldCost + costChange[department_key];
       department['cost'] = newCost;
       var newCostWithCommas = numberWithCommas(Math.round(newCost));
@@ -1245,7 +1249,7 @@ $(document).ready(function() {
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
     // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]);
+    //addCostChange(info["cost_delta"]);
   }
   
   
