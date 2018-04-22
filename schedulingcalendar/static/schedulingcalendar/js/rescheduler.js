@@ -1375,6 +1375,7 @@ $(document).ready(function() {
    */
   function removeEventAfterDelete(data) {
     var info = JSON.parse(data);
+    console.log("cost delta is: ", info["cost_delta"]);
     $removeScheduleBtn.css("display", "block");
     $removeBtnConfirmContainer.css("display", "none");
     var schedulePk = info["schedule_pk"];
@@ -1396,7 +1397,7 @@ $(document).ready(function() {
       $fullCal.fullCalendar("removeEvents", schedulePk)
     }
     // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]);
+    addCostChange(info["cost_delta"]["month_costs"]);
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
