@@ -26,7 +26,6 @@ $(document).ready(function() {
   var departments = {};
   var troDates = {};
   var hoursAndCosts = {};
-  var departmentCosts = {};
   var avgMonthlyRev = -1;
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
@@ -328,10 +327,9 @@ $(document).ready(function() {
     
     //Calculate and display calendar costs
     console.log("hours and costs are: ", info["hours_and_costs"])
-    departmentCosts = info["hours_and_costs"]['month_costs'];
     hoursAndCosts = info["hours_and_costs"];
     avgMonthlyRev = info["avg_monthly_revenue"];
-    displayCalendarCosts();
+    renderMonthlyCosts();
     
     //Set activate/deactivate to state of live_calendar
     calActive = info["is_active"];
@@ -690,61 +688,6 @@ $(document).ready(function() {
       $viewLive.removeClass("unactive-live");
       $viewLive.prop('disabled', false);
     }
-  }
-    
-  
-  /** Display calendar cost li elements. */
-  function displayCalendarCosts() {
-    $costList.empty();
-    for (department_key in departmentCosts) { 
-      var department = departmentCosts[department_key]
-      var percentage = "";
-      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
-      var costWithCommas = numberWithCommas(Math.round(department['cost']));
-      var $li = $("<li>", {
-        "id": "calendar-cost-" + department_key,
-        "class": "cost-list"}
-      ).appendTo("#cost-list");
-      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+costWithCommas+"</span>";
-      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
-      $li.html(liHTML); 
-    }
-  }
-
-
-  /** Calculate the change of cost to a calendar */
-  function addCostChange(costChange) {
-    console.log("costChange is ", costChange)
-    console.log("departmentCosts is ", departmentCosts)
-    for (department_key in costChange) {
-      // Get new cost of department
-      console.log("department key is ", department_key)
-      var department = departmentCosts[department_key];
-      var oldCost = department['cost'];
-      console.log("old cost is:", oldCost)
-      var newCost = oldCost + costChange[department_key];
-      department['cost'] = newCost;
-      var newCostWithCommas = numberWithCommas(Math.round(newCost));
-      // Set new cost and text for appropriate cost-li
-      var percentage = "";
-      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
-      var $departmentCostLi = $("#calendar-cost-" + department_key);
-      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+newCostWithCommas+"</span>";
-      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
-      $departmentCostLi.html(liHTML);
-    }
-  }
-  
-  
-  /** Compute percentage of two numbers and convert to integer format. */ 
-  function _getPercentage(numerator, denominator) {
-    return Math.round((numerator / denominator) * 100);
-  }
-  
-  
-  /** Convert number to number with integers for readability. */ 
-  function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
     
   
@@ -1249,7 +1192,8 @@ $(document).ready(function() {
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
     // Update cost display to reflect any cost changes
-    //addCostChange(info["cost_delta"]);
+    //updateHoursAndCost(info["cost_delta"]);
+    //reRenderAllCostsHours();
   }
   
   
@@ -1401,7 +1345,8 @@ $(document).ready(function() {
       $fullCal.fullCalendar("removeEvents", schedulePk)
     }
     // Update cost display to reflect any cost changes
-    addCostChange(info["cost_delta"]["month_costs"]);
+    updateHoursAndCost(info["cost_delta"]);
+    reRenderAllCostsHours();
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
@@ -1767,6 +1712,112 @@ $(document).ready(function() {
   }
   
   
+  /** Add changes in hours and cost to the hoursAndCosts state variable. */
+  function updateHoursAndCost(hoursAndCostsDelta) {
+    // Update day hours & costs
+    var dayCosts = hoursAndCosts['day_hours_costs'];
+    var dayCostDelta = hoursAndCostsDelta['day_hours_costs'];
+    for (date in dayCostDelta) {
+      if (!dayCostDelta.hasOwnProperty(date)) {
+        continue;
+      } else {
+        var hoursAndCostDelta = dayCostDelta[date];
+        for (var department in hoursAndCostDelta) {
+          if (!hoursAndCostDelta.hasOwnProperty(department)) { continue; }
+          var hourDelta = hoursAndCostDelta[department]['hours'];
+          var overtimeDelta = hoursAndCostDelta[department]['overtime_hours'];
+          var costDelta = hoursAndCostDelta[department]['cost'];
+          
+          dayCosts[date][department]['hours'] += hourDelta;
+          dayCosts[date][department]['overtime_hours'] += overtimeDelta;
+          dayCosts[date][department]['cost'] += costDelta;
+        }
+      }
+    }
+    
+    // Find workweek to update
+    var allWorkweekCosts = hoursAndCosts['workweek_hours_costs'];
+    var weekCosts = {};
+    var weekCostDelta = hoursAndCostsDelta['workweek_hours_costs'][0];
+      for (var i=0; i < allWorkweekCosts.length; i++) {
+        var weekStart = allWorkweekCosts[i]['date_range']['start'];
+        var weekDeltaStart = weekCostDelta['date_range']['start'];
+        if (moment(weekDeltaStart).isSame(weekStart)) { 
+          weekCosts = allWorkweekCosts[i]['hours_cost'];
+          break;
+        }
+      }
+    // Update week hours & costs
+    var hoursAndCostDelta = weekCostDelta['hours_cost'];
+    for (var department in hoursAndCostDelta) {
+      if (!hoursAndCostDelta.hasOwnProperty(department)) { continue; }
+      var hourDelta = hoursAndCostDelta[department]['hours'];
+      var overtimeDelta = hoursAndCostDelta[department]['overtime_hours'];
+      var costDelta = hoursAndCostDelta[department]['cost'];
+          
+      weekCosts[department]['hours'] += hourDelta;
+      weekCosts[department]['overtime_hours'] += overtimeDelta;
+      weekCosts[department]['cost'] += costDelta;
+    }
+    // Update month hours & costs
+    var monthCosts = hoursAndCosts['month_costs'];
+    var monthCostDelta = hoursAndCostsDelta['month_costs'];
+    for (department_key in monthCostDelta) {
+      // Add cost deltas to hour & cost state
+      var department = monthCostDelta[department_key];
+      var costDelta = department['cost'];
+      monthCosts[department_key]['cost'] += costDelta;
+    }
+  }
+  
+  
+  /** Re-render all day, week, and month cost views. */
+  function reRenderAllCostsHours() {
+    var date = $addScheduleDate.val();
+    renderDayAndWeekCosts(date);
+    reRenderMonthlyCosts();
+  }
+      
+  
+  /** Display calendar cost li elements. */
+  function renderMonthlyCosts() {
+    $costList.empty();
+    var monthCosts = hoursAndCosts['month_costs']
+    for (department_key in monthCosts) { 
+      var department = monthCosts[department_key]
+      var percentage = "";
+      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
+      var costWithCommas = numberWithCommas(Math.round(department['cost']));
+      var $li = $("<li>", {
+        "id": "calendar-cost-" + department_key,
+        "class": "cost-list"}
+      ).appendTo("#cost-list");
+      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+costWithCommas+"</span>";
+      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
+      $li.html(liHTML); 
+    }
+  }
+  
+
+  /** Calculate the change of cost to a calendar */
+  function reRenderMonthlyCosts() {
+    var monthCosts = hoursAndCosts['month_costs'];
+    for (department_key in monthCosts) {
+      // Add cost deltas to hour & cost state
+      var department = monthCosts[department_key];
+      var cost = department['cost'];
+      var costWithCommas = numberWithCommas(Math.round(cost));
+      // rerender monthly costs
+      var percentage = "";
+      if (avgMonthlyRev !== -1) { percentage = " "+_getPercentage(department['cost'], avgMonthlyRev)+"%"}
+      var $departmentCostLi = $("#calendar-cost-" + department_key);
+      var liHTML = "<span class='cost-dep-name'>"+department['name']+": $"+costWithCommas+"</span>";
+      if (percentage) { liHTML += "<span class='cost-percentage'>"+percentage+"</span>"; }
+      $departmentCostLi.html(liHTML);
+    }
+  }
+
+  
   /** Render day and week hours and costs */
   function renderDayAndWeekCosts(date) {
     // Check if cost/hour information exists for particular day (If not it's all 0)
@@ -1851,6 +1902,18 @@ $(document).ready(function() {
     $depHours.text(0);
     $depOvertime.text(0);
     $depCost.text("$0");
+  }
+  
+  
+  /** Compute percentage of two numbers and convert to integer format. */ 
+  function _getPercentage(numerator, denominator) {
+    return Math.round((numerator / denominator) * 100);
+  }
+  
+  
+  /** Convert number to number with integers for readability. */ 
+  function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
   
   

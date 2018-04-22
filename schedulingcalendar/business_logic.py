@@ -841,7 +841,7 @@ def calculate_workweek_costs(hours, departments, business_data, month_only=False
     
     for department in departments:
         workweek_costs[department.id] = {'hours': 0, 'overtime_hours': 0, 'cost': 0}
-    workweek_costs['total'] = {'name': 'Total', 'hours': 0, 'overtime_hours': 0, 'cost': 0}
+    workweek_costs['total'] = {'hours': 0, 'overtime_hours': 0, 'cost': 0}
     
     for employee in hours:
         week_hours = hours[employee]['week_hours']
