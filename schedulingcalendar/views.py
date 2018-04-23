@@ -722,10 +722,12 @@ def copy_schedules(request):
                                                   employee__in=employees)
                                           .order_by('start_datetime', 'end_datetime'))
             workweek_schedules = [sch for sch in workweek_schedules]
-            old_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
-                                                         workweek_schedules, [], 
-                                                         cal_date.month, cal_date.year, 
-                                                         business_data, workweek)
+            old_week_cost = 0
+            if workweek_schedules:
+                old_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
+                                                             workweek_schedules, [], 
+                                                             cal_date.month, cal_date.year, 
+                                                             business_data, workweek)
                                          
             copied_schedules = []
             for sch in schedules:
@@ -757,7 +759,10 @@ def copy_schedules(request):
             print "************ old week cost is: ", new_week_cost
             print
             print
-            cost_delta = calculate_cost_delta(old_week_cost, new_week_cost, 'subtract')
+            if old_week_cost:
+                cost_delta = calculate_cost_delta(old_week_cost, new_week_cost, 'subtract')
+            else:
+                cost_delta = new_week_cost
             
             schedules_as_dicts = []
             for s in copied_schedules:
