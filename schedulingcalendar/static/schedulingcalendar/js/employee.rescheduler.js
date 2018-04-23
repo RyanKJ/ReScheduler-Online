@@ -188,7 +188,7 @@ $(document).ready(function() {
           allDay: true,
           isSchedule: false,
           customSort: 1,
-          className: "blank-event bold"
+          className: "blank-event bold note"
         }
         events.push(event);
       }
@@ -384,7 +384,7 @@ $(document).ready(function() {
             } else if (displayLastNames) {
               lastName = employeeLastName;
             }
-            return "**TOR: " + employeeNameDict[employeePk].firstName + " " + lastName + "**";
+            return "TOR: " + employeeNameDict[employeePk].firstName + " " + lastName;
           }
       }
     }

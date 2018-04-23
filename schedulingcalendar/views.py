@@ -27,8 +27,8 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              date_handler, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
-                             get_tro_dates, get_tro_dates_to_dict,
-                             get_start_end_of_calendar)
+                             get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
+                             get_start_end_of_calendar, edit_schedule_cost_change)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -559,13 +559,25 @@ def add_employee_to_schedule(request):
     # Get schedule and its cost with old employee
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
+                                
     new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
     
     # Get cost of assigning new employee to schedule
     departments = Department.objects.filter(user=logged_in_user)
     business_data = BusinessData.objects.get(user=logged_in_user)
-    #cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
-    #                                      departments, business_data, cal_date)
+    cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
+                                          departments, business_data, cal_date)
+    
+    # Get length of schedule for new employee, and old employee if exists
+    new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                         None, None, min_time_for_break=new_employee.min_time_for_break,
+                                         break_time_in_min=new_employee.break_time_in_min)
+    old_sch_duration = 0
+    if schedule.employee:
+        prev_employee = schedule.employee
+        old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                             None, None, min_time_for_break=prev_employee.min_time_for_break,
+                                             break_time_in_min=prev_employee.break_time_in_min)
     
     # Assign new employee to schedule
     schedule.employee = new_employee
@@ -575,7 +587,8 @@ def add_employee_to_schedule(request):
     schedule_dict = model_to_dict(schedule)
     employee_dict = model_to_dict(new_employee)
     data = {'schedule': schedule_dict, 'employee': employee_dict, 
-            'cost_delta': {'month_costs': {}}}
+            'cost_delta': cost_delta, 'new_sch_duration': new_sch_duration,
+            'old_sch_duration': old_sch_duration}
     json_data = json.dumps(data, default=date_handler)
     
     return JsonResponse(json_data, safe=False)
@@ -591,7 +604,7 @@ def remove_schedule(request):
     schedule = (Schedule.objects.select_related('department', 'employee')
                                 .get(user=logged_in_user, pk=schedule_pk))
                                 
-    cost_delta = {}
+    cost_delta = 0
     if schedule.employee: # Get change of cost if employee was assigned
       departments = Department.objects.filter(user=logged_in_user)
       business_data = BusinessData.objects.get(user=logged_in_user)
@@ -619,6 +632,7 @@ def edit_schedule(request):
             end_time = form.cleaned_data['end_time']
             hide_start = form.cleaned_data['hide_start']
             hide_end = form.cleaned_data['hide_end']
+            cal_date = form.cleaned_data['cal_date']
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
                                         
@@ -632,6 +646,32 @@ def edit_schedule(request):
             end_dt = datetime.combine(date, end_time)
             end_dt = pytz.timezone(time_zone).localize(end_dt)
             
+            cost_delta = 0
+            if schedule.employee: # Get change of cost if employee was assigned
+                # Calculate cost difference from editing times:
+                departments = Department.objects.filter(user=logged_in_user)
+                business_data = BusinessData.objects.get(user=logged_in_user)
+                cost_delta = edit_schedule_cost_change(logged_in_user, schedule,
+                                                       start_dt, end_dt,
+                                                       departments, business_data,
+                                                       cal_date)
+                                                       
+                # Get length of schedule for new employee, and old employee if exists
+                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                                     None, None, min_time_for_break=schedule.employee.min_time_for_break,
+                                                     break_time_in_min=schedule.employee.break_time_in_min)
+                new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                                     None, None, min_time_for_break=schedule.employee.min_time_for_break,
+                                                     break_time_in_min=schedule.employee.break_time_in_min)
+                                                   
+            # Save time and hide choices to business settings
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            business_data.schedule_start = start_time
+            business_data.schedule_end = end_time
+            business_data.hide_start = hide_start
+            business_data.hide_end = hide_end
+            business_data.save()
+            
             #Set schedule fields to form data
             schedule.start_datetime = start_dt
             schedule.end_datetime = end_dt
@@ -640,6 +680,7 @@ def edit_schedule(request):
             schedule.save()
             schedule_dict = model_to_dict(schedule)
             json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0,
+                                    'cost_delta': cost_delta,
                                     'old_start_datetime': old_start_datetime, 
                                     'old_end_datetime': old_end_datetime},
                                     default=date_handler)

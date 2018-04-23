@@ -243,6 +243,7 @@ class EditScheduleForm(forms.Form):
     end_time =  forms.TimeField(label='End Time', input_formats=TIME_FORMATS)
     hide_start = forms.BooleanField(label="", required=False)
     hide_end = forms.BooleanField(label="", required=False)
+    cal_date = forms.DateField()
     
     
 class CopySchedulesForm(forms.Form):

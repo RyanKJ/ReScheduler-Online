@@ -1,6 +1,6 @@
 @media print {
   .no-print, .no-print * { display: none; }
-  .blank-event:not(.tro-event) { display: none; }
+  .blank-event:not(.tro-event):not(.note) { display: none; }
   .fc-center > h2:nth-child(1) { font-size: 160%; font-weight: 700; }
   .fc-content { font-size: 0.9em; font-weight: 700; margin-top: 0px; }
   .live-cal-margin { margin: 0px !important; }

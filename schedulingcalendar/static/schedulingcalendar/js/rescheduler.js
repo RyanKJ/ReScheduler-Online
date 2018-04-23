@@ -311,7 +311,7 @@ $(document).ready(function() {
           employeeAssigned: false,
           customSort: 1,
           eventRowSort: 2000,
-          className: "blank-event bold"
+          className: "blank-event bold note"
         }
         events.push(event);
       }
@@ -513,7 +513,7 @@ $(document).ready(function() {
             } else if (displayLastNames) {
               lastName = employeeLastName;
             }
-            return "**TOR: " + employeeNameDict[employeePk].firstName + " " + lastName + "**";
+            return "TOR: " + employeeNameDict[employeePk].firstName + " " + lastName;
           }
       }
     }
@@ -813,10 +813,7 @@ $(document).ready(function() {
       ).appendTo("#eligable-list");
       // Create content inside each eligible li
       var desired_hours = eligableList[i]['employee']['desired_hours'];
-      var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
-      if (currAssignedEmployeeID != eligableList[i]['employee']['id']) {
-        curr_hours -= schedule_hours;
-      }
+      var curr_hours = eligableList[i]['availability']['curr_hours'];
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
                    "<div class='hour-wrapper'>" +
                      "<div class='desired-hours'>" + desired_hours + "</div>" +
@@ -870,8 +867,7 @@ $(document).ready(function() {
       ).appendTo("#eligable-list");
       // Create content inside each eligible li
       var desired_hours = eligableList[i]['employee']['desired_hours'];
-      var curr_hours = eligableList[i]['availability']['Hours Scheduled'];
-      curr_hours -= schedule_hours;
+      var curr_hours = eligableList[i]['availability']['curr_hours'];
       var liHTML = "<div class='eligible-name'>" + name + "</div>" +
                    "<div class='hour-wrapper'>" +
                      "<div class='desired-hours'>" + desired_hours + "</div>" +
@@ -1062,16 +1058,16 @@ $(document).ready(function() {
    * Given an employee id and schedule length, add hours to newly selected
    * employee, and if previously selected different employee, subtract hours
    */ 
-  function _updateCurrHours(employeeID, scheduleLength) {
+  function _updateCurrHours(employeeID, newEmployeeSchDuration, oldEmployeeSchDuration) {
     var $newlyAssignedEmployee = $("#" + employeeID + "> .hour-wrapper > .eligible-hours");
     var oldHours = $newlyAssignedEmployee.text();
-    var newHours = parseFloat(oldHours) + scheduleLength;
+    var newHours = parseFloat(oldHours) + newEmployeeSchDuration;
     $newlyAssignedEmployee.text(newHours);
     var $previousAssignedEmployee = $(".curr-assigned-employee");
     if ($previousAssignedEmployee.length) {
       var $previousEmployeeHours = $previousAssignedEmployee.find(".eligible-hours");
       var oldHours = $previousEmployeeHours.text();
-      var newHours = parseFloat(oldHours) - scheduleLength;
+      var newHours = parseFloat(oldHours) - oldEmployeeSchDuration;
       $previousEmployeeHours.text(newHours);
     }
   }
@@ -1092,9 +1088,9 @@ $(document).ready(function() {
     } else {
       var empPk = $eligableLi.attr("data-employee-pk");
       var schPk = $eligableLi.attr("data-schedule-pk");
-      var calendarDate = $("#add-date").val();
+      var strCalDate = calDate.format(DATE_FORMAT);
       $.post("add_employee_to_schedule",
-             {employee_pk: empPk, schedule_pk: schPk, cal_date: calendarDate},
+             {employee_pk: empPk, schedule_pk: schPk, cal_date: strCalDate},
              updateScheduleView);
     }
   }
@@ -1124,9 +1120,9 @@ $(document).ready(function() {
   function _assignEmployeeAfterWarning(event) { 
     var empPk = $(this).data("employee-pk");
     var schPk = $(this).data("schedule-pk");
-    var calendarDate = $("#add-date").val();
+    var strCalDate = calDate.format(DATE_FORMAT);
     $.post("add_employee_to_schedule",
-           {employee_pk: empPk, schedule_pk: schPk, cal_date: calendarDate},
+           {employee_pk: empPk, schedule_pk: schPk, cal_date: strCalDate},
            updateScheduleView);
   }
     
@@ -1162,7 +1158,7 @@ $(document).ready(function() {
     var end = moment(endDateTime);
     var duration = moment.duration(end.diff(start));
     var hours = duration.asHours();
-    _updateCurrHours(info["employee"]["id"], hours);
+    _updateCurrHours(info["employee"]["id"], info['new_sch_duration'], info['old_sch_duration']);
     _highlightAssignedEmployee(info["employee"]["id"]);
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     if (displaySettings["unique_row_per_employee"]) {
@@ -1308,10 +1304,10 @@ $(document).ready(function() {
   /** Remove selected schedule after user has clicked okay on warning dialog. */
   function _removeScheduleAfterWarning(event) {
     var event_id = $(".fc-event-clicked").parent().data("event-id");
-    var calendarDate = $("#add-date").val();
+    var strCalDate = calDate.format(DATE_FORMAT);
     if (event_id) {
       $.post("remove_schedule", 
-             {schedule_pk: event_id, cal_date: calendarDate}, 
+             {schedule_pk: event_id, cal_date: strCalDate}, 
              removeEventAfterDelete);
     }
   }
@@ -1323,7 +1319,6 @@ $(document).ready(function() {
    */
   function removeEventAfterDelete(data) {
     var info = JSON.parse(data);
-    console.log("cost delta is: ", info["cost_delta"]);
     $removeScheduleBtn.css("display", "block");
     $removeBtnConfirmContainer.css("display", "none");
     var schedulePk = info["schedule_pk"];
@@ -1345,8 +1340,10 @@ $(document).ready(function() {
       $fullCal.fullCalendar("removeEvents", schedulePk)
     }
     // Update cost display to reflect any cost changes
-    updateHoursAndCost(info["cost_delta"]);
-    reRenderAllCostsHours();
+    if (info["cost_delta"]) {
+      updateHoursAndCost(info["cost_delta"]);
+      reRenderAllCostsHours();
+    }
     // Disable schedule note
     $scheduleNoteText.val("Please Select A Schedule First");
     $scheduleNoteBtn.prop('disabled', true);
@@ -1392,6 +1389,7 @@ $(document).ready(function() {
   function editSchedule(event) {
     var $clickedEvent = $(".fc-event-clicked");
     if ($clickedEvent.length) { // Ensure event to edit has been clicked
+      var strCalDate = calDate.format(DATE_FORMAT);
       var event_id = $(".fc-event-clicked").parent().data("event-id");
       var startTime = $("#start-timepicker").val();
       var endTime = $("#end-timepicker").val();
@@ -1400,7 +1398,7 @@ $(document).ready(function() {
       if (event_id) {
         $.post("edit_schedule", 
                {schedule_pk: event_id, start_time: startTime, end_time: endTime,
-                hide_start: hideStart, hide_end: hideEnd}, 
+                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate}, 
                successfulScheduleEdit);
       }
     }
@@ -1428,6 +1426,7 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           firstName, lastName, 
                           note);
+                          
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;
@@ -1457,6 +1456,12 @@ $(document).ready(function() {
     //Highlight edited event
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
+    
+    // Update cost display to reflect any cost changes
+    if (info["cost_delta"]) {
+      updateHoursAndCost(info["cost_delta"]);
+      reRenderAllCostsHours();
+    }
   }
   
   /** Helper function that returns true if employee assigned more than once on date */ 
@@ -1700,26 +1705,15 @@ $(document).ready(function() {
   }
   
   
-  /** Add/Remove class to toolbar to make it fixed/static on scroll */
-  function stickyToolbarAndCal() {
-    if (window.pageYOffset >= sticky) {
-      toolbar.classList.add("sticky");
-	  calendarDiv.classList.add("sticky-cal");
-    } else {
-      toolbar.classList.remove("sticky");
-	  calendarDiv.classList.remove("sticky-cal");
-    }
-  }
-  
-  
   /** Add changes in hours and cost to the hoursAndCosts state variable. */
   function updateHoursAndCost(hoursAndCostsDelta) {
     // Update day hours & costs
     var dayCosts = hoursAndCosts['day_hours_costs'];
     var dayCostDelta = hoursAndCostsDelta['day_hours_costs'];
     for (date in dayCostDelta) {
-      if (!dayCostDelta.hasOwnProperty(date)) {
-        continue;
+      if (!dayCosts.hasOwnProperty(date)) {
+        // Case where no schedules previously assigned on date
+        dayCosts[date] = dayCostDelta[date];
       } else {
         var hoursAndCostDelta = dayCostDelta[date];
         for (var department in hoursAndCostDelta) {
@@ -1921,6 +1915,18 @@ $(document).ready(function() {
   function resizeCalendar() {
     var newCalHeight = window.innerHeight * .85
     $fullCal.fullCalendar('option', 'height', newCalHeight);
+  }
+  
+  
+  /** Add/Remove class to toolbar to make it fixed/static on scroll */
+  function stickyToolbarAndCal() {
+    if (window.pageYOffset >= sticky) {
+      toolbar.classList.add("sticky");
+	    calendarDiv.classList.add("sticky-cal");
+    } else {
+      toolbar.classList.remove("sticky");
+	    calendarDiv.classList.remove("sticky-cal");
+    }
   }
   
   

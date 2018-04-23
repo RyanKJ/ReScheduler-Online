@@ -310,8 +310,9 @@ def get_availability(user, employee, schedule):
     availability['Desired Times'] = desired_times_aware
 
     # Check current hours worked for later evaluation of overtime       
-    total_workweek_hours = calculate_weekly_hours_with_sch(user, employee, schedule)
+    curr_hours, total_workweek_hours = calculate_weekly_hours_with_sch(user, employee, schedule)
     availability['Hours Scheduled'] = total_workweek_hours
+    availability['curr_hours'] = curr_hours
     availability['(O)'] = check_for_overtime(total_workweek_hours, user)
             
     return availability
@@ -340,18 +341,20 @@ def calculate_weekly_hours_with_sch(user, employee, schedule):
         employee: Employee model object.
         schedule: Schedule model object.
     Returns:
-        An integer value of how many hours that employee will be working for
-        that with, including the hours of the schedule they may be assigned to.
+        A tuple value of how many hours that employee is working currently
+        as the first value and how many hours the employee will be working if
+        assigned to schedule as the second value.
     """
     
     curr_hours = calculate_weekly_hours(employee, schedule.start_datetime, user)
     if schedule.employee == employee:
-        return curr_hours
+        return (curr_hours, curr_hours)
     else:
         min_time_for_break = employee.min_time_for_break
         break_time_min = employee.break_time_in_min
-        return curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
-                                              None, None, min_time_for_break, break_time_min)
+        time_with_sch =  curr_hours + time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
+                                                        None, None, min_time_for_break, break_time_min)
+        return (curr_hours, time_with_sch)
     
     
 def calculate_weekly_hours(employee, dt, user):
@@ -1018,7 +1021,7 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
                                            calendar_date.month, calendar_date.year)
 
     # Calculate difference between old and new day hours/costs
-    hours_cost_delta = calculate_cost_delta(old_hours_cost, new_hours_cost)
+    hours_cost_delta = calculate_cost_delta(old_hours_cost, new_hours_cost, 'subtract')
     
     return hours_cost_delta
     
@@ -1044,18 +1047,7 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
         A dictionary of departments that map to the change in cost to the 
         various departments. 
     """
-    
-    
-    # Get workweeks that intersect with schedule
-    workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
-    if schedule.end_datetime > workweek_times_list[0]['end']:
-        second_workweek = get_start_end_of_weekday(schedule.end_datetime, user)
-        workweek_times_list.append(second_workweek)
-        
-        
-        
-        
-        
+     
     employees = [new_employee] # Employee list used for query
     if schedule.employee:
         employees.append(schedule.employee)
@@ -1066,81 +1058,135 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
                                           start_datetime__lt=workweek['end'],
                                           employee__in=employees)
                                   .order_by('start_datetime', 'end_datetime')) 
-    
-    
-    
-    # For each workweek schedule intersects with, calculate cost difference
-    for workweek_times in workweek_times_list:
-        # Calculate old workweek costs before deletion
-        workweek_schedules = (Schedule.objects.select_related('department', 'employee')
-                                      .filter(user=user,
-                                              end_datetime__gt=workweek_times['start'],
-                                              start_datetime__lt=workweek_times['end'],
-                                              employee__in=employees)
-                                      .order_by('start_datetime', 'end_datetime')) 
-        # Get old workweek costs before employee assignment
-        new_employee_schedules = [sch for sch in workweek_schedules if sch.employee == new_employee]
-        old_cost = single_employee_costs(workweek_times['start'], 
-                                         workweek_times['end'],
-                                         new_employee, new_employee_schedules, 
-                                         departments, business_data, 
-                                         calendar_date.month,
-                                         calendar_date.year)
-        # Get new workweek costs after employee assignment  
-        bisect.insort_left(new_employee_schedules, schedule)
-        new_cost = single_employee_costs(workweek_times['start'], 
-                                         workweek_times['end'],
-                                         new_employee, new_employee_schedules, 
-                                         departments, business_data, 
-                                         calendar_date.month,
-                                         calendar_date.year)
-                                         
-        if schedule.employee: # Calculate changes to unassigning employee
-            old_employee_schedules = [sch for sch in workweek_schedules if sch.employee == schedule.employee]
-            old_emp_old_cost = single_employee_costs(workweek_times['start'], 
-                                                     workweek_times['end'],
-                                                     schedule.employee, 
-                                                     old_employee_schedules, 
-                                                     departments, business_data, 
-                                                     calendar_date.month, 
-                                                     calendar_date.year)
-            for dep in old_cost:
-                old_cost[dep]['cost'] += old_emp_old_cost[dep]['cost']
-            # Get new workweek costs after removing employee from schedule
-            old_employee_schedules.remove(schedule)
-            old_emp_new_cost = single_employee_costs(workweek_times['start'], 
-                                                     workweek_times['end'],
-                                                     schedule.employee, 
-                                                     old_employee_schedules, 
-                                                     departments, business_data, 
-                                                     calendar_date.month, 
-                                                     calendar_date.year)
-            for dep in new_cost:
-                new_cost[dep]['cost'] += old_emp_new_cost[dep]['cost']    
-                                                                     
-        # Calculate difference between old and new costs
-        for dep in new_cost:
-          old_department_cost = old_cost[dep]['cost']
-          new_department_cost = new_cost[dep]['cost']
-          new_cost[dep]['cost'] = new_department_cost - old_department_cost
-          
-        # Add up different workweek cost changes
-        if not total_new_cost:
-            total_new_cost = new_cost
-        else: # If 2 workweeks, combine cost difference of the 2 workweeks
-            for dep in new_cost:
-              total_new_cost[dep]['cost'] += new_cost[dep]['cost']
+     
+    # Get old workweek costs before employee assignment
+    new_employee_schedules = [sch for sch in workweek_schedules if sch.employee == new_employee]
+    old_hours_cost = single_employee_costs(workweek['start'], 
+                                     workweek['end'],
+                                     new_employee, new_employee_schedules, 
+                                     departments, business_data, 
+                                     calendar_date.month,
+                                     calendar_date.year)
+    # Get new workweek costs after employee assignment  
+    bisect.insort_left(new_employee_schedules, schedule)
+    new_hours_cost = single_employee_costs(workweek['start'], 
+                                     workweek['end'],
+                                     new_employee, new_employee_schedules, 
+                                     departments, business_data, 
+                                     calendar_date.month,
+                                     calendar_date.year)
+                                     
+    # Calculate difference between old and new day hours/costs for new employee
+    hours_cost_delta = calculate_cost_delta(old_hours_cost, new_hours_cost, 'subtract')
+                         
+    # if another employee was already assigned to schedule previously, calculate cost diff                                 
+    if schedule.employee:
+        prev_employee_schedules = [sch for sch in workweek_schedules if sch.employee == schedule.employee]
+        prev_emp_old_cost = single_employee_costs(workweek['start'], 
+                                                  workweek['end'],
+                                                  schedule.employee, 
+                                                  prev_employee_schedules, 
+                                                  departments, business_data, 
+                                                  calendar_date.month, 
+                                                  calendar_date.year)
 
-    return 0
+        prev_employee_schedules.remove(schedule)
+        prev_emp_new_cost = single_employee_costs(workweek['start'], 
+                                                  workweek['end'],
+                                                  schedule.employee, 
+                                                  prev_employee_schedules, 
+                                                  departments, business_data, 
+                                                  calendar_date.month, 
+                                                  calendar_date.year)
+        # Calculate difference in hours and cost
+        prev_emp_hours_cost_delta = calculate_cost_delta(prev_emp_old_cost, prev_emp_new_cost, 'subtract')
+        
+        # Add difference in cost for previous employee to overall cost/hour delta
+        hours_cost_delta = calculate_cost_delta(hours_cost_delta, prev_emp_hours_cost_delta, 'add')                                       
+
+    return hours_cost_delta
     
     
-def calculate_cost_delta(old_hours_cost, new_hours_cost):
-    """Return difference of values between old hours cost and new hours cost for
-    each day, week, and month.
+def edit_schedule_cost_change(user, schedule, new_start_dt, new_end_dt, departments, 
+                              business_data, calendar_date):
+    """Calculate cost differential to editing schedule with assigned employee.
+
+    Args:
+        user: django authenticated user
+        schedule: The schedule that will be deleted from the database.
+        
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        calendar_date: Datetime date containing month and year of calendar
+            that the user has removed schedule from.
+    Returns:
+        A dictionary of departments that map to the change in cost to the 
+        various departments. 
+    """
+     
+    # Get the workweek that the schedule intersects with and workweek schedules
+    workweek = get_start_end_of_weekday(schedule.start_datetime, user)
+    workweek_schedules = (Schedule.objects.select_related('department', 'employee')
+                                  .filter(user=user,
+                                          end_datetime__gt=workweek['start'],
+                                          start_datetime__lt=workweek['end'],
+                                          employee=schedule.employee)
+                                  .order_by('start_datetime', 'end_datetime')) 
+    workweek_schedules = [sch for sch in workweek_schedules]
+
+    # Get old week hours and costs                   
+    old_hours_cost = single_employee_costs(workweek['start'], workweek['end'],
+                                           schedule.employee, workweek_schedules, 
+                                           departments, business_data, 
+                                           calendar_date.month, calendar_date.year)
+                                                                                                 
+    # Get new week hours and costs with edited schedule
+    for sch in workweek_schedules:
+        if sch.id == schedule.id:
+            # Do stuff:
+            sch.start_datetime = new_start_dt
+            sch.end_datetime = new_end_dt
+            break
+    new_hours_cost = single_employee_costs(workweek['start'], workweek['end'],
+                                           schedule.employee, workweek_schedules, 
+                                           departments, business_data, 
+                                           calendar_date.month, calendar_date.year)
+
+    # Calculate difference between old and new day hours/costs
+    hours_cost_delta = calculate_cost_delta(old_hours_cost, new_hours_cost, 'subtract')
+    
+    return hours_cost_delta
+    
+    
+def copy_schedules_cost_delta(user, schedules, departments, 
+                              business_data, calendar_date):
+    """Calculate cost differential to editing schedule with assigned employee.
+
+    Args:
+        user: django authenticated user
+        schedule: The schedule that will be deleted from the database.
+        
+        departments: Queryset of all departments for user.
+        business_data: Django model of business data for user
+        calendar_date: Datetime date containing month and year of calendar
+            that the user has removed schedule from.
+    Returns:
+        A dictionary of departments that map to the change in cost to the 
+        various departments."""
+    pass
+        
+    
+    
+    
+def calculate_cost_delta(old_hours_cost, new_hours_cost, operator):
+    """Return difference or combiend values between old hours cost and new hours
+    cost for each day, week, and month.
     
     Args:
         old_hours_cost: Hours and cost before adding/editing/removing schedules.
         new_hours_cost:  Hours and cost after adding/editing/removing schedules.
+        operator: Python string indicating the kind of operation: add cost deltas
+          or subtract the cost deltas.
     Returns:
         The difference between the new and old hours/costs as a hours and costs
         dictionary data structure.
@@ -1159,9 +1205,14 @@ def calculate_cost_delta(old_hours_cost, new_hours_cost):
             new_dep_overtime = new_day_hours_cost[date][dep]['overtime_hours']
             new_dep_cost = new_day_hours_cost[date][dep]['cost']
 
-            new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours - old_dep_hours
-            new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
-            new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost - old_dep_cost
+            if operator == 'subtract':
+                new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours - old_dep_hours
+                new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+                new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost - old_dep_cost
+            else:
+                new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours + old_dep_hours
+                new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime + old_dep_overtime
+                new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost + old_dep_cost
             
     # Calculate difference between old and new week hours/costs
     new_week_hours_cost = new_hours_cost['workweek_hours_costs'][0]['hours_cost']
@@ -1174,19 +1225,28 @@ def calculate_cost_delta(old_hours_cost, new_hours_cost):
         new_dep_hours = new_week_hours_cost[dep]['hours']
         new_dep_overtime = new_week_hours_cost[dep]['overtime_hours']
         new_dep_cost = new_week_hours_cost[dep]['cost'] 
+         
+        if operator == 'subtract':
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours - old_dep_hours
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost - old_dep_cost
+        else:
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours + old_dep_hours
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime + old_dep_overtime
+            new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost + old_dep_cost
             
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours - old_dep_hours
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost - old_dep_cost
-        
     # Calculate difference between old and new month costs
     new_month_cost = new_hours_cost['month_costs']
     old_month_cost = old_hours_cost['month_costs']
     for dep in new_month_cost:
         old_dep_cost = old_month_cost[dep]['cost']
         new_dep_cost = new_month_cost[dep]['cost']
-        new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost - old_dep_cost
-    
+        
+        if operator == 'subtract':
+            new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost - old_dep_cost
+        else:
+            new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost + old_dep_cost
+            
     return new_hours_cost
       
     
@@ -1399,6 +1459,7 @@ def _availability_to_dict(availability):
             
     avail_serialized['(O)'] = availability['(O)']
     avail_serialized['Hours Scheduled'] = availability['Hours Scheduled']
+    avail_serialized['curr_hours'] =availability['curr_hours']
     
     return avail_serialized
       
