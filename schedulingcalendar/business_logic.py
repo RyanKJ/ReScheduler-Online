@@ -495,7 +495,7 @@ def time_dur_in_hours(start_datetime, end_datetime,
     time_delta = end - start
     hours = time_delta.seconds / 3600.0
     
-    if min_time_for_break and min_time_for_break >= hours:
+    if min_time_for_break and min_time_for_break <= hours:
         hours -= break_time_in_min / 60.0
     
     return hours
@@ -526,7 +526,7 @@ def get_avg_monthly_revenue(user, month):
         return -1
      
 
-def all_calendar_hours_and_costs(user, departments, schedules, month, year, business_data):
+def all_calendar_hours_and_costs(user, departments, schedules, employees, month, year, business_data):
     """Calculate hours cost of given month of schedules, including benefits.
     
     This function keeps track of the regular hours, overtime hours, benefits
@@ -537,6 +537,7 @@ def all_calendar_hours_and_costs(user, departments, schedules, month, year, busi
         user: Django authenticated user.
         departments: All departments for user.
         schedules: All schedules for the user for the given calendar view.
+        employees: All employees belonging to user
         month: Integer value of month.
         year: Integer value of year.
         business_data: Business settings the user has.
@@ -597,6 +598,20 @@ def all_calendar_hours_and_costs(user, departments, schedules, month, year, busi
         workweek_costs_month = calculate_workweek_costs(employee_hours, departments, business_data, True)
         for dep_id in workweek_costs_month:
             hours_and_costs['month_costs'][dep_id]['cost'] += workweek_costs_month[dep_id]['cost']
+            
+                
+    # Calculate month costs
+    total_monthly_benefits = 0 # Get monthly benefits cost
+    monthly_benefits_per_dep = 0
+    for employee in employees:
+        total_monthly_benefits += employee.monthly_medical
+    monthly_benefits_per_dep = total_monthly_benefits / (len(hours_and_costs['month_costs']) - 1)
+    
+    for dep_id in hours_and_costs['month_costs']:
+        if dep_id == 'total':
+            hours_and_costs['month_costs'][dep_id]['cost'] += total_monthly_benefits
+        else:
+            hours_and_costs['month_costs'][dep_id]['cost'] += monthly_benefits_per_dep
 
     return hours_and_costs
     
@@ -822,6 +837,34 @@ def employee_hours_detailed(workweek_start_dt, workweek_end_dt, employee,
     return {'schedule_hours': schedule_hours, 'day_hours': day_hours, 'week_hours': week_hours}
     
     
+def calculate_cost(regular_hours, overtime_hours, wage, 
+                   overtime_multiplier, social_security):
+    """Calculate the cost of the given hours and overtime.
+    
+    Args:
+        regular_hours: Float value of regular, non-overtime hours.
+        overtime_hours: Float value of overtime hours.
+        wage: Float value to multiply hours by.
+        overtime_multiplier: amount overtime multiplies by.
+        social_security: Percentage of cost added to employer.
+        
+    Returns:
+        A float representing total value of all costs.
+    """
+    
+    regular_cost = regular_hours * wage
+    over_t_cost = overtime_hours * wage * overtime_multiplier
+    total_pre_ss = regular_cost + over_t_cost
+    total = total_pre_ss + (total_pre_ss * (social_security / 100))
+    
+    return total
+    
+    
+def calculate_non_hourly_costs(user, month, year, department):
+    """Calculate the cost schedules that don't depend on hours i.e. medical insurance."""
+    return 0
+    
+    
 def calculate_workweek_costs(hours, departments, business_data, month_only=False):
     """Calculate the costs of the workweek.
     
@@ -849,17 +892,17 @@ def calculate_workweek_costs(hours, departments, business_data, month_only=False
             if month_only:
                 regular_hours = week_hours[department]['hours_in_month']
                 overtime_hours = week_hours[department]['ovr_t_in_month']
-                regular_cost = regular_hours * employee.wage
-                over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
+                cost = calculate_cost(regular_hours, overtime_hours, employee.wage, 
+                                      ovr_t_multiplier, employee.social_security)
             else:
                 regular_hours = week_hours[department]['hours']
                 overtime_hours = week_hours[department]['overtime_hours']
-                regular_cost = regular_hours * employee.wage
-                over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
+                cost = calculate_cost(regular_hours, overtime_hours, employee.wage, 
+                                      ovr_t_multiplier, employee.social_security)
                 
             workweek_costs[department]['hours'] += regular_hours
             workweek_costs[department]['overtime_hours'] += overtime_hours
-            workweek_costs[department]['cost'] += regular_cost + over_t_cost
+            workweek_costs[department]['cost'] += cost
         
     return workweek_costs 
     
@@ -887,21 +930,21 @@ def calculate_day_costs(hours, departments, business_data):
                 for dep in day_hours_for_week[date]:
                     regular_hours = day_hours_for_week[date][dep]['hours']
                     overtime_hours = day_hours_for_week[date][dep]['overtime_hours']
-                    regular_cost = regular_hours * employee.wage
-                    over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
-                    day_hours_for_week[date][dep]['cost'] = regular_cost + over_t_cost
+                    cost = calculate_cost(regular_hours, overtime_hours, employee.wage, 
+                                      ovr_t_multiplier, employee.social_security)
+                    day_hours_for_week[date][dep]['cost'] = cost
                 day_costs_for_week[date.isoformat()] = day_hours_for_week[date]
             else:
                 day_cost = day_costs_for_week[date.isoformat()]
                 for dep in day_cost:
                   regular_hours = day_hours_for_week[date][dep]['hours']
                   overtime_hours = day_hours_for_week[date][dep]['overtime_hours']
-                  regular_cost = regular_hours * employee.wage
-                  over_t_cost = overtime_hours * employee.wage * ovr_t_multiplier
+                  cost = calculate_cost(regular_hours, overtime_hours, employee.wage, 
+                                      ovr_t_multiplier, employee.social_security)
                         
                   day_cost[dep]['hours'] += regular_hours
                   day_cost[dep]['overtime_hours'] += overtime_hours
-                  day_cost[dep]['cost'] += regular_cost + over_t_cost
+                  day_cost[dep]['cost'] += cost
                   
     return day_costs_for_week
           
@@ -922,19 +965,14 @@ def calculate_schedule_costs(hours, all_schedule_hours_dicts, business_data):
     for employee in hours:
         schedule_hours = hours[employee]['schedule_hours']
         for schedule_id in schedule_hours:
-            regular_cost = schedule_hours[schedule_id]['hours'] * employee.wage
-            over_t_cost = schedule_hours[schedule_id]['overtime_hours'] * employee.wage * ovr_t_multiplier
-            schedule_hours[schedule_id]['cost'] = regular_cost + over_t_cost
+            cost = calculate_cost(regular_hours, overtime_hours, employee.wage, 
+                                      ovr_t_multiplier, employee.social_security)
+            schedule_hours[schedule_id]['cost'] = cost
         # Update master dict containing all schedule hours and costs
         all_schedule_hours_dicts.update(hours[employee]['schedule_hours'])
     return
     
-    
-def non_wage_monthly_costs(user, month, year, department):
-    """Calculate the cost of benefits for a given calendar."""
-    return 0
-    
-    
+
 def remove_schedule_cost_change(user, schedule, departments, business_data,
                                 calendar_date):
     """Calculate cost differential to departments if deleting schedule.
@@ -944,11 +982,6 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
     sequential and not independent, thus we must recalculate the cost of the
     workweek for the employee with and without the schedule that will be
     deleted.
-    
-    In rare cases a schedule lands in 2 different workweeks. For example, a
-    a late night shift on a saturday night where the beginning of a workweek
-    is at midnight on sunday. Therefore this function will calculate both
-    workweek cost changes in that case.
     
     Args:
         user: django authenticated user
@@ -961,16 +994,9 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
         A dictionary of departments that map to the change in cost to the 
         various departments. 
     """
-
-    # Create dict for department costs
-    department_costs = {}
-    for department in departments:
-        department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'total', 'cost': 0}
     
     # Get the workweek that the schedule intersects with and workweek schedules
     workweek = get_start_end_of_weekday(schedule.start_datetime, user)
-    total_new_cost = {}
     workweek_schedules = (Schedule.objects.select_related('department', 'employee')
                                   .filter(user=user,
                                           end_datetime__gt=workweek['start'],
@@ -992,47 +1018,9 @@ def remove_schedule_cost_change(user, schedule, departments, business_data,
                                            calendar_date.month, calendar_date.year)
 
     # Calculate difference between old and new day hours/costs
-    new_day_hours_cost = new_hours_cost['day_hours_costs']
-    old_day_hours_cost = old_hours_cost['day_hours_costs']
-    for date in new_day_hours_cost:
-        for dep in new_day_hours_cost[date]:
-            old_dep_hours = old_day_hours_cost[date][dep]['hours']
-            old_dep_overtime = old_day_hours_cost[date][dep]['overtime_hours']
-            old_dep_cost = old_day_hours_cost[date][dep]['cost']
-            
-            new_dep_hours = new_day_hours_cost[date][dep]['hours']
-            new_dep_overtime = new_day_hours_cost[date][dep]['overtime_hours']
-            new_dep_cost = new_day_hours_cost[date][dep]['cost']
-
-            new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours - old_dep_hours
-            new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
-            new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost - old_dep_cost
-            
-    # Calculate difference between old and new week hours/costs
-    new_week_hours_cost = new_hours_cost['workweek_hours_costs'][0]['hours_cost']
-    old_week_hours_cost = old_hours_cost['workweek_hours_costs'][0]['hours_cost']
-    for dep in new_week_hours_cost:
-        old_dep_hours = old_week_hours_cost[dep]['hours']
-        old_dep_overtime = old_week_hours_cost[dep]['overtime_hours']
-        old_dep_cost = old_week_hours_cost[dep]['cost']
-            
-        new_dep_hours = new_week_hours_cost[dep]['hours']
-        new_dep_overtime = new_week_hours_cost[dep]['overtime_hours']
-        new_dep_cost = new_week_hours_cost[dep]['cost'] 
-            
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours - old_dep_hours
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
-        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost - old_dep_cost
-        
-    # Calculate difference between old and new month costs
-    new_month_cost = new_hours_cost['month_costs']
-    old_month_cost = old_hours_cost['month_costs']
-    for dep in new_month_cost:
-        old_dep_cost = old_month_cost[dep]['cost']
-        new_dep_cost = new_month_cost[dep]['cost']
-        new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost - old_dep_cost
+    hours_cost_delta = calculate_cost_delta(old_hours_cost, new_hours_cost)
     
-    return new_hours_cost
+    return hours_cost_delta
     
     
 def add_employee_cost_change(user, schedule, new_employee, departments, 
@@ -1042,11 +1030,6 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
     This function recalcuates the workweek costs of the employee assigned
     to the schedule and if an employee is already assigned, the cost change of
     removing the old employee from the schedule. 
-    
-    In rare cases a schedule lands in 2 different workweeks. For example, a
-    a late night shift on a saturday night where the beginning of a workweek
-    is at midnight on sunday. Therefore this function will calculate both
-    workweek cost changes in that case.
     
     Args:
         user: django authenticated user
@@ -1062,10 +1045,6 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
         various departments. 
     """
     
-    department_costs = {} # Create dict for department costs
-    for department in departments:
-        department_costs[department.id] = {'name': department.name, 'cost': 0}
-    department_costs['total'] = {'name': 'total', 'cost': 0}
     
     # Get workweeks that intersect with schedule
     workweek_times_list = [get_start_end_of_weekday(schedule.start_datetime, user)]
@@ -1073,10 +1052,22 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
         second_workweek = get_start_end_of_weekday(schedule.end_datetime, user)
         workweek_times_list.append(second_workweek)
         
+        
+        
+        
+        
     employees = [new_employee] # Employee list used for query
     if schedule.employee:
         employees.append(schedule.employee)
-    total_new_cost = {}
+    workweek = get_start_end_of_weekday(schedule.start_datetime, user)
+    workweek_schedules = (Schedule.objects.select_related('department', 'employee')
+                                  .filter(user=user,
+                                          end_datetime__gt=workweek['start'],
+                                          start_datetime__lt=workweek['end'],
+                                          employee__in=employees)
+                                  .order_by('start_datetime', 'end_datetime')) 
+    
+    
     
     # For each workweek schedule intersects with, calculate cost difference
     for workweek_times in workweek_times_list:
@@ -1141,6 +1132,62 @@ def add_employee_cost_change(user, schedule, new_employee, departments,
               total_new_cost[dep]['cost'] += new_cost[dep]['cost']
 
     return 0
+    
+    
+def calculate_cost_delta(old_hours_cost, new_hours_cost):
+    """Return difference of values between old hours cost and new hours cost for
+    each day, week, and month.
+    
+    Args:
+        old_hours_cost: Hours and cost before adding/editing/removing schedules.
+        new_hours_cost:  Hours and cost after adding/editing/removing schedules.
+    Returns:
+        The difference between the new and old hours/costs as a hours and costs
+        dictionary data structure.
+    """
+
+    # Calculate difference between old and new day hours/costs
+    new_day_hours_cost = new_hours_cost['day_hours_costs']
+    old_day_hours_cost = old_hours_cost['day_hours_costs']
+    for date in new_day_hours_cost:
+        for dep in new_day_hours_cost[date]:
+            old_dep_hours = old_day_hours_cost[date][dep]['hours']
+            old_dep_overtime = old_day_hours_cost[date][dep]['overtime_hours']
+            old_dep_cost = old_day_hours_cost[date][dep]['cost']
+            
+            new_dep_hours = new_day_hours_cost[date][dep]['hours']
+            new_dep_overtime = new_day_hours_cost[date][dep]['overtime_hours']
+            new_dep_cost = new_day_hours_cost[date][dep]['cost']
+
+            new_hours_cost['day_hours_costs'][date][dep]['hours'] = new_dep_hours - old_dep_hours
+            new_hours_cost['day_hours_costs'][date][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+            new_hours_cost['day_hours_costs'][date][dep]['cost'] = new_dep_cost - old_dep_cost
+            
+    # Calculate difference between old and new week hours/costs
+    new_week_hours_cost = new_hours_cost['workweek_hours_costs'][0]['hours_cost']
+    old_week_hours_cost = old_hours_cost['workweek_hours_costs'][0]['hours_cost']
+    for dep in new_week_hours_cost:
+        old_dep_hours = old_week_hours_cost[dep]['hours']
+        old_dep_overtime = old_week_hours_cost[dep]['overtime_hours']
+        old_dep_cost = old_week_hours_cost[dep]['cost']
+            
+        new_dep_hours = new_week_hours_cost[dep]['hours']
+        new_dep_overtime = new_week_hours_cost[dep]['overtime_hours']
+        new_dep_cost = new_week_hours_cost[dep]['cost'] 
+            
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['hours'] = new_dep_hours - old_dep_hours
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['overtime_hours'] = new_dep_overtime - old_dep_overtime
+        new_hours_cost['workweek_hours_costs'][0]['hours_cost'][dep]['cost'] = new_dep_cost - old_dep_cost
+        
+    # Calculate difference between old and new month costs
+    new_month_cost = new_hours_cost['month_costs']
+    old_month_cost = old_hours_cost['month_costs']
+    for dep in new_month_cost:
+        old_dep_cost = old_month_cost[dep]['cost']
+        new_dep_cost = new_month_cost[dep]['cost']
+        new_hours_cost['month_costs'][dep]['cost'] = new_dep_cost - old_dep_cost
+    
+    return new_hours_cost
       
     
 def single_employee_costs(workweek_start, workweek_end, employee, schedules, 

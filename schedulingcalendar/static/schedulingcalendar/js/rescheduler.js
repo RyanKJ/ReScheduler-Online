@@ -1192,8 +1192,8 @@ $(document).ready(function() {
     var $event_div = $("#event-id-" + $event[0].id).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
     // Update cost display to reflect any cost changes
-    //updateHoursAndCost(info["cost_delta"]);
-    //reRenderAllCostsHours();
+    updateHoursAndCost(info["cost_delta"]);
+    reRenderAllCostsHours();
   }
   
   

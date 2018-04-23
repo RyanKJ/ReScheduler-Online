@@ -203,12 +203,16 @@ def get_schedules(request):
                                                  start_datetime__gte=lower_bound_dt,
                                                  end_datetime__lte=upper_bound_dt)
                                          .order_by('start_datetime', 'end_datetime'))
+
+            employees = Employee.objects.filter(user=logged_in_user).order_by('first_name', 'last_name')
             dep_memberships = (DepartmentMembership.objects.filter(user=logged_in_user, department=department_id))
+            employees_in_dep = []
             employee_ids = []
             for dep_mem in dep_memberships:
                 employee_ids.append(dep_mem.employee.id)
-            employees = (Employee.objects.filter(user=logged_in_user, id__in=employee_ids)
-                                         .order_by('first_name', 'last_name'))
+            for e in employees:
+                if e.id in employee_ids:
+                    employees_in_dep.append(e)
                                                  
             # Check if any employees for this user exist to alert them if no employees exist
             # Or alert them if employees exist, but none are members of this department
@@ -251,7 +255,7 @@ def get_schedules(request):
                 if s.department.id == department_id:
                     schedule_dict = model_to_dict(s)
                     schedules_as_dicts.append(schedule_dict)
-            for e in employees:
+            for e in employees_in_dep:
                 employee_dict = model_to_dict(e)
                 employees_as_dicts.append(employee_dict) 
             for d in departments:
@@ -274,7 +278,7 @@ def get_schedules(request):
             business_data.save()
             
             # Get calendar costs to display to user
-            hours_and_costs = all_calendar_hours_and_costs(logged_in_user, departments, schedules, month, year, business_data)
+            hours_and_costs = all_calendar_hours_and_costs(logged_in_user, departments, schedules, employees, month, year, business_data)
             avg_monthly_revenue = get_avg_monthly_revenue(logged_in_user, month)
               
             # Combine all appropriate data into dict for serialization
@@ -981,8 +985,9 @@ class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
     """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
     fields = ['first_name', 'last_name', 'employee_id', 'email',
-              'wage', 'desired_hours', 'monthly_medical',
-              'workmans_comp', 'social_security']
+              'wage', 'desired_hours', 'monthly_medical', 
+              'social_security', 'min_time_for_break',
+              'break_time_in_min']
     
     def get(self, request, **kwargs):
         self.object = Employee.objects.get(pk=self.kwargs['employee_pk'], 
@@ -1054,8 +1059,9 @@ class EmployeeCreateView(UserIsManagerMixin, CreateView):
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
     fields = ['first_name', 'last_name', 'employee_id', 'email',
-              'wage', 'desired_hours', 'monthly_medical',
-              'workmans_comp', 'social_security']
+              'wage', 'desired_hours', 'monthly_medical', 
+              'social_security', 'min_time_for_break',
+              'break_time_in_min']
               
               
     def form_valid(self, form):
