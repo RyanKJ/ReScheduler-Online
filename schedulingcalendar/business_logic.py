@@ -529,7 +529,8 @@ def get_avg_monthly_revenue(user, month):
         return -1
      
 
-def all_calendar_hours_and_costs(user, departments, schedules, employees, month, year, business_data):
+def all_calendar_hours_and_costs(user, departments, schedules, employees, 
+                                 month, year, business_data, single_workweek=None):
     """Calculate hours cost of given month of schedules, including benefits.
     
     This function keeps track of the regular hours, overtime hours, benefits
@@ -544,6 +545,10 @@ def all_calendar_hours_and_costs(user, departments, schedules, employees, month,
         month: Integer value of month.
         year: Integer value of year.
         business_data: Business settings the user has.
+        single_workweek: Optional single workweek, if exists, this overrides
+          calculating all workweeks for the month. This also assumes the 
+          supplied schedules argument consists of schedules that only belong 
+          to this single workweek.
     Returns:
         A dict containing the hours and costs of schedules, days, workweeks,
         and month for every department the user has.
@@ -553,26 +558,30 @@ def all_calendar_hours_and_costs(user, departments, schedules, employees, month,
                        'workweek_hours_costs': [], 'month_costs': {}}
     workweeks = []
    
-    # Get all workweeks with any intersection with month
-    beginning_of_month = timezone.make_aware(datetime(year, month, 1, 1))
-    first_workweek = get_start_end_of_weekday(beginning_of_month, user)
-    first_workweek['schedules'] = []
-    workweeks.append(first_workweek)
-    for i in range(1, 6):
-        ith_day = first_workweek['start'] + timedelta((i * 7) + 1)
-        ith_workweek = get_start_end_of_weekday(ith_day, user)
-        ith_workweek['schedules'] = []
-        # If start of workweek is contained in month, add workweek
-        if ith_workweek['start'].month == month:
-            workweeks.append(ith_workweek)
+    if single_workweek:
+        single_workweek['schedules'] = schedules
+        workweeks.append(single_workweek)
+    else:
+        # Get all workweeks with any intersection with month
+        beginning_of_month = timezone.make_aware(datetime(year, month, 1, 1))
+        first_workweek = get_start_end_of_weekday(beginning_of_month, user)
+        first_workweek['schedules'] = []
+        workweeks.append(first_workweek)
+        for i in range(1, 6):
+            ith_day = first_workweek['start'] + timedelta((i * 7) + 1)
+            ith_workweek = get_start_end_of_weekday(ith_day, user)
+            ith_workweek['schedules'] = []
+            # If start of workweek is contained in month, add workweek
+            if ith_workweek['start'].month == month:
+                workweeks.append(ith_workweek)
             
-    # Filter out employeeless schedules then append schedules to the workweek they belong to
-    schedules = [sch for sch in schedules if sch.employee]
-    for sch in schedules:
-        for workweek in workweeks:
-            if sch.start_datetime >= workweek['start'] and sch.start_datetime <= workweek['end']:
-                workweek['schedules'].append(sch)
-                break
+        # Filter out employeeless schedules then append schedules to the workweek they belong to
+        schedules = [sch for sch in schedules if sch.employee]
+        for sch in schedules:
+            for workweek in workweeks:
+                if sch.start_datetime >= workweek['start'] and sch.start_datetime <= workweek['end']:
+                    workweek['schedules'].append(sch)
+                    break
                 
     # Create department dicts for monthly costs
     for department in departments:

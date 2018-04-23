@@ -1432,17 +1432,9 @@ $(document).ready(function() {
     $event[0].title = str;
     
     if (employeePk != null) {
-      // Get time duration of new schedule
-      var newStart = moment(startDateTime);
-      var newEnd = moment(endDateTime);
-      var newDuration = moment.duration(newEnd.diff(newStart));
-      var newHours = newDuration.asHours();
-      
-      // Get time duration of old schedule
-      var oldStart = moment(info["old_start_datetime"]);
-      var oldEnd = moment(info["old_end_datetime"]);
-      var oldDuration = moment.duration(oldEnd.diff(oldStart));
-      var oldHours = oldDuration.asHours();
+      // update hours worked per week of employee
+      var newHours = info['new_sch_duration'];
+      var oldHours = info['old_sch_duration'];
       
       // Update hours
       var difference = newHours - oldHours;
@@ -1652,9 +1644,10 @@ $(document).ready(function() {
   function dblClickHelper() {
     if (copySchedulePksList.length) {
       console.log("copied schedule pks are: ", copySchedulePksList);
+      var strCalDate = calDate.format(DATE_FORMAT);
       $("body").css("cursor", "progress");
       $.post("copy_schedules",
-             {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList},
+             {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList, cal_date: strCalDate},
              _createCopySchedules);
     }
   }
@@ -1664,12 +1657,19 @@ $(document).ready(function() {
   function _createCopySchedules(data) {
     var info = JSON.parse(data);
     var schedules = info["schedules"];
+    
     // Create fullcalendar events corresponding to schedules
     if (displaySettings["unique_row_per_employee"]) {
       var events = _copySchedulesToUniqueRowEvents(schedules);
     } else {
       var events = _schedulesToEvents(schedules);
       $fullCal.fullCalendar("renderEvents", events);
+    }
+    
+    // Update cost display to reflect any cost changes
+    if (info["cost_delta"]) {
+      updateHoursAndCost(info["cost_delta"]);
+      reRenderAllCostsHours();
     }
   }
   

@@ -28,7 +28,8 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
                              get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
-                             get_start_end_of_calendar, edit_schedule_cost_change)
+                             get_start_end_of_calendar, edit_schedule_cost_change,
+                             calculate_cost_delta, get_start_end_of_weekday)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -39,8 +40,9 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
                     EmployeeDisplaySettingsForm)
 from custom_mixins import UserIsManagerMixin
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, time, timedelta
 from itertools import chain
+import bisect
 import pytz
 import json
 
@@ -638,8 +640,6 @@ def edit_schedule(request):
                                         
             # Construct start and end datetimes for schedule
             date = schedule.start_datetime.date()
-            old_start_datetime = schedule.start_datetime
-            old_end_datetime = schedule.end_datetime
             time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
             start_dt = pytz.timezone(time_zone).localize(start_dt)
@@ -647,6 +647,8 @@ def edit_schedule(request):
             end_dt = pytz.timezone(time_zone).localize(end_dt)
             
             cost_delta = 0
+            old_sch_duration = 0
+            new_sch_duration = 0
             if schedule.employee: # Get change of cost if employee was assigned
                 # Calculate cost difference from editing times:
                 departments = Department.objects.filter(user=logged_in_user)
@@ -660,7 +662,7 @@ def edit_schedule(request):
                 old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
                                                      None, None, min_time_for_break=schedule.employee.min_time_for_break,
                                                      break_time_in_min=schedule.employee.break_time_in_min)
-                new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                new_sch_duration = time_dur_in_hours(start_dt, end_dt, 
                                                      None, None, min_time_for_break=schedule.employee.min_time_for_break,
                                                      break_time_in_min=schedule.employee.break_time_in_min)
                                                    
@@ -681,8 +683,8 @@ def edit_schedule(request):
             schedule_dict = model_to_dict(schedule)
             json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0,
                                     'cost_delta': cost_delta,
-                                    'old_start_datetime': old_start_datetime, 
-                                    'old_end_datetime': old_end_datetime},
+                                    'new_sch_duration': new_sch_duration,
+                                    'old_sch_duration': old_sch_duration},
                                     default=date_handler)
                                     
             return JsonResponse(json_info, safe=False)
@@ -698,8 +700,33 @@ def copy_schedules(request):
         if form.is_valid():
             schedule_pks = form.cleaned_data['schedule_pks']
             date = form.cleaned_data['date']
+            cal_date = form.cleaned_data['cal_date']
             schedules = (Schedule.objects.select_related('employee')
                                          .filter(user=logged_in_user, id__in=schedule_pks))
+            
+            # Calculate cost of workweek before adding schedules 
+            employees = []
+            for sch in schedules:
+                if sch.employee:
+                    employees.append(sch.employee)
+            departments = Department.objects.filter(user=logged_in_user)
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            time_zone = timezone.get_default_timezone_name()
+            date_as_datetime = datetime.combine(date, time(12))
+            date_as_datetime = pytz.timezone(time_zone).localize(date_as_datetime)
+            workweek = get_start_end_of_weekday(date_as_datetime, logged_in_user)
+            workweek_schedules = (Schedule.objects.select_related('department', 'employee')
+                                          .filter(user=logged_in_user,
+                                                  end_datetime__gt=workweek['start'],
+                                                  start_datetime__lt=workweek['end'],
+                                                  employee__in=employees)
+                                          .order_by('start_datetime', 'end_datetime'))
+            workweek_schedules = [sch for sch in workweek_schedules]
+            old_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
+                                                         workweek_schedules, [], 
+                                                         cal_date.month, cal_date.year, 
+                                                         business_data, workweek)
+                                         
             copied_schedules = []
             for sch in schedules:
                 new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)
@@ -714,13 +741,30 @@ def copy_schedules(request):
                                          employee=sch.employee)
                 copy_schedule.save()
                 copied_schedules.append(copy_schedule)
+                
+            # Calculate cost of workweek with new copied schedules
+            for schedule in copied_schedules:
+                bisect.insort_left(workweek_schedules, schedule)
+            new_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
+                                                         workweek_schedules, [], 
+                                                         cal_date.month, cal_date.year, 
+                                                         business_data, workweek)
+            print
+            print
+            print "************ old week cost is: ", old_week_cost
+            print
+            print
+            print "************ old week cost is: ", new_week_cost
+            print
+            print
+            cost_delta = calculate_cost_delta(old_week_cost, new_week_cost, 'subtract')
             
             schedules_as_dicts = []
             for s in copied_schedules:
                 schedule_dict = model_to_dict(s)
                 schedules_as_dicts.append(schedule_dict)
             
-            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': 0},
+            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': cost_delta},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
     

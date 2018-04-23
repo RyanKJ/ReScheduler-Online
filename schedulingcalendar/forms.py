@@ -249,6 +249,7 @@ class EditScheduleForm(forms.Form):
 class CopySchedulesForm(forms.Form):
     """Form for user to copy a set of schedules with given date."""
     date = forms.DateField()
+    cal_date = forms.DateField()
     schedule_pks = MultipleIntField()
 
                 
