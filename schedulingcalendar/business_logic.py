@@ -359,39 +359,13 @@ def calculate_weekly_hours_with_sch(user, employee, schedule):
     
 def calculate_weekly_hours(employee, dt, user):
     """Calculate # of hours employee works for workweek containing datetime.
-    
-    This function does not count overlapping time. That is, if an employee is
-    assigned a 9-5 schedule on the same date in two different departments, it 
-    will be counted as one schedule. (This is because an employee can be both
-    a floral designer making flower arrangements and a staff member helping
-    customers, in a floral business example.) So, this function would count
-    that employee as working for 8 hours instead of 16 hours.
-    
-    In order to not count overlapping time the summed schedules are queried
-    in a sorted fashion and then their time duration is summed up. But since
-    schedules can potentially overlap one cannot just sum up the duration of 
-    each schedule independently. A variable, last_end_dt, is used to keep track
-    of the end of the last schedule iterated over. This is used to check if the
-    next schedule, which starts equally or later than the last schedule in the
-    queryset due to the order_by method, has any overlap. There are three cases
-    one can encounter:
-    
-    Case 1: Schedules don't overlap. Simply sum up time delta of schedule and
-            set schedule's end_dt to be last_end_dt
-    Case 2: Previous schedule's end_dt is greater than or equal to next schedule's 
-            end_dt, skip adding time since it is contained entirely in a
-            previous schedule.
-    Case 3: Partial overlap, schedule starts before previous schedule ends, but
-            ends after previous schedule ends. So count only the time that 
-            does not overlap.
             
     Args: 
         employee: django employee object.
         dt: datetime that is contained within the start, end datetimes of workweek.
         user: authenticated user who called function.
     Returns:
-        float number representing hours employee works for a given workweek, 
-        not counting overlapping schedule times.
+        float number representing hours employee works for a given workweek.
     """
     
     # TODO: Take getting workweek out of method: unnecessary queries
@@ -401,27 +375,14 @@ def calculate_weekly_hours(employee, dt, user):
     schedules = (Schedule.objects.filter(user=user,
                                          employee=employee,
                                          start_datetime__gte=workweek_datetimes['start'],
-                                         start_datetime__lt=workweek_datetimes['end'])
+                                         start_datetime__lte=workweek_datetimes['end'])
                                  .order_by('start_datetime', 'end_datetime'))
-                                         
-    #TODO: Not count time of schedules that overlap with 2 different workweeks
-                                         
+                                                                     
     hours = 0
-    # Choose a date far in past to ensure the first end_dt > last_end_dt
-    last_end_dt = timezone.now() - timedelta(31337)
-    
     for schedule in schedules:
-        if last_end_dt <= schedule.end_datetime: # Case 1
-            hours += time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
-                                       None, None, min_time_for_break, break_time_min)
-            last_end_dt = schedule.end_datetime
-        elif last_end_dt >= schedule.end_datetime: # Case 2
-            continue
-        else: # Case 3
-            hours += time_dur_in_hours(last_end_dt, schedule.end_datetime, 
-                                       None, None, min_time_for_break, break_time_min)
-            last_end_dt = schedule.end_datetime
-    
+        hours += time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
+                                   None, None, min_time_for_break, break_time_min)
+
     return hours
         
         
@@ -767,31 +728,13 @@ def employee_hours_detailed(workweek_start_dt, workweek_end_dt, employee,
     for date in day_hours:
             day_hours[date]['total'] = {'hours': 0, 'overtime_hours': 0}
     
-    # Choose a date far in past to ensure the first workweek_end_dt > last_end_dt
-    last_end_dt = timezone.now() - timedelta(31337)
-    
-    # For each schedule, we get the time duration, not counting overlapping time
+    # For each schedule calculate hours and overtime hours
     for schedule in schedules:
-        # Case where schedule ends after previous schedule
-        if last_end_dt <= schedule.end_datetime:
-            schedule_duration = time_dur_in_hours(schedule.start_datetime, 
-                                                  schedule.end_datetime,
-                                                  workweek_start_dt, workweek_end_dt, 
-                                                  min_time_for_break, 
-                                                  break_time_min)
-            last_end_dt = schedule.end_datetime
-        # Case where schedule ends before previous schedule ends, we don't count it
-        elif last_end_dt >= schedule.end_datetime:
-            schedule_duration = 0
-        # Case where schedule ends after previous schedule, but starts before it
-        else:
-            schedule_duration = time_dur_in_hours(last_end_dt, 
-                                                  schedule.end_datetime,
-                                                  workweek_start_dt, workweek_end_dt,
-                                                  min_time_for_break, 
-                                                  break_time_min)
-            last_end_dt = schedule.end_datetime
-            
+        schedule_duration = time_dur_in_hours(schedule.start_datetime, 
+                                              schedule.end_datetime,
+                                              None, None, min_time_for_break, 
+                                              break_time_min)
+
         # Calculate hours in the workweek, first checking if adding the next
         # schedule's duration will put that employee's total workweek hours
         # into overtime, if so, calculate overtime hours as well.

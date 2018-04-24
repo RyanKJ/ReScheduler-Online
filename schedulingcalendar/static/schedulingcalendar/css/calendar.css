@@ -244,7 +244,7 @@ a:active {
 
 #cost-dropdown {
   background: white;
-  width: 660px;
+  width: 630px;
 }
 
 .total-row {
@@ -253,7 +253,7 @@ a:active {
 
 .day-cost-div {
   display: inline-block;
-  width: 315px;
+  width: 300px;
   border-right: solid #dddddd 1px;
   margin-left: 5px;
 }
@@ -261,7 +261,7 @@ a:active {
 .week-cost-div {
   display: inline-block;
   margin-left: 20px;
-  width: 315px;
+  width: 300px;
 }
 
 table.cost-table { text-align: center; }
@@ -634,6 +634,20 @@ li:last-child.cost-list {
 .schedule-adder input[type="button"]:hover{
     background: #ffd480;
 }
+
+
+/* Copy conflict modal styling
+--------------------------------------------------------------------------------------------------*/
+
+#copyConfirmationModal .modal-header .close { display: none; }
+#copyConfirmationModal h3 { font-size: 1.3em; font-weight: 700; }
+#copyConfirmationModal h4 { font-size: 1.1em; font-weight: 600; margin-bottom: 0px; }
+#copyConfirmationModal p { font-size: 1em; margin: 0px; }
+#copyConfirmationModal .conflict-assign-span { font-weight: 600; margin-bottom: 5px; }
+
+.copyConflictDiv { border-bottom: solid #dddddd 1px; }
+input[type=checkbox].conflict-checkbox { visibility: visible; }
+
 
 
 /* Mobile styling

@@ -27,6 +27,7 @@
     {% include "schedulingcalendar/_noteAlertModal.html" %}
     {% include "schedulingcalendar/_employeelessModal.html" %}
     {% include "schedulingcalendar/_employeelessDepartmentModal.html" %}
+    {% include "schedulingcalendar/_copyConflictModal.html" %}
     
     <div id="toolbar-sticky" class="row no-print calendar-toolbar">
       <div class="col-lg-7 col-md-12">
@@ -129,7 +130,7 @@
                     <tr>
                       <th class="cost-dep-name">Department</th>
                       <th>Hours</th>
-                      <th>Overtime Hours</th>
+                      <th>Overtime</th>
                       <th>Cost</th>
                     </tr>
                     {% for department in departments %}
@@ -154,7 +155,7 @@
                     <tr>
                       <th class="cost-dep-name">Department</th>
                       <th>Hours</th>
-                      <th>Overtime Hours</th>
+                      <th>Overtime</th>
                       <th>Cost</th>
                     </tr>
                     {% for department in departments %}

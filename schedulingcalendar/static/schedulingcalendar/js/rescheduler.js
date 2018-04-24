@@ -31,6 +31,7 @@ $(document).ready(function() {
   var dayNoteBodies = {};
   var scheduleNotes = {};
   var copySchedulePksList = [];
+  var copyConflictSchedules = [];
   
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -60,6 +61,7 @@ $(document).ready(function() {
   var $hideStart = $("#start-checkbox");
   var $hideEnd = $("#end-checkbox");
   var $copyDayBtn = $("#copy-day");
+  var $copyConflictBtn = $("#copy-conflict-assign-btn");
   var $dayNoteBtn = $("#day-note");
   var $dayNoteHeaderBtn = $("#day-note-header-btn");
   var $dayNoteHeaderText = $("#id_header_text");
@@ -95,6 +97,7 @@ $(document).ready(function() {
   $dayNoteBodyBtn.click(postDayNoteBody);
   $scheduleNoteBtn.click(postScheduleNote);
   $copyDayBtn.click(copySchedulePks);
+  $copyConflictBtn.click(commitCopyConflicts);
   
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
@@ -326,7 +329,6 @@ $(document).ready(function() {
     }
     
     //Calculate and display calendar costs
-    console.log("hours and costs are: ", info["hours_and_costs"])
     hoursAndCosts = info["hours_and_costs"];
     avgMonthlyRev = info["avg_monthly_revenue"];
     renderMonthlyCosts();
@@ -998,8 +1000,7 @@ $(document).ready(function() {
   
   /** Helper function to translate a schedule into warning string. */ 
   function _scheduleConflictToStr(schedule) {
-    var str = $("#id_department > option:nth-child("+schedule.department+")").text();
-    str += " Department"
+    var str = departments[schedule.department] + " Department"
     
     var startDate = moment(schedule.start_datetime);
     str += startStr = startDate.format(" on MMMM Do, YYYY: ");
@@ -1643,7 +1644,6 @@ $(document).ready(function() {
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     if (copySchedulePksList.length) {
-      console.log("copied schedule pks are: ", copySchedulePksList);
       var strCalDate = calDate.format(DATE_FORMAT);
       $("body").css("cursor", "progress");
       $.post("copy_schedules",
@@ -1656,20 +1656,78 @@ $(document).ready(function() {
   /** Callback function to render copied schedules */
   function _createCopySchedules(data) {
     var info = JSON.parse(data);
-    var schedules = info["schedules"];
+    console.log("copy schedules data is: ", info);
+    copyConflictSchedules = info["schedules"];
     
-    // Create fullcalendar events corresponding to schedules
-    if (displaySettings["unique_row_per_employee"]) {
-      var events = _copySchedulesToUniqueRowEvents(schedules);
+    // Display conflicts if any and remove them from list of schedules to be
+    // rendered if user does not want to add them.
+    var availabilities = info['availability'];
+    console.log("availabilities", availabilities.length);
+    if (Object.getOwnPropertyNames(availabilities).length > 0) { 
+      _copyConflicts(availabilities); 
     } else {
-      var events = _schedulesToEvents(schedules);
-      $fullCal.fullCalendar("renderEvents", events);
+      renderCopiedSchedules()
     }
     
     // Update cost display to reflect any cost changes
     if (info["cost_delta"]) {
       updateHoursAndCost(info["cost_delta"]);
       reRenderAllCostsHours();
+    }
+  }
+  
+  
+  /** Show user conflicts and remove any user does not want created */
+  function _copyConflicts(availabilities) {
+    $copyConflictManifest = $("#copy-conflict-manifest");
+    $copyConflictManifest.empty();
+    
+    for (var scheduleId in availabilities) {
+      if (!availabilities.hasOwnProperty(scheduleId)) {
+        continue;
+      }
+      // Display conflicts between schedule and employee in modal body
+      var warningStr = _compileConflictWarnings(availabilities[scheduleId]);
+      warningStr = "<div class='copyConflictDiv'>" + warningStr;
+      warningStr += "<br><div class='text-center'>";
+      warningStr += "<span class='text-center conflict-assign-span'>Assign Anyways? ";
+      warningStr += "<input class='conflict-checkbox' type='checkbox' data-conf-sch-id='"+scheduleId+"'>";
+      warningStr += "</span></div></div>";
+      $copyConflictManifest.append(warningStr);
+    }
+    
+    $copyConflictModal = $("#copyConfirmationModal");
+    $copyConflictModal.css("margin-top", Math.max(0, ($(window).height() - $copyConflictModal.height()) / 2));
+    $copyConflictModal.modal('show');
+  }
+  
+  
+  /** Remove all unchecked schedules with conflict. */
+  function commitCopyConflicts(event) {
+    // 1) Get all conflict checkboxes
+    // 2) Iterate through them
+    // 3) If checkbox unchecked, add id to scheduleIds list
+    // 4) Remove schedule from copyConflictSchedules
+    // 5) Send back to backend to remove    
+    // 6) Call back to update new costs
+    
+    var scheduleIds = [];
+    
+    var $conflictCheckboxes = $(".conflict-checkbox");
+    console.log("conflict checkboxes are: ", $conflictCheckboxes);
+    
+    renderCopiedSchedules();
+  }
+  
+  
+  /** Render all schedules in the copyConflictSchedules variable. */
+  function renderCopiedSchedules() {
+    // Create fullcalendar events corresponding to schedules
+    if (displaySettings["unique_row_per_employee"]) {
+      var events = _copySchedulesToUniqueRowEvents(copyConflictSchedules);
+    } else {
+      var events = _schedulesToEvents(copyConflictSchedules);
+      $fullCal.fullCalendar("renderEvents", events);
     }
   }
   

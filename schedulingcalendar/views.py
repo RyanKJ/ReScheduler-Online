@@ -23,13 +23,14 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication)
-from .business_logic import (get_eligibles, eligable_list_to_dict,  
+from .business_logic import (get_eligibles, eligable_list_to_dict,
                              date_handler, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
                              get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
                              get_start_end_of_calendar, edit_schedule_cost_change,
-                             calculate_cost_delta, get_start_end_of_weekday)
+                             calculate_cost_delta, get_start_end_of_weekday,
+                             get_availability, _availability_to_dict)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -728,7 +729,10 @@ def copy_schedules(request):
                                                              workweek_schedules, [], 
                                                              cal_date.month, cal_date.year, 
                                                              business_data, workweek)
-                                         
+                                                             
+            # Create copied schedules and get availability of copied schedules with employees
+            # We only add the availability if there is a conflict between employee and schedules
+            schedule_availabilities = {}                       
             copied_schedules = []
             for sch in schedules:
                 new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)
@@ -744,37 +748,48 @@ def copy_schedules(request):
                 copy_schedule.save()
                 copied_schedules.append(copy_schedule)
                 
+                if copy_schedule.employee:
+                    availability = get_availability(logged_in_user, copy_schedule.employee, copy_schedule)
+                    other_sch = availability['(S)']
+                    vacation = availability['(V)']
+                    unavail = availability['(A)']
+                    repeat_unavail = availability['(U)']
+                    overtime = availability['(O)']
+                    
+                    if other_sch or vacation or unavail or repeat_unavail or overtime:
+                        schedule_availabilities[copy_schedule.id] = availability
+                
             # Calculate cost of workweek with new copied schedules
             for schedule in copied_schedules:
-                bisect.insort_left(workweek_schedules, schedule)
+                if schedule.employee:
+                    bisect.insort_left(workweek_schedules, schedule)
             new_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
                                                          workweek_schedules, [], 
                                                          cal_date.month, cal_date.year, 
                                                          business_data, workweek)
-            print
-            print
-            print "************ old week cost is: ", old_week_cost
-            print
-            print
-            print "************ old week cost is: ", new_week_cost
-            print
-            print
             if old_week_cost:
                 cost_delta = calculate_cost_delta(old_week_cost, new_week_cost, 'subtract')
             else:
                 cost_delta = new_week_cost
+                
+            # Serialize data
+            availability_as_dicts = {}
+            for avail in schedule_availabilities:
+                avail_dict = _availability_to_dict(schedule_availabilities[avail])
+                availability_as_dicts[avail] = avail_dict
             
             schedules_as_dicts = []
             for s in copied_schedules:
                 schedule_dict = model_to_dict(s)
                 schedules_as_dicts.append(schedule_dict)
             
-            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': cost_delta},
+            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': cost_delta, 
+                                    'availability': availability_as_dicts},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
     
     json_info = json.dumps({'schedule_pks': "failed to do anything", 'cost_delta': 0},
-                                    default=date_handler)
+                            default=date_handler)
     return JsonResponse(json_info, safe=False)
     
     
