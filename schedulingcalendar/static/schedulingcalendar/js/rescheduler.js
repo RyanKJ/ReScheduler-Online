@@ -1662,7 +1662,6 @@ $(document).ready(function() {
     // Display conflicts if any and remove them from list of schedules to be
     // rendered if user does not want to add them.
     var availabilities = info['availability'];
-    console.log("availabilities", availabilities.length);
     if (Object.getOwnPropertyNames(availabilities).length > 0) { 
       _copyConflicts(availabilities); 
     } else {
@@ -1714,7 +1713,15 @@ $(document).ready(function() {
     var scheduleIds = [];
     
     var $conflictCheckboxes = $(".conflict-checkbox");
-    console.log("conflict checkboxes are: ", $conflictCheckboxes);
+    for (var i=0; i < $conflictCheckboxes.length; i++) {
+      var conflictCheckbox = $conflictCheckboxes[i];
+      console.log("conflict checkboxes are: ", conflictCheckbox);
+      if (!conflictCheckbox.checked) {
+        console.log("id is: ", conflictCheckbox.dataSet.confSchId);
+        var schId = conflictCheckbox.dataSet.confSchId
+      }
+      
+    }
     
     renderCopiedSchedules();
   }
