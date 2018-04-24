@@ -1716,13 +1716,12 @@ $(document).ready(function() {
     for (var i=0; i < $conflictCheckboxes.length; i++) {
       var conflictCheckbox = $conflictCheckboxes[i];
       console.log("conflict checkboxes are: ", conflictCheckbox);
+      console.log("datais: ", conflictCheckbox.data("conf-sch-id"));
       if (!conflictCheckbox.checked) {
-        console.log("id is: ", conflictCheckbox.dataSet.confSchId);
-        var schId = conflictCheckbox.dataSet.confSchId
+        // Do something
       }
       
     }
-    
     renderCopiedSchedules();
   }
   

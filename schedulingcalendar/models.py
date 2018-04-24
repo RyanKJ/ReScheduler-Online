@@ -21,7 +21,7 @@ class Employee(models.Model):
     # Benefits costs
     monthly_medical = models.FloatField('Monthly medical in dollars per month', default=0)
     workmans_comp = models.FloatField('workmans comp', default=0)
-    social_security = models.FloatField('Social security percentage', default=6.2)
+    social_security = models.FloatField('Social security percentage', default=7.5)
     # Calendar display settings
     override_list_view = models.BooleanField(default=True)
     see_only_my_schedules = models.BooleanField(default=False)
