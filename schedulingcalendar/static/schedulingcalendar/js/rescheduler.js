@@ -351,6 +351,9 @@ $(document).ready(function() {
     // Set departments for use in various functions
     departments = info["departments"];
     
+    // Highlight loaded department in day & week costs
+    highlightDepRow();
+    
     // Set .fc-day elements to call a function on a double click
     var $fcDays = $(".fc-day");
     var $fcContent = $(".fc-content-skeleton");
@@ -1084,6 +1087,9 @@ $(document).ready(function() {
    * decide if they wish to assign employee to schedule or not.
    */       
   function eligableClick(event) {
+    // Reset remove confirm
+    $removeScheduleBtn.css("display", "block");
+    $removeBtnConfirmContainer.css("display", "none");
     //TODO: Assert that empPk != schedule.employee_id, if so, do nothing.
     var $eligableLi = $(this);
     var warningStr = $eligableLi.attr("data-warning-str");
@@ -1400,11 +1406,12 @@ $(document).ready(function() {
       var endTime = $("#end-timepicker").val();
       var hideStart = $("#start-checkbox").prop('checked');
       var hideEnd = $("#end-checkbox").prop('checked');
-      var undo_edit = false;
+      var undoEdit = false;
       if (event_id) {
         $.post("edit_schedule", 
                {schedule_pk: event_id, start_time: startTime, end_time: endTime,
-                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate}, 
+                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate, 
+                undo_edit: undoEdit}, 
                successfulScheduleEdit);
       }
     }
@@ -1426,17 +1433,23 @@ $(document).ready(function() {
     
     console.log("edit info is: ", info)
     
+    renderEditedSchedules(schedule, oldHours, newHours);
+    
+    // Update cost display to reflect any cost changes
+    if (costDelta) {
+      updateHoursAndCost(costDelta);
+      reRenderAllCostsHours();
+    }
+    
     // Display conflicts, if any
     if (Object.getOwnPropertyNames(availability).length > 0) { 
-      _editConflict(schedule, availability, costDelta, oldHours, newHours); 
-    } else {
-      renderEditedSchedules(schedule, costDelta, oldHours, newHours);
+      _editConflict(schedule, availability); 
     }
   }
   
   
   /** Update event corresponding to schedule and update hours */
-  function renderEditedSchedules(schedule, costDelta, oldSchDuration, newSchDuration) {
+  function renderEditedSchedules(schedule, oldSchDuration, newSchDuration) {
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
@@ -1476,25 +1489,13 @@ $(document).ready(function() {
     //Highlight edited event
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
-    
-    // Update cost display to reflect any cost changes
-    if (costDelta) {
-      updateHoursAndCost(costDelta);
-      reRenderAllCostsHours();
-    }
   }
   
   
   /** Display warning modal to display conflict with edited schedule. */
-  function _editConflict(schedule, availability, costDelta, oldSchDuration, newSchDuration) {
+  function _editConflict(schedule, availability) {
     $editConflictManifest = $("#edit-conflict-manifest");
     $editConflictManifest.empty();
-    
-    // Update cost display to reflect any cost changes
-    if (costDelta) {
-      updateHoursAndCost(costDelta);
-      reRenderAllCostsHours();
-    }
     
     // Display conflicts between schedule and employee in modal body
     var warningStr = _compileConflictWarnings(availability);
@@ -1512,14 +1513,16 @@ $(document).ready(function() {
     if ($clickedEvent.length) { // Ensure event to edit has been clicked
       var strCalDate = calDate.format(DATE_FORMAT);
       var event_id = $(".fc-event-clicked").parent().data("event-id");
-      var startTime = moment(preEditedSchedule['oldStartDatetime']).format("H:mm A");
-      var endTime = moment(preEditedSchedule['oldEndDatetime']).format("H:mm A");
+      var startTime = moment(preEditedSchedule['oldStartDatetime']).format("h:mm A");
+      var endTime = moment(preEditedSchedule['oldEndDatetime']).format("h:mm A");
+      console.log("start time is:", startTime);
       var hideStart = preEditedSchedule['oldHideStart'];
       var hideEnd = preEditedSchedule['oldHideEnd'];
+      var undoEdit = true
       if (event_id) {
         $.post("edit_schedule", 
                {schedule_pk: event_id, start_time: startTime, end_time: endTime,
-                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate}, 
+                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate, undo_edit: undoEdit}, 
                successfulScheduleEdit);
       }
     }
@@ -2059,8 +2062,9 @@ $(document).ready(function() {
   
   
   /** Resize height of calendar to fit viewport when window is resized. */ 
-  function resizeCalendar() {
-    var newCalHeight = window.innerHeight * .85
+  function resizeCalendar(event) {
+    var $stickyElement = $(".sticky");
+    var newCalHeight = window.innerHeight * .85;
     $fullCal.fullCalendar('option', 'height', newCalHeight);
   }
   
@@ -2085,7 +2089,18 @@ $(document).ready(function() {
         }
     }
     return -1;
-}
+  }
+  
+  
+   /** Highlight row of loaded department in hours and costs. */
+  function highlightDepRow() {
+    $(".highlight-dep-row").removeClass("highlight-dep-row");
+    var $dayDepRow = $dayCostTable.find("tr[data-dep-id="+calDepartment+"]");
+    var $weekDepRow = $weekCostTable.find("tr[data-dep-id="+calDepartment+"]");
+    
+    $dayDepRow.addClass("highlight-dep-row");
+    $weekDepRow.addClass("highlight-dep-row");
+  }
   
   
   // Load schedule upon loading page relative to current date

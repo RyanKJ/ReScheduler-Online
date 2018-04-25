@@ -642,10 +642,10 @@ def edit_schedule(request):
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
                                         
-            oldStartDatetime = schedule.start_datetime.isoformat()
-            oldendDatetime = schedule.end_datetime.isoformat()  
-            oldHideStart = schedule.hide_start
-            oldHideEnd = schedule.hide_end
+            old_start_dt = schedule.start_datetime.isoformat()
+            old_end_dt = schedule.end_datetime.isoformat()  
+            oldHideStart = schedule.hide_start_time
+            oldHideEnd = schedule.hide_start_time
             
             # Construct start and end datetimes for schedule
             date = schedule.start_datetime.date()
@@ -709,8 +709,8 @@ def edit_schedule(request):
                                     'new_sch_duration': new_sch_duration,
                                     'old_sch_duration': old_sch_duration,
                                     'availability': availability, 
-                                    'oldStartDatetime': oldStartDatetime,
-                                    'oldEndDatetime': oldEndDatetime,
+                                    'oldStartDatetime': old_start_dt,
+                                    'oldEndDatetime': old_end_dt,
                                     'oldHideStart': oldHideStart, 
                                     'oldHideEnd': oldHideEnd},
                                     default=date_handler)

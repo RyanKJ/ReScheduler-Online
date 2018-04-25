@@ -268,6 +268,8 @@ table.cost-table { text-align: center; }
 .cost-table th { padding-left: 5px; padding-right: 5px; }
 td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; } 
 
+.highlight-dep-row { background: #e5ff6b; }
+
 
 
 /* Eligable list styling
