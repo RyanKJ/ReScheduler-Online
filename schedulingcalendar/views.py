@@ -636,9 +636,17 @@ def edit_schedule(request):
             hide_start = form.cleaned_data['hide_start']
             hide_end = form.cleaned_data['hide_end']
             cal_date = form.cleaned_data['cal_date']
+            # User is undoing previous edit to this schedule, in case schedule had conflict
+            # before edit, don't send any conflict to avoid infinite loop of warnings
+            undo_edit = form.cleaned_data['undo_edit']
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
                                         
+            oldStartDatetime = schedule.start_datetime.isoformat()
+            oldendDatetime = schedule.end_datetime.isoformat()  
+            oldHideStart = schedule.hide_start
+            oldHideEnd = schedule.hide_end
+            
             # Construct start and end datetimes for schedule
             date = schedule.start_datetime.date()
             time_zone = timezone.get_default_timezone_name()
@@ -647,10 +655,11 @@ def edit_schedule(request):
             end_dt = datetime.combine(date, end_time)
             end_dt = pytz.timezone(time_zone).localize(end_dt)
             
+            # Get cost difference of changing schedule time if employee assigned
             cost_delta = 0
             old_sch_duration = 0
             new_sch_duration = 0
-            if schedule.employee: # Get change of cost if employee was assigned
+            if schedule.employee:
                 # Calculate cost difference from editing times:
                 departments = Department.objects.filter(user=logged_in_user)
                 business_data = BusinessData.objects.get(user=logged_in_user)
@@ -666,7 +675,7 @@ def edit_schedule(request):
                 new_sch_duration = time_dur_in_hours(start_dt, end_dt, 
                                                      None, None, min_time_for_break=schedule.employee.min_time_for_break,
                                                      break_time_in_min=schedule.employee.break_time_in_min)
-                                                   
+                                   
             # Save time and hide choices to business settings
             business_data = BusinessData.objects.get(user=logged_in_user)
             business_data.schedule_start = start_time
@@ -681,13 +690,30 @@ def edit_schedule(request):
             schedule.hide_start_time = hide_start
             schedule.hide_end_time = hide_end                 
             schedule.save()
+            
+            # Check for any conflicts with new schedule times if employee assigned
+            availability = {}
+            if schedule.employee and not undo_edit:
+                new_availability = get_availability(logged_in_user, schedule.employee, schedule)
+                other_sch = new_availability['(S)']
+                vacation = new_availability['(V)']
+                unavail = new_availability['(A)']
+                repeat_unavail = new_availability['(U)']
+                overtime = new_availability['(O)']
+                if other_sch or vacation or unavail or repeat_unavail or overtime:
+                    availability = _availability_to_dict(new_availability)
+            
             schedule_dict = model_to_dict(schedule)
-            json_info = json.dumps({'schedule': schedule_dict, 'cost_delta': 0,
+            json_info = json.dumps({'schedule': schedule_dict,
                                     'cost_delta': cost_delta,
                                     'new_sch_duration': new_sch_duration,
-                                    'old_sch_duration': old_sch_duration},
+                                    'old_sch_duration': old_sch_duration,
+                                    'availability': availability, 
+                                    'oldStartDatetime': oldStartDatetime,
+                                    'oldEndDatetime': oldEndDatetime,
+                                    'oldHideStart': oldHideStart, 
+                                    'oldHideEnd': oldHideEnd},
                                     default=date_handler)
-                                    
             return JsonResponse(json_info, safe=False)
             
     

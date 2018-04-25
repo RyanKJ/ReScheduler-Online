@@ -639,6 +639,8 @@ li:last-child.cost-list {
 /* Copy conflict modal styling
 --------------------------------------------------------------------------------------------------*/
 
+#editConfirmationModal .modal-header .close { display: none; }
+
 #copyConfirmationModal .modal-header .close { display: none; }
 #copyConfirmationModal h3 { font-size: 1.3em; font-weight: 700; }
 #copyConfirmationModal h4 { font-size: 1.1em; font-weight: 600; margin-bottom: 0px; }
@@ -647,6 +649,8 @@ li:last-child.cost-list {
 
 .copyConflictDiv { border-bottom: solid #dddddd 1px; }
 input[type=checkbox].conflict-checkbox { visibility: visible; }
+
+
 
 
 

@@ -32,6 +32,8 @@ $(document).ready(function() {
   var scheduleNotes = {};
   var copySchedulePksList = [];
   var copyConflictSchedules = [];
+  var preEditedSchedule = {'oldStartDatetime': null, oldEndDatetime: null, 
+                           'oldHideStart': null, 'oldHideEnd': null};
   
   // Jquery object variables
   var $fullCal = $("#calendar");
@@ -43,6 +45,7 @@ $(document).ready(function() {
   var $removeBtnConfirm = $("#remove-btn-confirm")
   var $removeBtnConfirmContainer = $("#remove-btn-confirm-container");
   var $editScheduleBtn = $("#edit-btn");
+  var $editConflictBtn = $("#edit-undo-conflict-btn");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
@@ -98,6 +101,7 @@ $(document).ready(function() {
   $scheduleNoteBtn.click(postScheduleNote);
   $copyDayBtn.click(copySchedulePks);
   $copyConflictBtn.click(commitCopyConflicts);
+  $editConflictBtn.click(undoScheduleEdit);
   
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
@@ -1396,6 +1400,7 @@ $(document).ready(function() {
       var endTime = $("#end-timepicker").val();
       var hideStart = $("#start-checkbox").prop('checked');
       var hideEnd = $("#end-checkbox").prop('checked');
+      var undo_edit = false;
       if (event_id) {
         $.post("edit_schedule", 
                {schedule_pk: event_id, start_time: startTime, end_time: endTime,
@@ -1406,10 +1411,32 @@ $(document).ready(function() {
   }
   
   
-  /** Update schedule string and cost */
+  /** Check for conflicts on edited schedule and rerender event. */
   function successfulScheduleEdit(data) {
     var info = JSON.parse(data);
     var schedule = info["schedule"];
+    var costDelta = info["cost_delta"];
+    var availability = info['availability'];
+    var newHours = info['new_sch_duration'];
+    var oldHours = info['old_sch_duration'];
+    preEditedSchedule['oldStartDatetime'] = info['oldStartDatetime'];
+    preEditedSchedule['oldEndDatetime'] = info['oldEndDatetime'];
+    preEditedSchedule['oldHideStart'] = info['oldHideStart'];
+    preEditedSchedule['oldHideEnd'] = info['oldHideEnd'];
+    
+    console.log("edit info is: ", info)
+    
+    // Display conflicts, if any
+    if (Object.getOwnPropertyNames(availability).length > 0) { 
+      _editConflict(schedule, availability, costDelta, oldHours, newHours); 
+    } else {
+      renderEditedSchedules(schedule, costDelta, oldHours, newHours);
+    }
+  }
+  
+  
+  /** Update event corresponding to schedule and update hours */
+  function renderEditedSchedules(schedule, costDelta, oldSchDuration, newSchDuration) {
     var schedulePk = schedule["id"];
     var startDateTime = schedule["start_datetime"]; 
     var endDateTime = schedule["end_datetime"];
@@ -1434,8 +1461,8 @@ $(document).ready(function() {
     
     if (employeePk != null) {
       // update hours worked per week of employee
-      var newHours = info['new_sch_duration'];
-      var oldHours = info['old_sch_duration'];
+      var newHours = oldSchDuration;
+      var oldHours = newSchDuration;
       
       // Update hours
       var difference = newHours - oldHours;
@@ -1451,11 +1478,53 @@ $(document).ready(function() {
     $event_div.addClass("fc-event-clicked"); 
     
     // Update cost display to reflect any cost changes
-    if (info["cost_delta"]) {
-      updateHoursAndCost(info["cost_delta"]);
+    if (costDelta) {
+      updateHoursAndCost(costDelta);
       reRenderAllCostsHours();
     }
   }
+  
+  
+  /** Display warning modal to display conflict with edited schedule. */
+  function _editConflict(schedule, availability, costDelta, oldSchDuration, newSchDuration) {
+    $editConflictManifest = $("#edit-conflict-manifest");
+    $editConflictManifest.empty();
+    
+    // Update cost display to reflect any cost changes
+    if (costDelta) {
+      updateHoursAndCost(costDelta);
+      reRenderAllCostsHours();
+    }
+    
+    // Display conflicts between schedule and employee in modal body
+    var warningStr = _compileConflictWarnings(availability);
+    $editConflictManifest.append(warningStr);
+    
+    $editConflictModal = $("#editConfirmationModal");
+    $editConflictModal.css("margin-top", Math.max(0, ($(window).height() - $editConflictModal.height()) / 2));
+    $editConflictModal.modal('show');
+  }
+  
+  
+  /** Set schedule to previous start/end times. */
+  function undoScheduleEdit(event) {
+    var $clickedEvent = $(".fc-event-clicked");
+    if ($clickedEvent.length) { // Ensure event to edit has been clicked
+      var strCalDate = calDate.format(DATE_FORMAT);
+      var event_id = $(".fc-event-clicked").parent().data("event-id");
+      var startTime = moment(preEditedSchedule['oldStartDatetime']).format("H:mm A");
+      var endTime = moment(preEditedSchedule['oldEndDatetime']).format("H:mm A");
+      var hideStart = preEditedSchedule['oldHideStart'];
+      var hideEnd = preEditedSchedule['oldHideEnd'];
+      if (event_id) {
+        $.post("edit_schedule", 
+               {schedule_pk: event_id, start_time: startTime, end_time: endTime,
+                hide_start: hideStart, hide_end: hideEnd, cal_date: strCalDate}, 
+               successfulScheduleEdit);
+      }
+    }
+  }
+  
   
   /** Helper function that returns true if employee assigned more than once on date */ 
   function _employeeAssignedMoreThanOnceOnDate(date, employeePk) {

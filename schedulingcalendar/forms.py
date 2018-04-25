@@ -244,6 +244,7 @@ class EditScheduleForm(forms.Form):
     hide_start = forms.BooleanField(label="", required=False)
     hide_end = forms.BooleanField(label="", required=False)
     cal_date = forms.DateField()
+    undo_edit = forms.BooleanField(label="", required=False)
     
     
 class CopySchedulesForm(forms.Form):
