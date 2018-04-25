@@ -1643,6 +1643,7 @@ $(document).ready(function() {
   
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
+    copyConflictSchedules = [];
     if (copySchedulePksList.length) {
       var strCalDate = calDate.format(DATE_FORMAT);
       $("body").css("cursor", "progress");
@@ -1656,7 +1657,7 @@ $(document).ready(function() {
   /** Callback function to render copied schedules */
   function _createCopySchedules(data) {
     var info = JSON.parse(data);
-    console.log("copy schedules data is: ", info);
+    $("body").css("cursor", "default");
     copyConflictSchedules = info["schedules"];
     
     // Display conflicts if any and remove them from list of schedules to be
@@ -1703,26 +1704,40 @@ $(document).ready(function() {
   
   /** Remove all unchecked schedules with conflict. */
   function commitCopyConflicts(event) {
-    // 1) Get all conflict checkboxes
-    // 2) Iterate through them
-    // 3) If checkbox unchecked, add id to scheduleIds list
-    // 4) Remove schedule from copyConflictSchedules
-    // 5) Send back to backend to remove    
-    // 6) Call back to update new costs
-    
     var scheduleIds = [];
     
+    // Check which conflicted schedules user does not want to create
     var $conflictCheckboxes = $(".conflict-checkbox");
-    for (var i=0; i < $conflictCheckboxes.length; i++) {
-      var conflictCheckbox = $conflictCheckboxes[i];
-      console.log("conflict checkboxes are: ", conflictCheckbox);
-      console.log("datais: ", conflictCheckbox.data("conf-sch-id"));
-      if (!conflictCheckbox.checked) {
-        // Do something
+    $conflictCheckboxes.each(function(i) {
+      if (!this.checked) {
+        var $uncheckedCheckbox = $(this);
+        var schId = $uncheckedCheckbox.data("conf-sch-id");
+        scheduleIds.push(schId);
+        
+        schIndex = findWithAttr(copyConflictSchedules, "id", schId);
+        copyConflictSchedules.splice(schIndex, 1);
       }
-      
+    });
+    // Send list of copied schedules with conflicts to delete if any exist
+    if (scheduleIds.length > 0) {
+      var strCalDate = calDate.format(DATE_FORMAT);
+      $.post("remove_conflict_copy_schedules",
+             {date: $addScheduleDate.val(), schedule_pks: scheduleIds, cal_date: strCalDate},
+              _updateRemovedCopiedSchCost);
     }
+    // Remaining copied schedules are rendered
     renderCopiedSchedules();
+  }
+  
+  
+  /** Function that updates hours and costs from deleted copied schedules with conflicts*/ 
+  function _updateRemovedCopiedSchCost(data) {
+    var info = JSON.parse(data);
+    // Update cost display to reflect any cost changes
+    if (info["cost_delta"]) {
+      updateHoursAndCost(info["cost_delta"]);
+      reRenderAllCostsHours();
+    }
   }
   
   
@@ -1765,7 +1780,6 @@ $(document).ready(function() {
     for (var i=0;i<blankEventIdsToRemove.length;i++) {
       $fullCal.fullCalendar("removeEvents", blankEventIdsToRemove[i]);
     }
-    $("body").css("cursor", "default");
   }
   
   
@@ -1992,6 +2006,17 @@ $(document).ready(function() {
 	    calendarDiv.classList.remove("sticky-cal");
     }
   }
+  
+  
+  /** Find index of first object with attribute in list array. */
+  function findWithAttr(array, attr, value) {
+    for(var i = 0; i < array.length; i += 1) {
+        if(array[i][attr] === value) {
+            return i;
+        }
+    }
+    return -1;
+}
   
   
   // Load schedule upon loading page relative to current date

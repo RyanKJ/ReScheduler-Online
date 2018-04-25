@@ -792,8 +792,42 @@ def copy_schedules(request):
                             default=date_handler)
     return JsonResponse(json_info, safe=False)
     
-    
-    
+   
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")    
+def remove_conflict_copy_schedules(request):
+    """Remove copied schedules that have conflict user did not want to keep."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = CopySchedulesForm(request.POST)
+        if form.is_valid():
+            schedule_pks = form.cleaned_data['schedule_pks']
+            date = form.cleaned_data['date']
+            cal_date = form.cleaned_data['cal_date']
+            schedules = (Schedule.objects.select_related('employee')
+                                         .filter(user=logged_in_user, id__in=schedule_pks))
+            
+            # Get cost delta from removing each schedule then delete schedule
+            departments = Department.objects.filter(user=logged_in_user)
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            total_cost_delta = {}
+            for sch in schedules:
+                if sch.employee:
+                    cost_delta = remove_schedule_cost_change(logged_in_user, sch,
+                                                             departments, business_data,
+                                                             cal_date)                                      
+                    if not total_cost_delta:
+                        total_cost_delta = cost_delta
+                    else:
+                        total_cost_delta = calculate_cost_delta(total_cost_delta, cost_delta, 'add')
+                        
+                    sch.delete()
+                        
+            # Return cost delta to front end to be rendered    
+            json_info = json.dumps({'cost_delta': cost_delta}, default=date_handler)      
+            return JsonResponse(json_info, safe=False)
+
+            
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def push_live(request):
