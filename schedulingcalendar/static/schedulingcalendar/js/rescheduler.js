@@ -180,12 +180,16 @@ $(document).ready(function() {
     eventMouseover: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-days-event-mouseover");
+      
+      $("#selected-schedule-info").css("visibility", "visible");
     },
         
     /** De-highlight event when mouse stops hovering over event. */
     eventMouseout: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").removeClass("fc-days-event-mouseover");
+      
+      $("#selected-schedule-info").css("visibility", "hidden");
     },
         
     /** Mark the html elements of event with event id for later queries. */
@@ -277,7 +281,9 @@ $(document).ready(function() {
     var depName = $("#id_department option[value='"+calDepartment+"']").text();
     $addScheduleDep.val(calDepartment);
     $viewLiveDep.val(calDepartment);
-    $(".fc-center").find("h2").text(depName + ": " + calDate.format("MMMM, YYYY"));
+    var calendarText = depName + ": " + calDate.format("MMMM, YYYY")
+    $(".fc-center").find("h2").text(calendarText);
+    $("title").text(calendarText);
     
     // Set default start and end time for time-pickers
     st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
@@ -469,6 +475,8 @@ $(document).ready(function() {
       allDay: true,
       isSchedule: true,
       isNote: false,
+      hideStart: hideStart,
+      hideEnd: hideEnd,
       employeeAssigned: isEmployeeAssigned,
       customSort: 0,
       eventRowSort: eventRow,
