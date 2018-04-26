@@ -1,5 +1,5 @@
 .landing-page-title {
-  font-size: 3em;
+  font-size: 2.5em;
   font-family: 'Nanum Myeongjo', serif;
   font-weight: bold;
 }
@@ -43,7 +43,4 @@
   font-weight: bold;
 }
 
-
-.test{
-  background: linear-gradient(to bottom, #0079D7, #7faaef);
-}
+a.landing-page-btn { color: white; }

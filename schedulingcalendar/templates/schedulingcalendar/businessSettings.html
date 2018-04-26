@@ -9,9 +9,9 @@
         method="post">
     {% csrf_token %}
     {{ add_sch_form.non_field_errors }}
-    <div class="card-group">
+    <div class="card-group w-100">
       <!-- Calendar Display Settings -->
-      <div class="card">
+      <div>
         <div class="card-block">
           <h4 class="card-title text-center">Calendar Display Settings:</h4>
           <!-- Display minutes form input -->
@@ -143,10 +143,10 @@
             {% endif %}
           </div>
         </div>
+        <br>
       </div>
-      <br>
       <!-- General Business Settings -->
-      <div class="card">
+      <div>
         <div class="card-block">
           <h4 class="card-title text-center">Business Settings:</h4>
           <!-- Overtime form input -->

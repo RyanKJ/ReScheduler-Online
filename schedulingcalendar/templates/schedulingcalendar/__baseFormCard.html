@@ -13,21 +13,15 @@
 {% block content %}
   {{ block.super }}
   <!-- Customizable sub-navigational bar -->
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md">
-        {% block sub_navbar %}
-        {% endblock sub_navbar %}
-      </div>
-    </div>
-  </div>
+  {% block sub_navbar %}
+  {% endblock sub_navbar %}
   
   <!-- Main content of CRUD pages -->
   <div class="container">
     <div class="row">
       <div class="col-md-12 col-sm-12">
-        <div class="card">
-          <div class="card-body custom-card-general">
+        <div class="card border-0">
+          <div class="card-body custom-card-general w-50">
             {% block form_content %}
             {% endblock form_content %}
           </div>

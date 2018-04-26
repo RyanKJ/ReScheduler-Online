@@ -66,6 +66,7 @@ a:active {
 
 .calendar-toolbar label {
   color: white;
+  font-weight: bold;
   font-size: 16px;
   margin-left: 7px;
   margin-bottom: 10px;
@@ -126,6 +127,8 @@ a:active {
 .select-calendar select:focus {
     outline: none;
 }
+
+#get-calendar-button {margin-bottom: 5px; }
 
 .calendar-loader-btn {
   margin-left: 10px;

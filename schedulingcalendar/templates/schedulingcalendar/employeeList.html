@@ -3,7 +3,7 @@
 {% block form_content %}
   <h4 class="card-title text-center">Employee List</h4>
   <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
-  <ul class="list-group list-group-flush">
+  <ul class="list-group">
     {% for employee in employee_list %}
       <li class="list-group-item">
         <ul class="list-inline" data-employee-id="{{ employee.id }}">

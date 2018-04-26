@@ -953,35 +953,35 @@ $(document).ready(function() {
     var warningStr = "";
     
     if (availability['(S)'].length > 0) {
-      warningStr += "<h4>Schedules That Overlap:</h4>";
+      warningStr += "<h5>Schedules That Overlap:</h5>";
       for (schedule of availability['(S)']) {
         var str = _scheduleConflictToStr(schedule);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(V)'].length > 0) {
-      warningStr += "<h4>Vacations That Overlap:</h4>";
+      warningStr += "<h5>Vacations That Overlap:</h5>";
       for (vacation of availability['(V)']) {
         var str = _timeOffConflictToStr(vacation);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(A)'].length > 0) {
-      warningStr += "<h4>Unavailabilities That Overlap:</h4>";
+      warningStr += "<h5>Unavailabilities That Overlap:</h5>";
       for (absences of availability['(A)']) {
         var str = _timeOffConflictToStr(absences);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(U)'].length > 0) {
-      warningStr += "<h4>Repeating Unavailabilities That Overlap:</h4>";
+      warningStr += "<h5>Repeating Unavailabilities That Overlap:</h5>";
       for (repeat_unav of availability['(U)']) {
         var str = _repeatUnavConflictToStr(repeat_unav);
         warningStr += "<p>" + str + "</p>";
       }
     }
     if (availability['(O)']) {
-      warningStr += "<h4>Assignment Will Put Employee In Overtime:</h4>";
+      warningStr += "<h5>Assignment Will Put Employee In Overtime:</h5>";
       warningStr += "<p>" + "Employee Will Be Working " 
       warningStr += availability['Hours Scheduled']
       warningStr += " Hours This Workweek If Assigned." + "</p>";
@@ -1435,8 +1435,6 @@ $(document).ready(function() {
     preEditedSchedule['oldHideStart'] = info['oldHideStart'];
     preEditedSchedule['oldHideEnd'] = info['oldHideEnd'];
     
-    console.log("edit info is: ", info)
-    
     renderEditedSchedules(schedule, oldHours, newHours);
     
     // Update cost display to reflect any cost changes
@@ -1493,6 +1491,9 @@ $(document).ready(function() {
     //Highlight edited event
     var $event_div = $("#event-id-" + schedulePk).find(".fc-content");
     $event_div.addClass("fc-event-clicked"); 
+    
+    // Get eligibles for this schedule
+    $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
   }
   
   

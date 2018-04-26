@@ -5,8 +5,7 @@ import datetime
 register = template.Library()
 
 WEEKDAYS = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 
-            4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
-            
+            4: 'Friday', 5: 'Saturday', 6: 'Sunday'}    
 TIME_FORMAT = "%I:%M %p"
 
             
@@ -24,7 +23,7 @@ def int_to_weekday(value):
 def datetime_to_time(value):
     """Convert python datetime to a formatted time value."""
     
-    return datetime.datetime.strptime(value.isoformat(), TIME_FORMAT)
+    return value.strftime(TIME_FORMAT)
     
     
 @register.filter(name='has_group') 
