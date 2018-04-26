@@ -1,25 +1,26 @@
 {% load schedule_calendar_extras %}
 
-<nav class="navbar navbar-inverse navbar-static-top">
+<nav class="navbar navbar-expand-lg">
 	<div class="container-fluid">
 		<div class="navbar-header">
       <a href="{% url 'schedulingcalendar:front_page' %}" class="nav-front-link">
         <h1 class="navigation-font">ScheduleHours.com</h1>
       </a>
-			<button type="button" class="navbar-toggle collapsed custom-nav-hamburger" data-toggle="collapse" data-target="#rescheduler-navbar" aria-expanded="false">
+			<button type="button" class="navbar-toggler custom-nav-hamburger" data-toggle="collapse" data-target="#rescheduler-navbar" aria-expanded="false">
 				<span class="sr-only">Toggle navigation</span>
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
 		</div>
+    
 		<div id="rescheduler-navbar" class="collapse navbar-collapse">
-			<ul class="nav navbar-nav navbar-right">
+			<ul class="navbar-nav">
         {% if user.is_authenticated %}
           {% if user|has_group:"Managers" %}
-            <li><a href="{% url 'schedulingcalendar:calendar_page' %}">Calendar</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Business<span class="caret"></span></a>
+            <li class="nav-item"><a class="nav-link" href="{% url 'schedulingcalendar:calendar_page' %}">Calendar</a></li>
+            <li class="nav-item dropdown">
+              <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Business<span class="caret"></span></a>
               <ul class="dropdown-menu">
                 <li><a href="{% url 'schedulingcalendar:employee_list' %}">Employees</a></li>
                 <li><a href="{% url 'schedulingcalendar:department_list' %}">Departments</a></li>
@@ -29,18 +30,18 @@
             </li>
             <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
           {% else %}
-            <li><a href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a></li>
-            <li><a href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a></li>
           {% endif %}
         {% else %}
-          <li><a href="{% url 'login' %}">Login</a></li>
-          <li><a href="{% url 'schedulingcalendar:register' %}">Register</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'schedulingcalendar:register' %}">Register</a></li>
         {% endif %}
-        <li><a href="#">Help</a></li>
-				<li><a href="#">Contact</a></li>
-        <li><a href="#">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Help</a></li>
+				<li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">About</a></li>
         {% if user.is_authenticated %}
-          <li><a href="{% url 'logout' %}?next={% url 'login' %}">Logout</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a></li>
         {% endif %}
 			</ul>
 		</div>

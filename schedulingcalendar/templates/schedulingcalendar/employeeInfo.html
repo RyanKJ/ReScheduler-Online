@@ -184,7 +184,7 @@
               {% for repeat_unav in repeating_unavailable_list %}
                 <li class="list-group-item">
                   <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
-                    <li>{{ repeat_unav.weekday|int_to_weekday }}: {{ repeat_unav.start_time|datetime_to_time }} - {{ repeat_unav.end_time.hour }}</li>
+                    <li>{{ repeat_unav.weekday|int_to_weekday }}: {{ repeat_unav.start_time }} - {{ repeat_unav.end_time.hour }}</li>
                     <li><a href="{% url 'schedulingcalendar:repeat_unav_update' employee.id repeat_unav.id %}">Edit</a></li>
                     <li><a href="{% url 'schedulingcalendar:repeat_unav_delete' employee.id repeat_unav.id %}">Delete</a></li>
                   </ul>

@@ -224,15 +224,6 @@ a:active {
 /* Day and week calendar cost/hours styling
 --------------------------------------------------------------------------------------------------*/
 
-#selected-schedule-info {
-  visibility: hidden;
-  position: relative;
-  margin-left: 12px;
-  float: right;
-  height: 34px;
-  font-weight: 500;
-}
-
 #calendar-costs {
   visibility: hidden;
   position: absolute;
@@ -245,15 +236,23 @@ a:active {
   background: white;
   border: solid #dddddd 1px;
   border-radius: 2px;
+  color: black;
 }
 
 .cost-button:hover {
   background: #F7F7F7;
+  border: solid #dddddd 1px;
+  color: black;
+}
+
+.cost-button:focus {
+  outline: none !important;
+  box-shadow: none;
 }
 
 #cost-dropdown {
   background: white;
-  width: 630px;
+  width: 670px;
 }
 
 .total-row {

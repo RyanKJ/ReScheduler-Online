@@ -180,16 +180,12 @@ $(document).ready(function() {
     eventMouseover: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-days-event-mouseover");
-      
-      $("#selected-schedule-info").css("visibility", "visible");
     },
         
     /** De-highlight event when mouse stops hovering over event. */
     eventMouseout: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").removeClass("fc-days-event-mouseover");
-      
-      $("#selected-schedule-info").css("visibility", "hidden");
     },
         
     /** Mark the html elements of event with event id for later queries. */
