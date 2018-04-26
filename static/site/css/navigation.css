@@ -1,15 +1,19 @@
 .navigation-font {
   font-family: 'Nunito', sans-serif;
-  font-size: 2.5em;
+  color: white;
 }
+
+.nav-front-link { font-size: 2.1em; }
+.nav-front-link:hover { color: white; }
 
 .custom-nav-hamburger { 
   border-color: transparent !important; 
   border-radius: 2px !important;
+  color: white !important;
 }
   
 .custom-nav-hamburger:hover { background: #00BFFF !important; }
 
-.dropdown-menu > li > a { color: white !important; }
-
-.dropdown-menu > li:hover { background: #00BFFF; }
+.navbar-toggle.collapsed .icon-bar {
+  color: white !important;
+}

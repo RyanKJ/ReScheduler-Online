@@ -3,13 +3,13 @@
 {% block form_content %}
   <h4 class="card-title text-center">Employee List</h4>
   <a href="{% url 'schedulingcalendar:employee_create' %}">New Employee</a>
-  <ul class="list-group">
+  <ul class="list-group list-group-flush">
     {% for employee in employee_list %}
       <li class="list-group-item">
         <ul class="list-inline" data-employee-id="{{ employee.id }}">
-          <li>{{ employee.last_name }}, {{ employee.first_name }}</li>
-          <li><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Edit</a></li>
-          <li><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete</a></li>
+          <li class="list-inline-item">{{ employee.last_name }}, {{ employee.first_name }}</li>
+          <li class="list-inline-item"><a href="{% url 'schedulingcalendar:employee_info' employee.id %}">Edit</a></li>
+          <li class="list-inline-item"><a href="{% url 'schedulingcalendar:employee_delete' employee.id %}">Delete</a></li>
         </ul>
       </li>
     {% endfor %}
