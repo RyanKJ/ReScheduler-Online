@@ -288,7 +288,7 @@ td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; }
 
 .edit-remove-btn-bg {
   background: #F7F7F7;
-  height: 88px;
+  height: 98px;
   margin-top: 0px;
 }
 
@@ -670,11 +670,21 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
 /* Mobile styling
 --------------------------------------------------------------------------------------------------*/
 
+@media screen and (max-width: 1400px) {
+  .schedule-adder > h1 { font-size: 1.2em; }
+  #remove-btn { font-size: .9em; }
+  #edit-btn { font-size: 1em; }
+}
+
 @media screen and (max-width: 1199px) {
 .sticky-cal { 
     top: 100px;
     width: 65%;
   }
+}
+
+@media screen and (max-width: 992px) {
+  #remove-btn { font-size: 1em; }
 }
 
 @media screen and (max-width: 767px) {

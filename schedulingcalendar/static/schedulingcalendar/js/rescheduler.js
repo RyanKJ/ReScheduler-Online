@@ -289,7 +289,7 @@ $(document).ready(function() {
     $(".fc-center").find("h2").text(calendarText);
     $("title").text(calendarText);
     
-    // Set default start and end time for time-pickers
+    // Set default start and end time for time-pickers   
     st_picker.set("select", displaySettings["schedule_start"], { format: 'HH:i' });
     et_picker.set("select", displaySettings["schedule_end"], { format: 'HH:i' });
     $hideStart.prop('checked', displaySettings["hide_start"]);
