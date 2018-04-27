@@ -17,3 +17,6 @@ nav .nav-front-link:hover { color: white; }
 .navbar-toggle.collapsed .icon-bar {
   color: white !important;
 }
+
+.custom-nav-item:hover { background: #00BFFF !important; }
+

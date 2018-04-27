@@ -19,6 +19,7 @@ $(document).ready(function() {
   var calDepartment = null;
   var calActive = null;
   var displaySettings = {};
+  var schedulesWithHiddenTimes = [];
   var employees = [];
   var employeeSortedIdList = []; // Ids sorted by first name, then last
   var employeesAssigned = [];
@@ -187,6 +188,13 @@ $(document).ready(function() {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").removeClass("fc-days-event-mouseover");
     },
+    
+    
+    /** Rerender event tooltips after fullcalendar rerenders its events. */
+    eventAfterAllRender: function(view) {
+      renderHiddenTimeTooltips();
+    },
+    
         
     /** Mark the html elements of event with event id for later queries. */
     eventRender: function (event, element, view) {
@@ -364,6 +372,14 @@ $(document).ready(function() {
     $fcDays.dblclick(dblClickHelper);
     $fcContent.dblclick(dblClickHelper);
     
+    // Add schedules with hidden times to global var and render tooltips
+    for (var i=0;i<schedules.length;i++) {
+      if (schedules[i].hide_start_time || schedules[i].hide_end_time) {
+          schedulesWithHiddenTimes.push(schedules[i]);
+      }
+    }
+    renderHiddenTimeTooltips();
+    
     // Click first visible day
     var firstDay = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
     $addScheduleDate.val(firstDay);
@@ -476,7 +492,7 @@ $(document).ready(function() {
       employeeAssigned: isEmployeeAssigned,
       customSort: 0,
       eventRowSort: eventRow,
-      employeePk: schEmployePk
+      employeePk: schEmployePk,
     } 
     return fullCalEvent;
   }
@@ -533,6 +549,24 @@ $(document).ready(function() {
     return "";
   }
   
+  
+  /** Add tooltips to fullCal events that have hidden start/end times. */
+  function renderHiddenTimeTooltips() {
+    // Add tooltip markup
+    for (var i=0;i<schedulesWithHiddenTimes.length;i++) {
+      var schedule = schedulesWithHiddenTimes[i];
+      var $fcEvent = $("#event-id-" + schedule.id);
+      $fcEvent.attr("data-toggle", "tooltip");
+      $fcEvent.attr("data-placement", "right");
+
+      var startTime = moment(schedule.start_datetime).format("h:mm a");
+      var endTime = moment(schedule.end_datetime).format("h:mm a");
+      $fcEvent.prop('title', startTime + " - " + endTime);
+    }
+    // Render tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+  }
+
   
   /** Helper function that creates a sorted list of employee pks */
   function _createEmployeeSortedIdList(employees) {
@@ -1251,6 +1285,10 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           null, null);
     var eventRow = 1;
+    // Add to hidden schedules list if any hidden time
+    if (hideStart || hideEnd) { schedulesWithHiddenTimes.push(json_schedule); }
+    
+    
     if (displaySettings["unique_row_per_employee"]) { 
       eventRow = EMPLOYEELESS_EVENT_ROW 
       // If no blank events exist for day without events, create them
@@ -1337,6 +1375,11 @@ $(document).ready(function() {
     $removeScheduleBtn.css("display", "block");
     $removeBtnConfirmContainer.css("display", "none");
     var schedulePk = info["schedule_pk"];
+    // Remove from hidden events if in hidden schedule times list
+    schIndex = findWithAttr(schedulesWithHiddenTimes, "id", schedulePk);
+    if (schIndex !== -1) { schedulesWithHiddenTimes.splice(schIndex, 1); }
+    
+    
     // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     if (!displaySettings["unique_row_per_employee"] || $event[0].eventRowSort == EMPLOYEELESS_EVENT_ROW) {
@@ -1469,7 +1512,13 @@ $(document).ready(function() {
                           hideStart, hideEnd,
                           firstName, lastName, 
                           note);
-                          
+            
+    // Remove prev schedule from hidden events if in list
+    schIndex = findWithAttr(schedulesWithHiddenTimes, "id", schedulePk);
+    if (schIndex !== -1) { schedulesWithHiddenTimes.splice(schIndex, 1); }
+    // Add edited schedule to hidden times list if it contains hidden times
+    if (hideStart || hideEnd) { schedulesWithHiddenTimes.push(schedule); }
+    
     // Update title string to reflect changes to schedule
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;

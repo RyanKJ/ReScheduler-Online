@@ -10,10 +10,10 @@
     <ul class="navbar-nav">
       {% if user.is_authenticated %}
         {% if user|has_group:"Managers" %}
-        <li class="nav-item active">
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'schedulingcalendar:calendar_page' %}">Calendar<span class="sr-only">(current)</span></a>
         </li>
-        <li class="nav-item dropdown ">
+        <li class="nav-item custom-nav-item dropdown active">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Business</a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'schedulingcalendar:employee_list' %}">Employees</a>
@@ -24,32 +24,32 @@
         </li>
         <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
         {% else %}
-        <li class="nav-item active">
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a>
         </li>
-        <li>
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a>
         </li>
         {% endif %}
       {% else %}
-        <li class="nav-item active">
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'login' %}">Login</a>
         </li>
-        <li class="nav-item active">
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'schedulingcalendar:register' %}">Register</a>
         </li>
       {% endif %}
-      <li class="nav-item active">
+      <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="#">Help</a>
       </li>
-      <li class="nav-item active">
+      <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="#">Contact</a>
       </li> 
-      <li class="nav-item active">
+      <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="#">About</a>
       </li>   
       {% if user.is_authenticated %}
-        <li class="nav-item active">
+        <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
         </li>  
       {% endif %}
