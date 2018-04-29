@@ -114,6 +114,12 @@ class LiveCalendar(models.Model):
     version = models.IntegerField('Version', default=1)
     active = models.BooleanField(default=True)
     
+    # View right model fields
+    all_employees = models.BooleanField(default=True)
+    department_view_rights = models.ManyToManyField(Department, through='LiveCalendarDepartmentViewRights')
+    employee_view_rights = models.ManyToManyField(Employee, through='LiveCalendarEmployeeViewRights')
+    
+    
     def __str__(self):
         date_str = self.date.strftime("%B %d")
         return "Department: " + self.department.name + " " + date_str
@@ -142,6 +148,28 @@ class LiveSchedule(models.Model):
         end_str = self.end_datetime.strftime("%I:%M %p")
         
         return "Department " + self.department.name + " on " + start_str + " - " + end_str
+        
+        
+class LiveCalendarDepartmentViewRights(models.Model):
+    """Join table of LiveCalendar & departments that list what 
+    departments can view the live calendar.
+    """
+    
+    user = models.ForeignKey(User)
+    live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department,  
+                                   on_delete=models.CASCADE)
+                                   
+                                   
+class LiveCalendarEmployeeViewRights(models.Model):
+    """Join table of LiveCalendar & employees that list which
+    employees can view the live calendar.
+    """        
+    
+    user = models.ForeignKey(User)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department,  
+                                   on_delete=models.CASCADE)
     
         
 class Vacation(models.Model):
