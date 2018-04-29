@@ -43,16 +43,31 @@
             
             <p>Or</p>
             
-            {{ set_live_cal_form.department_view.errors }}
-            {{ set_live_cal_form.department_view.label_tag }}
-            {{ set_live_cal_form.department_view }}
             
+            {% for checkbox in set_live_cal_form.department_view %}
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ checkbox.errors }}
+                  {{ checkbox.tag }}
+                  <label for="{{ checkbox.id_for_label }}"></label>
+                </div>
+                <span class="checkbox-custom-text">{{ checkbox }}</span>
+              </div>
+            {% endfor %}
+ 
             
             <p>Or</p>
             
-            {{ set_live_cal_form.employee_view.errors }}
-            {{ set_live_cal_form.employee_view.label_tag }}
-            {{ set_live_cal_form.employee_view }}
+            {% for checkbox in set_live_cal_form.employee_view %}
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ checkbox.errors }}
+                  {{ checkbox.tag }}
+                  <label for="{{ checkbox.id_for_label }}"></label>
+                </div>
+                <span class="checkbox-custom-text">{{ checkbox }}</span>
+              </div>
+            {% endfor %}
 
           
           </div>

@@ -131,7 +131,6 @@ def calendar_page(request):
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm()
-    set_live_cal_form = SetStateLiveCalForm()
     day_note_header_form = DayNoteHeaderForm()
     day_note_body_form = DayNoteBodyForm()
     schedule_note_form = ScheduleNoteForm()
@@ -147,6 +146,9 @@ def calendar_page(request):
         department = business_data.last_cal_department_loaded
     else:
         department = departments.first()
+        
+    set_live_cal_form = SetStateLiveCalForm(logged_in_user, department)
+        
     
     context = {'calendar_form': calendar_form, 
                'add_sch_form': add_schedule_form,

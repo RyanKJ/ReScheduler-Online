@@ -177,6 +177,16 @@ class SetActiveStateLiveCalForm(forms.Form):
 class SetStateLiveCalForm(forms.Form):
     """Form for making currently selected calendar live for employees or
     altering the viewing rights of an already existing form."""
+    def __init__(self, user, department, *args, **kwargs):
+        super(SetStateLiveCalForm, self).__init__(*args, **kwargs)
+        
+        dep_choices = get_department_tuple(user)
+        employee_choices = get_department_employees_tuple(user, department)
+        
+        self.fields['department_view'].widget.choices = dep_choices
+        self.fields['employee_view'].widget.choices = employee_choices
+    
+    
     
     # Fields for selecting the calendar
     date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
@@ -190,7 +200,7 @@ class SetStateLiveCalForm(forms.Form):
     all_employee_view = forms.BooleanField(label="", required=False,
                                            widget=forms.CheckboxInput())     
     department_view = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
-    employee_view = MultipleIntField()
+    employee_view = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
     
     # Fields to inform employees of changes
     notify_all = forms.BooleanField(label="", required=False,
@@ -441,11 +451,11 @@ class EmployeeDisplaySettingsForm(forms.ModelForm):
         fields = ['override_list_view', 'see_all_departments']
     
     
-def get_department_tuple(logged_user, employee=None):
+def get_department_tuple(user, employee=None):
     """Return a tuple of strings departments
     
     Args:
-        logged_user: current logged in user via django authentication system.
+        user: current logged in user via django authentication system.
         employee: employee mobel object, used to filter out only departments
           that that employee belongs to.
     Returns:
@@ -456,11 +466,11 @@ def get_department_tuple(logged_user, employee=None):
     
     if employee and not employee.see_all_departments:
         dep_membership = (DepartmentMembership.objects.select_related('department')
-                                                      .filter(employee=employee)
+                                                      .filter(user=user, employee=employee)
                                                       .order_by('priority'))
         dep_choices = [(dep_mem.department.id, dep_mem.department.name) for dep_mem in dep_membership]
     else:
-        departments = Department.objects.filter(user=logged_user).only('id', 'name').order_by('name')
+        departments = Department.objects.filter(user=user).only('id', 'name').order_by('name')
         dep_choices = [(dep.id, dep.name) for dep in departments]
         
     return tuple(dep_choices)
@@ -486,4 +496,23 @@ def get_years_tuple(curr_year, n, m):
         year_list.append((year, year))
            
     return tuple(year_list)
+    
+    
+def get_department_employees_tuple(user, department):
+    """Return a tuple of employees belonging to given department
+    
+    Args:
+        user: current logged in user via django authentication system.
+        department: department to find employees belonging to
+    Returns:
+        A tuple containing all employees of user that belong to given department.
+    """
+    
+    dep_memberships = (DepartmentMembership.objects.select_related('employee')
+                                                   .filter(user=user, department=department))
+                                                   
+    employee_choices = [(dep_mem.employee.id, dep_mem.employee.first_name) for dep_mem in dep_memberships]    
+    print "************************** employee_choices", tuple(employee_choices) 
+    return tuple(employee_choices)                                      
+                                                   
     
