@@ -39,7 +39,7 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
                     ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
-                    EmployeeDisplaySettingsForm)
+                    EmployeeDisplaySettingsForm, SetStateLiveCalForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, time, timedelta
 from itertools import chain
@@ -131,6 +131,7 @@ def calendar_page(request):
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm()
+    set_live_cal_form = SetStateLiveCalForm()
     day_note_header_form = DayNoteHeaderForm()
     day_note_body_form = DayNoteBodyForm()
     schedule_note_form = ScheduleNoteForm()
@@ -150,6 +151,7 @@ def calendar_page(request):
     context = {'calendar_form': calendar_form, 
                'add_sch_form': add_schedule_form,
                'view_live_form': view_live_form,
+               'set_live_cal_form': set_live_cal_form,
                'day_note_header_form': day_note_header_form,
                'day_note_body_form': day_note_body_form,
                'schedule_note_form': schedule_note_form,

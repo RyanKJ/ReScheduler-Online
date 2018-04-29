@@ -1,29 +1,129 @@
 <!-- Modal -->
 <div id="pushModal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
 
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title text-center">Push Current Calendar Live?</h5>
+        <h5 class="modal-title text-center">Push Changes Live?</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       
       <div class="modal-body">
-        <div class="text-center">
-          <p>The current state of the draft calendar will be made live for employees to see.</p>
+      
+      
+      <div class="">
+      
+      
+      
+      
+      
+        <form id="push-changes-live-form"
+              action=""
+              method="post">
+          {% csrf_token %}
+          
+
+          
+          <div class="push-changes-view-rights-div">
+          
+            <h6>1. Set Viewing Rights Of Published Calendar</h6>
+          
+          
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ set_live_cal_form.all_employee_view.errors }}
+                {{ set_live_cal_form.all_employee_view }}
+                {{ set_live_cal_form.all_employee_view.label_tag }}
+              </div>
+              <span class="checkbox-custom-text">Let Every Employee See This Calendar</span>
+            </div>
+            
+            <p>Or</p>
+            
+            {{ set_live_cal_form.department_view.errors }}
+            {{ set_live_cal_form.department_view.label_tag }}
+            {{ set_live_cal_form.department_view }}
+            
+            
+            <p>Or</p>
+            
+            {{ set_live_cal_form.employee_view.errors }}
+            {{ set_live_cal_form.employee_view.label_tag }}
+            {{ set_live_cal_form.employee_view }}
+
+          
+          </div>
+          <br>
+          <div class="notify-changes-view-rights-div">
+            <h6>2. Choose How Employees Will Be Notified</h6>
+          
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ set_live_cal_form.notify_all.errors }}
+                {{ set_live_cal_form.notify_all }}
+                {{ set_live_cal_form.notify_all.label_tag }}
+              </div>
+              <span class="checkbox-custom-text">Notify Every Employee In This Department</span>
+              <p>If Checked, every employee in this department will be notified about the calendar. If not checked,
+              only the employees with changes will be notified.</p>
+            </div>
+            
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ set_live_cal_form.notify_by_sms.errors }}
+                {{ set_live_cal_form.notify_by_sms }}
+                {{ set_live_cal_form.notify_by_sms.label_tag }}
+              </div>
+              <span class="checkbox-custom-text">Send A Text Informing Employee Of Changes</span>
+            </div>
+            
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ set_live_cal_form.notify_by_email.errors }}
+                {{ set_live_cal_form.notify_by_email }}
+                {{ set_live_cal_form.notify_by_email.label_tag }}
+              </div>
+              <span class="checkbox-custom-text">Send An Email Informing Employee Of Changes</span>
+            </div>
+          
+          
+          </div>
         
+          <br>
           <button type="button" 
                   class="btn btn-default"   
                   data-dismiss="modal">Do Not Make Calendar Live</button>
                   
-          <button type="button" 
-                  class="btn btn-danger"
-                  id="push-calendar-after-warning-btn"
-                  data-dismiss="modal">Make Calendar Live</button>
-        </div>
+          <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="Push Changes Live">
+          
+        </form>
+      
+      </div>
+      
+      
+      
+      
+      
+      
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
       </div>
     </div>
   </div>

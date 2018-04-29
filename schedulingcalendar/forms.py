@@ -174,7 +174,7 @@ class SetActiveStateLiveCalForm(forms.Form):
                                 widget=forms.CheckboxInput())
                                  
                                 
-class SetActiveStateLiveCalForm(forms.Form):
+class SetStateLiveCalForm(forms.Form):
     """Form for making currently selected calendar live for employees or
     altering the viewing rights of an already existing form."""
     
@@ -187,17 +187,17 @@ class SetActiveStateLiveCalForm(forms.Form):
                                     min_value=0, max_value=1000)
                                     
     # Fields to set viewing rights of live calendar
-    all_employee_view = forms.BooleanField(label="Allow All Employees To See Calendar", required=False,
+    all_employee_view = forms.BooleanField(label="", required=False,
                                            widget=forms.CheckboxInput())     
-    department_view = MultipleIntField()
+    department_view = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
     employee_view = MultipleIntField()
     
     # Fields to inform employees of changes
-    notify_all = forms.BooleanField(label="Notify All Employees, Even Those Without Changes", required=False,
+    notify_all = forms.BooleanField(label="", required=False,
                                     widget=forms.CheckboxInput())    
-    notify_by_sms = forms.BooleanField(label="Send Text Notifications", required=False,
+    notify_by_sms = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
-    notify_by_email = forms.BooleanField(label="Send Email Notifications", required=False,
+    notify_by_email = forms.BooleanField(label="", required=False,
                                          widget=forms.CheckboxInput())                                   
                               
                                 

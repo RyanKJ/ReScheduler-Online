@@ -116,8 +116,11 @@ class LiveCalendar(models.Model):
     
     # View right model fields
     all_employees = models.BooleanField(default=True)
-    department_view_rights = models.ManyToManyField(Department, through='LiveCalendarDepartmentViewRights')
-    employee_view_rights = models.ManyToManyField(Employee, through='LiveCalendarEmployeeViewRights')
+    department_view_rights = models.ManyToManyField(Department, 
+                                                    related_name='department_view_rights',
+                                                    through='LiveCalendarDepartmentViewRights')
+    employee_view_rights = models.ManyToManyField(Employee, 
+                                                  through='LiveCalendarEmployeeViewRights')
     
     
     def __str__(self):
@@ -157,8 +160,8 @@ class LiveCalendarDepartmentViewRights(models.Model):
     
     user = models.ForeignKey(User)
     live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department,  
-                                   on_delete=models.CASCADE)
+    department_view_rights = models.ForeignKey(Department,  
+                                               on_delete=models.CASCADE)
                                    
                                    
 class LiveCalendarEmployeeViewRights(models.Model):
@@ -167,9 +170,9 @@ class LiveCalendarEmployeeViewRights(models.Model):
     """        
     
     user = models.ForeignKey(User)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department,  
-                                   on_delete=models.CASCADE)
+    live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
+    employee_view_rights = models.ForeignKey(Employee,  
+                                             on_delete=models.CASCADE)
     
         
 class Vacation(models.Model):
