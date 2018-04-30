@@ -112,10 +112,10 @@ class LiveCalendar(models.Model):
     date = models.DateField('Date', default=date.today)
     department = models.ForeignKey(Department)
     version = models.IntegerField('Version', default=1)
-    active = models.BooleanField(default=True)
+    all_employee_view = models.BooleanField(default=True)
     
     # View right model fields
-    all_employees = models.BooleanField(default=True)
+    all_employee_view = models.BooleanField(default=True)
     department_view_rights = models.ManyToManyField(Department, 
                                                     related_name='department_view_rights',
                                                     through='LiveCalendarDepartmentViewRights')
@@ -160,8 +160,7 @@ class LiveCalendarDepartmentViewRights(models.Model):
     
     user = models.ForeignKey(User)
     live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
-    department_view_rights = models.ForeignKey(Department,  
-                                               on_delete=models.CASCADE)
+    department_view_rights = models.ForeignKey(Department, on_delete=models.CASCADE)
                                    
                                    
 class LiveCalendarEmployeeViewRights(models.Model):
@@ -171,8 +170,7 @@ class LiveCalendarEmployeeViewRights(models.Model):
     
     user = models.ForeignKey(User)
     live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
-    employee_view_rights = models.ForeignKey(Employee,  
-                                             on_delete=models.CASCADE)
+    employee_view_rights = models.ForeignKey(Employee, on_delete=models.CASCADE)
     
         
 class Vacation(models.Model):

@@ -64,10 +64,11 @@
               {{ set_live_cal_form.notify_all.errors }}
               <span class="checkbox-custom-text">
                 {{ set_live_cal_form.notify_all }} 
-                <label for="id_notify_all">Notify Every Employee In This Department</label>
+                <label for="id_notify_all">Notify Every Employee That Can View This Calendar</label>
               </span>
             </div>
-            <p>If Checked, every employee in this department will be notified about the calendar. If not checked,
+            <p>If Checked, every employee that can view the calendar will be notified, 
+               regardless if they have schedules or changes. If not checked,
                only the employees with changes will be notified.</p>
             
             <div class="visible-checkbox">
@@ -91,9 +92,16 @@
                   class="btn btn-outline-primary"   
                   data-dismiss="modal">Close And Do Nothing</button>
                   
+          <button type="button" 
+                  id="publish-changes-btn"
+                  class="btn btn-primary float-right" 
+                  data-dismiss="modal">Publish</button>
+                  
+                  
           <input type="submit" 
-                 id="publish-changes-btn"
+                 id="publish-changes"
                  class="btn btn-primary float-right"   
+                 style="display: none;"
                  value="Publish">
         </form> 
       </div>

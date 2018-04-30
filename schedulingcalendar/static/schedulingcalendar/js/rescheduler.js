@@ -17,7 +17,7 @@ $(document).ready(function() {
   // General state variables
   var calDate = null;
   var calDepartment = null;
-  var calActive = null;
+  var liveCalExists = false;
   var displaySettings = {};
   var schedulesWithHiddenTimes = [];
   var employees = [];
@@ -105,6 +105,7 @@ $(document).ready(function() {
   $copyConflictBtn.click(commitCopyConflicts);
   $editConflictBtn.click(undoScheduleEdit);
   $allEmployeeViewCheckbox.change(showDepEmployeeViews);
+  $("#publish-changes-btn").click(function() { $("#publish-changes").trigger("click"); });
   
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
@@ -265,6 +266,7 @@ $(document).ready(function() {
     copySchedulePksList = [];
     
     var info = JSON.parse(json_data);
+    console.log("LoadSchedule info is:", info);
     // Save display settings for calendar events
     displaySettings = info["display_settings"];
     troDates = info['tro_dates'];
@@ -350,7 +352,7 @@ $(document).ready(function() {
     renderMonthlyCosts();
     
     //Set activate/deactivate to state of live_calendar
-    calActive = info["is_active"];
+    liveCalExists = info["live_cal_exists"];
     setCalLiveButtonStyles();
     
     //Make other month days displayed not gray'd out
@@ -648,7 +650,7 @@ $(document).ready(function() {
   /** Inform user that the calendar was succesfully pushed. */
   function successfulCalendarPush(data) {
     var info = JSON.parse(data);
-    calActive = true;
+    liveCalExists = true;
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
     var msg = info["message"];
@@ -715,23 +717,18 @@ $(document).ready(function() {
   }
   
   
-  /** Set styles of view live and De/Reactivate Live buttons given active state */
+  /** Set styles of view live view right button states */
   function setCalLiveButtonStyles() {
-    if (calActive == null) {
+    if (!liveCalExists) {
       $setActiveLive.addClass("unactive-live");
-      $setActiveLive.text("Reactivate Live");
+      $setActiveLive.prop('disabled', true);
+      $setActiveLive.css("cursor", "default");
       $viewLive.addClass("unactive-live");
       $viewLive.prop('disabled', true);
-    }
-    if (!calActive && calActive !== null) {
+    } else {
       $setActiveLive.removeClass("unactive-live");
-      $setActiveLive.text("Reactivate Live");
-      $viewLive.addClass("unactive-live");
-      $viewLive.prop('disabled', true);
-    }
-    if (calActive) {
-      $setActiveLive.removeClass("unactive-live");
-      $setActiveLive.text("Deactivate Live");
+      $setActiveLive.prop('disabled', false);
+      $setActiveLive.css("cursor", "pointer");
       $viewLive.removeClass("unactive-live");
       $viewLive.prop('disabled', false);
     }

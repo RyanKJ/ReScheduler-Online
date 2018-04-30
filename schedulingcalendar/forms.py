@@ -198,8 +198,8 @@ class SetStateLiveCalForm(forms.Form):
     # Fields to set viewing rights of live calendar
     all_employee_view = forms.BooleanField(label="", required=False,
                                            widget=forms.CheckboxInput())     
-    department_view = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
-    employee_view = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+    department_view = MultipleIntField(widget=forms.CheckboxSelectMultiple)
+    employee_view = MultipleIntField(widget=forms.CheckboxSelectMultiple)
     
     # Fields to inform employees of changes
     notify_all = forms.BooleanField(label="", required=False,

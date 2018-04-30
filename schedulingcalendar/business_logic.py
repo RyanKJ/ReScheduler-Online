@@ -16,7 +16,8 @@ from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
-                     Absence, DesiredTime, LiveSchedule, LiveCalendar)
+                     Absence, DesiredTime, LiveSchedule, LiveCalendar,
+                     LiveCalendarDepartmentViewRights, LiveCalendarEmployeeViewRights)
 
 
 def get_eligibles(user, schedule):
@@ -1313,6 +1314,37 @@ def create_live_schedules(user, live_calendar):
         live_schedules.append(live_schedule)
         
     LiveSchedule.objects.bulk_create(live_schedules)
+    
+    
+def set_view_rights(user, live_calendar, department_view, employee_view):
+    """Create/edit view rights for departments/employees for live calendar."""
+    
+    # Delete old view rights for this live calendar
+    oldDepartmentViewRights = LiveCalendarDepartmentViewRights.objects.filter(user=user, live_calendar=live_calendar).delete()
+    oldEmployeeViewRights = LiveCalendarEmployeeViewRights.objects.filter(user=user, live_calendar=live_calendar).delete()
+    
+    # Create new view rights for this live calendar
+    departments = Department.objects.filter(user=user, id__in=department_view)
+    employees = Employee.objects.filter(user=user, id__in=employee_view)
+    
+    newDepartmentViewRights = []
+    newEmployeeViewRights = []
+    
+    for department in departments:
+        depViewRight = LiveCalendarDepartmentViewRights(user=user,
+                                                        live_calendar=live_calendar,
+                                                        department_view_rights=department)  
+        newDepartmentViewRights.append(depViewRight)
+    for employee in employees:
+        empViewRight = LiveCalendarEmployeeViewRights(user=user,
+                                                      live_calendar=live_calendar,
+                                                      employee_view_rights=employee)
+        newEmployeeViewRights.append(empViewRight)
+        
+    LiveCalendarDepartmentViewRights.objects.bulk_create(newDepartmentViewRights)
+    LiveCalendarEmployeeViewRights.objects.bulk_create(newEmployeeViewRights)                                                   
+    
+
         
         
 def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):

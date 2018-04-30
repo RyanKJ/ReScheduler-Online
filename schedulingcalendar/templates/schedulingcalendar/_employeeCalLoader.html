@@ -2,7 +2,7 @@
 
 
 <form id="load-calendar-form"
-      action="{% url 'schedulingcalendar:get_live_schedules' %}"
+      action="{% url 'schedulingcalendar:employee_get_live_schedules' %}"
       onsubmit="return(validateGetCalendarForm())"
       method="get"
       data-show-only-employee-schedules="{% if employee_only %}true{% else %}false{% endif %}">

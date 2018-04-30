@@ -22,7 +22,8 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
-                     ScheduleSwapApplication)
+                     ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
+                     LiveCalendarEmployeeViewRights)
 from .business_logic import (get_eligibles, eligable_list_to_dict,
                              date_handler, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
@@ -30,7 +31,7 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
                              get_start_end_of_calendar, edit_schedule_cost_change,
                              calculate_cost_delta, get_start_end_of_weekday,
-                             get_availability, _availability_to_dict)
+                             get_availability, _availability_to_dict, set_view_rights)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -195,14 +196,31 @@ def get_schedules(request):
             cal_date = datetime(year, month, 1)
             lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(year, month)
             
-            # Get live_calendar to find out if calendar is active
+            # Get live_calendar to find out if calendar exists and view rights
             try:
               live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                        date=cal_date.date(), 
                                                        department=department_id)
-              is_active = live_calendar.active
+              live_cal_exists = True
+              view_rights = {'all_employee_view': live_calendar.all_employee_view}        
+              
+              
+              
+              
+              
+              department_view_rights = LiveCalendarDepartmentViewRights.objects.filter(user=logged_in_user, live_calendar=live_calendar)
+              employee_view_rights = LiveCalendarEmployeeViewRights.objects.filter(user=logged_in_user, live_calendar=live_calendar)
+              
+              
+              
+              
+              print
+              print
+              print "********** live calendar.department_view_rights is: ", live_calendar.department_view_rights
+              
             except LiveCalendar.DoesNotExist:
-              is_active = None;
+              live_cal_exists = False
+              view_rights = {}
             
             # Get schedule and employee models from database
             schedules = (Schedule.objects.select_related('employee')
@@ -300,9 +318,10 @@ def get_schedules(request):
                              'hours_and_costs': hours_and_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,
-                             'is_active': is_active,
+                             'live_cal_exists': live_cal_exists,
                              'no_employees_exist': no_employees_exist,
-                             'no_employees_exist_for_department': no_employees_exist_for_department}
+                             'no_employees_exist_for_department': no_employees_exist_for_department,
+                             'view_rights': view_rights}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)
@@ -314,26 +333,13 @@ def get_schedules(request):
 
   
 @login_required  
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def get_live_schedules(request):
-    """Get live schedules for given date and department."""
+    """Get live schedules for given date and department as a manager."""
     logged_in_user = request.user
     if request.method == 'GET':
-        # Check if browsing user is manager or employee, use appropriate form
-        # depending on which kind of user called this view
-        user_is_manager = manager_check(logged_in_user)
-        if user_is_manager:
-            employee = None
-            employee_user_pk = None
-            override_list_view = False
-            manager_user = logged_in_user
-            form = LiveCalendarManagerForm(manager_user, 1, request.GET)
-        else:
-            employee = (Employee.objects.select_related('user')
-                                .get(employee_user=logged_in_user))
-            employee_user_pk = employee.id
-            override_list_view = employee.override_list_view
-            manager_user = employee.user
-            form = LiveCalendarForm(manager_user, employee, request.GET)
+        manager_user = logged_in_user
+        form = LiveCalendarManagerForm(manager_user, 1, request.GET)
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
@@ -345,20 +351,138 @@ def get_live_schedules(request):
                 live_calendar = LiveCalendar.objects.get(user=manager_user, 
                                                          date=cal_date, 
                                                          department=department_id)
-                if not live_calendar.active:
-                    raise ValueError('Live Calendar exists, but is not active.')
+
+                version = form.cleaned_data['version']
+                live_schedules = (LiveSchedule.objects.select_related('employee')
+                                                      .filter(user=manager_user,
+                                                              calendar=live_calendar,
+                                                              version=version))
+                                                          
+                # Get employees
+                dep_memberships = (DepartmentMembership.objects.filter(user=manager_user, department=department_id))
+                employee_ids = []
+                for dep_mem in dep_memberships:
+                    employee_ids.append(dep_mem.employee.id)
+                employees = (Employee.objects.filter(user=manager_user, id__in=employee_ids)
+                                             .order_by('first_name', 'last_name'))
+                                             
+                # Get time requested off instances
+                tro_dates = get_tro_dates(manager_user, department_id, lower_bound_dt, upper_bound_dt)
+                tro_dict = get_tro_dates_to_dict(tro_dates)
+                        
+                # Get day notes to display for dates within range of month
+                day_note_header = DayNoteHeader.objects.filter(user=manager_user,
+                                                               date__lte=upper_bound_dt,
+                                                               date__gte=lower_bound_dt,
+                                                               department=department_id)
+                day_note_body = DayNoteBody.objects.filter(user=manager_user,
+                                                           date__lte=upper_bound_dt,
+                                                           date__gte=lower_bound_dt,
+                                                           department=department_id)  
+                
+                # Convert live_schedules and employees to dicts for json dump
+                schedules_as_dicts = []
+                employees_as_dicts = []
+                day_note_header_as_dicts = []
+                day_note_body_as_dicts = []
+                
+                for s in live_schedules:
+                    schedule_dict = model_to_dict(s)
+                    schedules_as_dicts.append(schedule_dict)
+                for e in employees:
+                    employee_dict = model_to_dict(e)
+                    employees_as_dicts.append(employee_dict)
+                for day_hdr in day_note_header:
+                    day_hdr_dict = model_to_dict(day_hdr)
+                    day_note_header_as_dicts.append(day_hdr_dict)
+                for day_body in day_note_body:
+                    day_body_dict = model_to_dict(day_body)
+                    day_note_body_as_dicts.append(day_body_dict)
+                
+                # Get business data for display settings on calendar
+                business_data = (BusinessData.objects.get(user=manager_user))
+                business_dict = model_to_dict(business_data)
+                  
+                # Combine all appropriate data into dict for serialization
+                combined_dict = {'date': cal_date.isoformat(), 
+                                 'department': department_id,
+                                 'schedules': schedules_as_dicts,
+                                 'employees': employees_as_dicts,
+                                 'day_note_header': day_note_header_as_dicts,
+                                 'day_note_body': day_note_body_as_dicts,
+                                 'tro_dates': tro_dict,
+                                 'version': version,
+                                 'display_settings': business_dict,
+                                 'lower_bound_dt': lower_bound_dt.isoformat(),
+                                 'upper_bound_dt': upper_bound_dt.isoformat()}
+                combined_json = json.dumps(combined_dict, default=date_handler)
+                
+                return JsonResponse(combined_json, safe=False)
+                
+            except (LiveCalendar.DoesNotExist, ValueError) as error:
+                department_name = Department.objects.get(pk=department_id).name
+                message = "No Schedules For " + department_name + " Calendar: " + cal_date.strftime("%B, %Y")
+                response = HttpResponseNotFound(message)
+                return response
+    
+    else:
+      # err_msg = "Year, Month, or Department was not selected."
+      # TODO: Send back Unsuccessful Response
+      pass  
+      
+      
+@login_required  
+def employee_get_live_schedules(request):
+    """Get live schedules for given date and department as an employee."""
+    logged_in_user = request.user
+    if request.method == 'GET':
+        employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=logged_in_user))
+        employee_user_pk = employee.id
+        override_list_view = employee.override_list_view
+        manager_user = employee.user
+        form = LiveCalendarForm(manager_user, employee, request.GET)
+        if form.is_valid():
+            department_id = form.cleaned_data['department']
+            year = form.cleaned_data['year']
+            month = form.cleaned_data['month']
+            cal_date = datetime(year, month, 1)
+            lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(year, month)
+            
+            try:
+                live_calendar = LiveCalendar.objects.get(user=manager_user, 
+                                                         date=cal_date, 
+                                                         department=department_id)
+                # Check viewing rights of employee 
+                if not live_calendar.all_employee_view:
+                    has_view_right = False
+                    
+                    # Check if employee belongs to oldDepartmentViewRights
+                    departments_of_employee = DepartmentMembership.objects.filter(user=manager_user, employee=employee)
+                    department_view_rights = LiveCalendarDepartmentViewRights.objects.filter(user=manager_user, live_calendar=live_calendar)
+                    employee_view_rights = LiveCalendarEmployeeViewRights.objects.filter(user=manager_user, live_calendar=live_calendar)
+                    
+                    for dep_view_right in department_view_rights:
+                        for dep_mem_of_employee in departments_of_employee:
+                            if dep_view_right.department_view_rights == dep_mem_of_employee.department:
+                                has_view_right = True
+                                break
+                    # If not check if employee belongs to oldEmployeeViewRights
+                    for emp_view_right in employee_view_rights:
+                        if emp_view_right.employee_view_rights == employee:
+                            has_view_right = True
+                            break
+                
+                    if not has_view_right:
+                        raise ValueError('Live Calendar exists, but employee cannot see.')
+                    
+                    
                                                          
-                # LiveCalendarManagerForm form does not have employee only option,
-                # so we set it to false so manager sees all schedules for calendar
-                # Employees always get the latest version of the live calendar
-                if user_is_manager:
-                    employee_only = False
-                    version = form.cleaned_data['version']
-                else:
-                    employee_only = form.cleaned_data['employee_only']
-                    employee.see_only_my_schedules = employee_only
-                    employee.save()
-                    version = live_calendar.version
+                # Check if employee wishes to see only their schedules
+                employee_only = form.cleaned_data['employee_only']
+                employee.see_only_my_schedules = employee_only
+                employee.save()
+                version = live_calendar.version
                     
                 # Get schedule and employee models from database appropriate for calendar
                 if employee_only:
@@ -864,27 +988,31 @@ def push_changes_live(request):
     """Create a live version of schedules for employee users to query."""
     logged_in_user = request.user
     if request.method == 'POST':
-        print
-        print
-        print "*********** request.POST is: ", request.POST
-
         form = SetStateLiveCalForm(logged_in_user, None, request.POST)
-        print "********** is form valid? ", form.is_valid()
         if form.is_valid():
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']
+            all_employee_view = form.cleaned_data['all_employee_view']
+            department_view = form.cleaned_data['department_view']
+            employee_view = form.cleaned_data['employee_view']
+            
+            # Get or created live calendar
             department = Department.objects.get(pk=department_pk)
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
                                                                         date=date, 
-                                                                        department=department)                                  
+                                                                        department=department)                  
             if created:
+                live_calendar.all_employee_view = all_employee_view
+                live_calendar.save()
                 create_live_schedules(logged_in_user, live_calendar)
             else:
-                live_calendar.active = True
+                live_calendar.all_employee_view = all_employee_view
                 live_calendar.version += 1
                 live_calendar.save()
                 create_live_schedules(logged_in_user, live_calendar)
                 
+            # Set specific view rights
+            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
             json_info = json.dumps({'message': 'Successfully pushed calendar live!'})
             return JsonResponse(json_info, safe=False)
         
@@ -947,20 +1075,16 @@ def view_live_schedules(request):
                 live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                          date=date, 
                                                          department=department_id)
-                is_active = live_calendar.active
-                if is_active:
-                    template = loader.get_template('schedulingcalendar/managerCalendar.html')
-                    live_calendar_form = LiveCalendarManagerForm(logged_in_user,
+                template = loader.get_template('schedulingcalendar/managerCalendar.html')
+                live_calendar_form = LiveCalendarManagerForm(logged_in_user,
                                                                  live_calendar.version)
-                    department = Department.objects.get(pk=department_id)
-                    context = {'live_calendar_form': live_calendar_form,
-                               'date': date,
-                               'department': department_id,
-                               'version': live_calendar.version,
-                               'department_name': department.name}
-                    return HttpResponse(template.render(context, request))
-                else:
-                    message = 'Successfully deactivated the live calendar.'
+                department = Department.objects.get(pk=department_id)
+                context = {'live_calendar_form': live_calendar_form,
+                           'date': date,
+                           'department': department_id,
+                           'version': live_calendar.version,
+                           'department_name': department.name}
+                return HttpResponse(template.render(context, request))
             except:
                 message = 'No live calendar currently exists for this month, year, and department.'
                 
