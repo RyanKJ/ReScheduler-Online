@@ -1,144 +1,96 @@
 <!-- Modal -->
-<div id="pushModal" class="modal fade" role="dialog">
+<div id="pushModal" class="modal fade scrollbar-modal" role="dialog">
   <div class="modal-dialog modal-lg">
 
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title text-center">Push Changes Live?</h5>
+        <h4 class="modal-title text-center">Publish Schedules</h4>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       
       <div class="modal-body">
-      
-      
-      <div class="">
-      
-      
-      
-      
-      
         <form id="push-changes-live-form"
               action=""
               method="post">
           {% csrf_token %}
           
-
-          
           <div class="push-changes-view-rights-div">
-          
-            <h6>1. Set Viewing Rights Of Published Calendar</h6>
-          
-          
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ set_live_cal_form.all_employee_view.errors }}
-                {{ set_live_cal_form.all_employee_view }}
-                {{ set_live_cal_form.all_employee_view.label_tag }}
-              </div>
-              <span class="checkbox-custom-text">Let Every Employee See This Calendar</span>
+            <h5 class="text-center bold">1. Set Viewing Rights Of Published Schedules</h5>
+            <div class="visible-checkbox text-center mb-3">
+              {{ set_live_cal_form.all_employee_view.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.all_employee_view }} 
+                <label for="id_all_employee_view">Let Every Employee See This Calendar</label>
+              </span>
             </div>
             
-            <p>Or</p>
-            
-            
-            {% for checkbox in set_live_cal_form.department_view %}
-              <div class="checkbox-custom-container">
-                <div class="checkbox-custom">
-                  {{ checkbox.errors }}
-                  {{ checkbox.tag }}
-                  <label for="{{ checkbox.id_for_label }}"></label>
+            <span id="specific-view-rights">
+              <div class="half-inline">
+                <h6 class="bold mb-0">Allow Specific Departments</h6>
+                <div id="department-view-rights-list">
+                {% for checkbox in set_live_cal_form.department_view %}
+                  <div class="visible-checkbox">
+                    {{ checkbox.errors }}
+                    <span class="checkbox-custom-text">{{ checkbox }}</span>
+                  </div>
+                {% endfor %}
                 </div>
-                <span class="checkbox-custom-text">{{ checkbox }}</span>
               </div>
-            {% endfor %}
- 
-            
-            <p>Or</p>
-            
-            {% for checkbox in set_live_cal_form.employee_view %}
-              <div class="checkbox-custom-container">
-                <div class="checkbox-custom">
-                  {{ checkbox.errors }}
-                  {{ checkbox.tag }}
-                  <label for="{{ checkbox.id_for_label }}"></label>
+   
+              <div class="half-inline">
+                <h6 class="bold mb-0">Allow Specific Employees</h6>
+                <div id="employee-view-rights-list">
+                {% for checkbox in set_live_cal_form.employee_view %}
+                  <div class="visible-checkbox">
+                    {{ checkbox.errors }}
+                    <span class="checkbox-custom-text">{{ checkbox }}</span>
+                  </div>
+                {% endfor %}
                 </div>
-                <span class="checkbox-custom-text">{{ checkbox }}</span>
               </div>
-            {% endfor %}
-
-          
+            </span>
           </div>
           <br>
+          
           <div class="notify-changes-view-rights-div">
-            <h6>2. Choose How Employees Will Be Notified</h6>
-          
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ set_live_cal_form.notify_all.errors }}
-                {{ set_live_cal_form.notify_all }}
-                {{ set_live_cal_form.notify_all.label_tag }}
-              </div>
-              <span class="checkbox-custom-text">Notify Every Employee In This Department</span>
-              <p>If Checked, every employee in this department will be notified about the calendar. If not checked,
-              only the employees with changes will be notified.</p>
+            <h5 class="text-center bold">2. Choose How Employees Will Be Notified</h5>
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_all.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_all }} 
+                <label for="id_notify_all">Notify Every Employee In This Department</label>
+              </span>
+            </div>
+            <p>If Checked, every employee in this department will be notified about the calendar. If not checked,
+               only the employees with changes will be notified.</p>
+            
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_by_sms.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_by_sms }} 
+                <label for="id_notify_by_sms">Send A Text Informing Employee Of Changes</label>
+              </span>
             </div>
             
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ set_live_cal_form.notify_by_sms.errors }}
-                {{ set_live_cal_form.notify_by_sms }}
-                {{ set_live_cal_form.notify_by_sms.label_tag }}
-              </div>
-              <span class="checkbox-custom-text">Send A Text Informing Employee Of Changes</span>
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_by_email.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_by_email }} 
+                <label for="id_notify_by_email">Send An Email Informing Employee Of Changes</label>
+              </span>
             </div>
-            
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ set_live_cal_form.notify_by_email.errors }}
-                {{ set_live_cal_form.notify_by_email }}
-                {{ set_live_cal_form.notify_by_email.label_tag }}
-              </div>
-              <span class="checkbox-custom-text">Send An Email Informing Employee Of Changes</span>
-            </div>
-          
-          
           </div>
-        
           <br>
           <button type="button" 
                   class="btn btn-default"   
-                  data-dismiss="modal">Do Not Make Calendar Live</button>
+                  data-dismiss="modal">Close And Do Nothing</button>
                   
-          <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="Push Changes Live">
+          <input type="submit" class="calendar-push-btn" value="Publish">
           
-        </form>
-      
-      </div>
-      
-      
-      
-      
-      
-      
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        </form> 
       </div>
     </div>
   </div>

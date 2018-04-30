@@ -116,6 +116,14 @@ input[type=checkbox] {
 	visibility: hidden;
 }
 
+.visible-checkbox input[type=checkbox] {
+	visibility: visible;
+}
+
+.visible-checkbox:hover {
+  background: #F7F7F7;
+}
+
 @media screen and (max-width: 767px) {
   .checkbox-custom { width: 36px; height: 36px; }
   .checkbox-custom label { 

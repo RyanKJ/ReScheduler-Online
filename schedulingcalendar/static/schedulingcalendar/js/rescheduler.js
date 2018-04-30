@@ -77,6 +77,7 @@ $(document).ready(function() {
   var $weekCostTable = $("#week-cost-info");
   var $dayCostTitle = $("#day-cost-title");
   var $weekCostTitle = $("#week-cost-title");
+  var $allEmployeeViewCheckbox = $("#id_all_employee_view");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -103,6 +104,7 @@ $(document).ready(function() {
   $copyDayBtn.click(copySchedulePks);
   $copyConflictBtn.click(commitCopyConflicts);
   $editConflictBtn.click(undoScheduleEdit);
+  $allEmployeeViewCheckbox.change(showDepEmployeeViews);
   
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
@@ -2146,7 +2148,7 @@ $(document).ready(function() {
   }
   
   
-   /** Highlight row of loaded department in hours and costs. */
+  /** Highlight row of loaded department in hours and costs. */
   function highlightDepRow() {
     $(".highlight-dep-row").removeClass("highlight-dep-row");
     var $dayDepRow = $dayCostTable.find("tr[data-dep-id="+calDepartment+"]");
@@ -2154,6 +2156,16 @@ $(document).ready(function() {
     
     $dayDepRow.addClass("highlight-dep-row");
     $weekDepRow.addClass("highlight-dep-row");
+  }
+  
+  
+  /** Hide or show employee/dep view rights checkboxes if all employees checked/unchecked. */
+  function showDepEmployeeViews() {
+    if(this.checked) {
+      $("#specific-view-rights").css("display", "none");
+    } else {
+      $("#specific-view-rights").css("display", "block");
+    }
   }
   
   

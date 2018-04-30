@@ -282,6 +282,19 @@ td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; }
 .highlight-dep-row { background: #e5ff6b; }
 
 
+/* Calendar publishing and view rights styling
+--------------------------------------------------------------------------------------------------*/
+
+#department-view-rights-list, #employee-view-rights-list {
+  height: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: solid #dddddd 1px;
+  border-radius: 2px;
+}
+
+.half-inline { display: inline-block; width: 49%; }
+
 
 /* Eligable list styling
 --------------------------------------------------------------------------------------------------*/
