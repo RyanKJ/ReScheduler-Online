@@ -37,7 +37,7 @@
                 {% for checkbox in set_live_cal_form.department_view %}
                   <div class="visible-checkbox">
                     {{ checkbox.errors }}
-                    <span class="checkbox-custom-text">{{ checkbox }}</span>
+                    {{ checkbox }}
                   </div>
                 {% endfor %}
                 </div>
@@ -49,7 +49,7 @@
                 {% for checkbox in set_live_cal_form.employee_view %}
                   <div class="visible-checkbox">
                     {{ checkbox.errors }}
-                    <span class="checkbox-custom-text">{{ checkbox }}</span>
+                    {{ checkbox }}
                   </div>
                 {% endfor %}
                 </div>

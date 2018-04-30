@@ -219,8 +219,8 @@ def get_schedules(request):
               print "********** live calendar.department_view_rights is: ", live_calendar.department_view_rights
               
             except LiveCalendar.DoesNotExist:
-              live_cal_exists = False
-              view_rights = {}
+                live_cal_exists = False
+                view_rights = {}
             
             # Get schedule and employee models from database
             schedules = (Schedule.objects.select_related('employee')

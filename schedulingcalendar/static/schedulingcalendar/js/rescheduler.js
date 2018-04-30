@@ -78,6 +78,7 @@ $(document).ready(function() {
   var $dayCostTitle = $("#day-cost-title");
   var $weekCostTitle = $("#week-cost-title");
   var $allEmployeeViewCheckbox = $("#id_all_employee_view");
+  var $employeeViewRightsList = $("#employee-view-rights-list");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -307,6 +308,7 @@ $(document).ready(function() {
     employees = info["employees"];
     _createEmployeeSortedIdList(employees);
     employeeNameDict = _employeePkToName(employees);
+    renderEmployeeViewRightsList(employees);
     
     var dayHeaderNotes = info["day_note_header"];
     var dayBodyNotes = info["day_note_body"]; 
@@ -665,7 +667,7 @@ $(document).ready(function() {
     $successfulPushModal.css("margin-top", Math.max(0, ($(window).height() - $successfulPushModal.height()) / 2));
     $successfulPushModal.modal('show');
   }
-  
+
   
   /** 
    * Warn user about changing active state of live calendar. If user still
@@ -731,6 +733,26 @@ $(document).ready(function() {
       $setActiveLive.css("cursor", "pointer");
       $viewLive.removeClass("unactive-live");
       $viewLive.prop('disabled', false);
+    }
+  }
+  
+  
+  /** Render list of department employees in view rights/publish modals */
+  function renderEmployeeViewRightsList(employees) {
+    $employeeViewRightsList.empty();
+    for (var i=0; i < employees.length; i++) {
+      var employeePk = employees[i]["id"];
+      var firstName = employees[i]["first_name"];
+      var lastName = employees[i]["last_name"];
+      
+      var html = "<div class='visible-checkbox'>";
+      html += "<label for='id_employee_view_"+i+"'>";
+      html += "<input id='id_employee_view_"+i+"' name='employee_view' value='"+employeePk+"' type='checkbox'> ";
+      html += firstName + " " + lastName;
+      html += "</label>";
+      html += "</div>";
+      
+      $employeeViewRightsList.append(html);
     }
   }
     
