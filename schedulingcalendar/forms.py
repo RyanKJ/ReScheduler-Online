@@ -177,22 +177,21 @@ class SetActiveStateLiveCalForm(forms.Form):
 class SetStateLiveCalForm(forms.Form):
     """Form for making currently selected calendar live for employees or
     altering the viewing rights of an already existing form."""
-    def __init__(self, user, department, *args, **kwargs):
+    def __init__(self, user, department_of_cal=None, *args, **kwargs):
         super(SetStateLiveCalForm, self).__init__(*args, **kwargs)
+        if department_of_cal:
+            dep_choices = get_department_tuple(user)
+            self.fields['department_view'].widget.choices = dep_choices
         
-        dep_choices = get_department_tuple(user)
-        employee_choices = get_department_employees_tuple(user, department)
-        
-        self.fields['department_view'].widget.choices = dep_choices
-        self.fields['employee_view'].widget.choices = employee_choices
-    
+            employee_choices = get_department_employees_tuple(user, department_of_cal)
+            self.fields['employee_view'].widget.choices = employee_choices
     
     
     # Fields for selecting the calendar
-    date_attrs = {'id': 'date', 'value': '', 'name': 'date'}
+    date_attrs = {'id': 'live_date', 'value': '', 'name': 'date'}
     date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
     
-    dep_attrs = {'id': 'department', 'value': '', 'name': 'department'}
+    dep_attrs = {'id': 'live_department', 'value': '', 'name': 'department'}
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
                                     min_value=0, max_value=1000)
                                     
@@ -511,8 +510,8 @@ def get_department_employees_tuple(user, department):
     dep_memberships = (DepartmentMembership.objects.select_related('employee')
                                                    .filter(user=user, department=department))
                                                    
-    employee_choices = [(dep_mem.employee.id, dep_mem.employee.first_name) for dep_mem in dep_memberships]    
-    print "************************** employee_choices", tuple(employee_choices) 
+    employee_choices = [(dep_mem.employee.id, dep_mem.employee.first_name + " " + dep_mem.employee.last_name) for dep_mem in dep_memberships]    
+    employee_choices.sort(key=lambda e: e[1])
     return tuple(employee_choices)                                      
                                                    
     

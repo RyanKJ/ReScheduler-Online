@@ -860,11 +860,16 @@ def remove_conflict_copy_schedules(request):
             
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def push_live(request):
+def push_changes_live(request):
     """Create a live version of schedules for employee users to query."""
     logged_in_user = request.user
     if request.method == 'POST':
-        form = PushLiveForm(request.POST)
+        print
+        print
+        print "*********** request.POST is: ", request.POST
+
+        form = SetStateLiveCalForm(logged_in_user, None, request.POST)
+        print "********** is form valid? ", form.is_valid()
         if form.is_valid():
             date = form.cleaned_data['date']
             department_pk = form.cleaned_data['department']

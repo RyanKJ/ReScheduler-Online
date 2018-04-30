@@ -13,9 +13,12 @@
       
       <div class="modal-body">
         <form id="push-changes-live-form"
-              action=""
+              action="{% url 'schedulingcalendar:push_changes_live' %}"
               method="post">
           {% csrf_token %}
+          
+          {{  set_live_cal_form.date }}
+          {{  set_live_cal_form.department }}
           
           <div class="push-changes-view-rights-div">
             <h5 class="text-center bold">1. Set Viewing Rights Of Published Schedules</h5>
@@ -85,11 +88,13 @@
           </div>
           <br>
           <button type="button" 
-                  class="btn btn-default"   
+                  class="btn btn-outline-primary"   
                   data-dismiss="modal">Close And Do Nothing</button>
                   
-          <input type="submit" class="calendar-push-btn" value="Publish">
-          
+          <input type="submit" 
+                 id="publish-changes-btn"
+                 class="btn btn-primary float-right"   
+                 value="Publish">
         </form> 
       </div>
     </div>

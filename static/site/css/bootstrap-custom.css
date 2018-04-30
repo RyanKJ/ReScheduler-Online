@@ -21,3 +21,9 @@
 .navbar-nav li.nav-item { color: white;  !important; }
 
 button.navbar-toggler { color: white; }
+
+.btn { border-radius: 2px; }
+.btn-primary, .btn-info { background: #0073d3; border-color: #0073d3; }
+.btn-primary:hover, .btn-info:hover { background: #00BFFF; border-color: #00BFFF; }
+.btn-outline-primary { border-color: #0073d3; color: #0073d3; }
+.btn-outline-primary:hover { background: #0073d3; }

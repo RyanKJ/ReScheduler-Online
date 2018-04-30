@@ -382,11 +382,9 @@ $(document).ready(function() {
     }
     renderHiddenTimeTooltips();
     
-    // Click first visible day
-    var firstDay = $fullCal.fullCalendar('getView').start.format('YYYY-MM-DD');
-    $addScheduleDate.val(firstDay);
-    $(".fc-day-clicked").removeClass("fc-day-clicked");
-    $("td[data-date="+firstDay+"]").addClass("fc-day-clicked");
+    // Set date and department of publish/view rights forms
+    $("#live_date").val(moment(info["date"]).format(DATE_FORMAT));
+    $("#live_department").val(calDepartment);
   }
   
  
@@ -2167,6 +2165,10 @@ $(document).ready(function() {
       $("#specific-view-rights").css("display", "block");
     }
   }
+  
+  
+  // Turn publish live success into a callback function
+  $("#push-changes-live-form").ajaxForm(successfulCalendarPush); 
   
   
   // Load schedule upon loading page relative to current date
