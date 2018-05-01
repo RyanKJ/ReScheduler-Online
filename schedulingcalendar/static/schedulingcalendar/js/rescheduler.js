@@ -63,6 +63,7 @@ $(document).ready(function() {
   var $hideStart = $("#start-checkbox");
   var $hideEnd = $("#end-checkbox");
   var $copyDayBtn = $("#copy-day");
+  var $copyWeekBtn = $("#copy-week");
   var $copyConflictBtn = $("#copy-conflict-assign-btn");
   var $dayNoteBtn = $("#day-note");
   var $dayNoteHeaderBtn = $("#day-note-header-btn");
