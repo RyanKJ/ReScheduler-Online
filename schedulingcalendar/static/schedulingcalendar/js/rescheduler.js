@@ -389,6 +389,7 @@ $(document).ready(function() {
     // Set date and department of publish/view rights forms
     $("#live_date").val(moment(info["date"]).format(DATE_FORMAT));
     $("#live_department").val(calDepartment);
+    setViewRightState(info['view_rights']);
   }
   
  
@@ -753,6 +754,25 @@ $(document).ready(function() {
       html += "</div>";
       
       $employeeViewRightsList.append(html);
+    }
+  }
+  
+  
+  /** Set view rights forms to current view right state */
+  function setViewRightState(view_rights) {
+    $("#id_all_employee_view").prop('checked', view_rights.all_employee_view);
+    
+    // Clear department view right checkboxes, employee checkboxes are cleared via re-rendering
+    $("input[name='department_view']").prop('checked', false);
+    
+    var depViewRights = view_rights.department_view;
+    for (var i=0; i < depViewRights.length; i++) {
+      $("input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+    }
+    
+    var empViewRights = view_rights.employee_view;
+    for (var i=0; i < empViewRights.length; i++) {
+      $("input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
     }
   }
     

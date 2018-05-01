@@ -202,21 +202,17 @@ def get_schedules(request):
                                                        date=cal_date.date(), 
                                                        department=department_id)
               live_cal_exists = True
-              view_rights = {'all_employee_view': live_calendar.all_employee_view}        
-              
-              
-              
-              
+              view_rights = {'all_employee_view': live_calendar.all_employee_view, 
+                             'department_view': [],
+                             'employee_view': []}        
               
               department_view_rights = LiveCalendarDepartmentViewRights.objects.filter(user=logged_in_user, live_calendar=live_calendar)
               employee_view_rights = LiveCalendarEmployeeViewRights.objects.filter(user=logged_in_user, live_calendar=live_calendar)
               
-              
-              
-              
-              print
-              print
-              print "********** live calendar.department_view_rights is: ", live_calendar.department_view_rights
+              for dep_view_right in department_view_rights:
+                  view_rights['department_view'].append(dep_view_right.department_view_rights.id)
+              for emp_view_right in employee_view_rights:
+                  view_rights['employee_view'].append(emp_view_right.employee_view_rights.id)
               
             except LiveCalendar.DoesNotExist:
                 live_cal_exists = False
@@ -318,9 +314,9 @@ def get_schedules(request):
                              'hours_and_costs': hours_and_costs,
                              'avg_monthly_revenue': avg_monthly_revenue,
                              'display_settings': business_dict,
-                             'live_cal_exists': live_cal_exists,
                              'no_employees_exist': no_employees_exist,
                              'no_employees_exist_for_department': no_employees_exist_for_department,
+                             'live_cal_exists': live_cal_exists,
                              'view_rights': view_rights}
             combined_json = json.dumps(combined_dict, default=date_handler)
             
