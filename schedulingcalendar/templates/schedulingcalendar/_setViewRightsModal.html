@@ -27,13 +27,11 @@
             <h5 class="text-center bold">1. Edit Viewing Rights Of Published Schedules</h5>
             <div class="visible-checkbox text-center mb-3">
               {{ set_live_cal_form.all_employee_view.errors }}
-              <span class="checkbox-custom-text">
-                {{ set_live_cal_form.all_employee_view }} 
-                <label for="id_all_employee_view">Let Every Employee See This Calendar</label>
-              </span>
+              <input id="id_all_set_employee_view" name="all_employee_view"type="checkbox">
+              <label for="id_all_set_employee_view">Let Every Employee See This Calendar</label>
             </div>
             
-            <span id="specific-view-rights">
+            <span id="set-specific-view-rights">
               <div class="half-inline">
                 <h6 class="bold mb-0">Allow Specific Departments</h6>
                 <div id="set-department-view-rights-list">

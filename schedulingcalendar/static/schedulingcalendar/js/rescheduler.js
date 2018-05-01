@@ -76,6 +76,7 @@ $(document).ready(function() {
   var $dayCostTitle = $("#day-cost-title");
   var $weekCostTitle = $("#week-cost-title");
   var $allEmployeeViewCheckbox = $("#id_all_employee_view");
+  var $setAllEmployeeViewCheckbox = $("#id_all_set_employee_view"); // View rights edit
   var $employeeViewRightsList = $("#employee-view-rights-list");
   var $setEmployeeViewRightsList = $("#set-employee-view-rights-list");
   var $currViewRightsText = $("#current-view-right-state");
@@ -103,6 +104,7 @@ $(document).ready(function() {
   $copyConflictBtn.click(commitCopyConflicts);
   $editConflictBtn.click(undoScheduleEdit);
   $allEmployeeViewCheckbox.change(showDepEmployeeViews);
+  $setAllEmployeeViewCheckbox.change(showSetDepEmployeeViews);
   $("#publish-changes-btn").click(function() { $("#publish-changes").trigger("click"); });
   $("#update-view-rights-btn").click(function() { $("#update-view-rights").trigger("click"); });
   
@@ -653,6 +655,8 @@ $(document).ready(function() {
     var viewRights = info["view_rights"];
     successfulLiveCalStateChange(msg);
     setViewRightState(viewRights);
+    showDepEmployeeViews();
+    showSetDepEmployeeViews();
   }
   
   
@@ -2213,6 +2217,16 @@ $(document).ready(function() {
       $("#specific-view-rights").css("display", "none");
     } else {
       $("#specific-view-rights").css("display", "block");
+    }
+  }
+  
+  
+  /** Hide or show employee/dep view rights checkboxes if all employees checked/unchecked. */
+  function showSetDepEmployeeViews() {
+    if(this.checked) {
+      $("#set-specific-view-rights").css("display", "none");
+    } else {
+      $("#set-specific-view-rights").css("display", "block");
     }
   }
   
