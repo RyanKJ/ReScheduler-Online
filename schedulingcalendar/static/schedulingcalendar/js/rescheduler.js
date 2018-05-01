@@ -54,10 +54,8 @@ $(document).ready(function() {
   var $viewLiveDep = $("#view-live-department");
   var $pushLive = $("#push-live");
   var $pushLiveAfterWarning = $("#push-calendar-after-warning-btn");
-  var $deactivateLiveAfterWarning = $("#deactivate-warning-btn");
-  var $reactivateLiveAfterWarning = $("#reactivate-warning-btn");
   var $successfulLiveCalMsg = $("#successful-live-cal-change");
-  var $setActiveLive = $("#active-live-set");
+  var $setViewRights = $("#set-view-rights");
   var $viewLive = $("#view-live");
   var $eligibleLegendSelector = $("#legend-selector");
   var $startTimePicker = $("#start-timepicker").pickatime();
@@ -79,6 +77,8 @@ $(document).ready(function() {
   var $weekCostTitle = $("#week-cost-title");
   var $allEmployeeViewCheckbox = $("#id_all_employee_view");
   var $employeeViewRightsList = $("#employee-view-rights-list");
+  var $setEmployeeViewRightsList = $("#set-employee-view-rights-list");
+  var $currViewRightsText = $("#current-view-righr-state");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -93,10 +93,7 @@ $(document).ready(function() {
   $removeBtnConfirm.click(_removeScheduleAfterWarning);
   $editScheduleBtn.click(editSchedule);
   $pushLive.click(pushCalendarLive);
-  $pushLiveAfterWarning.click(_pushCalendarAfterWarning);
-  $deactivateLiveAfterWarning.click(_SetActivityAfterWarning);
-  $reactivateLiveAfterWarning.click(_SetActivityAfterWarning);
-  $setActiveLive.click(SetActiveLiveCalendar);
+  $setViewRights.click(setViewRights);
   $dayNoteBtn.click(showDayNoteModal);
   $eligibleLegendSelector.click(showEligibleLegend);
   $dayNoteHeaderBtn.click(postDayNoteHeader);
@@ -107,6 +104,8 @@ $(document).ready(function() {
   $editConflictBtn.click(undoScheduleEdit);
   $allEmployeeViewCheckbox.change(showDepEmployeeViews);
   $("#publish-changes-btn").click(function() { $("#publish-changes").trigger("click"); });
+  $("#update-view-rights-btn").click(function() { $("#update-view-rights").trigger("click"); });
+  
   
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
@@ -389,6 +388,8 @@ $(document).ready(function() {
     // Set date and department of publish/view rights forms
     $("#live_date").val(moment(info["date"]).format(DATE_FORMAT));
     $("#live_department").val(calDepartment);
+    $("#set_live_date").val(moment(info["date"]).format(DATE_FORMAT));
+    $("#set_live_department").val(calDepartment);
     setViewRightState(info['view_rights']);
   }
   
@@ -642,14 +643,6 @@ $(document).ready(function() {
   }
   
   
-  /** Tell server to make current calendar state live for employee queries */
-  function _pushCalendarAfterWarning(event) {
-    $.post("push_live",
-           {department: calDepartment, date: calDate.format(DATE_FORMAT)},
-            successfulCalendarPush);
-  }
-  
-  
   /** Inform user that the calendar was succesfully pushed. */
   function successfulCalendarPush(data) {
     var info = JSON.parse(data);
@@ -674,34 +667,12 @@ $(document).ready(function() {
    * Warn user about changing active state of live calendar. If user still
    * clicks okay, commit change to the activity state of the live calendar.
    */
-  function SetActiveLiveCalendar(event) {
+  function setViewRights(event) {
     // Check to see if live calendar exists for date/dep
-    if(calActive !== null) {
-      // Show user warning modal before committing to change with live calendar
-      if (calActive) {
-        $deactivateModal = $("#deactivateLive");
-        $deactivateModal.css("margin-top", Math.max(0, ($(window).height() - $deactivateModal.height()) / 2));
-        $deactivateModal.modal('show');
-      } else {
-        $reactivateModal = $("#reactivateLive");
-        $reactivateModal.css("margin-top", Math.max(0, ($(window).height() - $reactivateModal.height()) / 2));
-        $reactivateModal.modal('show');
-      }
-    }
-  }
-  
-  
-  /** Set the activity state of live calendar after warning. */
-  function _SetActivityAfterWarning(event) {
-    if(calActive !== null) {
-      var newCalActive = true;
-      // Live calendar exists, so set newCalActive to opposite of current state
-      if (calActive) {
-        newCalActive = false;
-      }
-      $.post("set_active_state",
-             {department: calDepartment, date: calDate.format(DATE_FORMAT), active: newCalActive},
-              successfulActiveStateSet);
+    if(liveCalExists) {
+      $setViewRightsModal = $("#setViewRightsModal");
+      $setViewRightsModal.css("margin-top", Math.max(0, ($(window).height() - $setViewRightsModal.height()) / 2));
+      $setViewRightsModal.modal('show');
     }
   }
   
@@ -713,25 +684,27 @@ $(document).ready(function() {
   function successfulActiveStateSet(data) {
     var info = JSON.parse(data);
     var msg = info["message"];
+    var viewRights = info["view_rights"];
     calActive = info["is_active"];
-    // Set styles of View Live and De/Reactivate buttons depending on state
+    // Set styles of buttons and update form state
     setCalLiveButtonStyles();
     successfulLiveCalStateChange(msg);
+    setViewRightState(viewRights);
   }
   
   
   /** Set styles of view live view right button states */
   function setCalLiveButtonStyles() {
     if (!liveCalExists) {
-      $setActiveLive.addClass("unactive-live");
-      $setActiveLive.prop('disabled', true);
-      $setActiveLive.css("cursor", "default");
+      $setViewRights.addClass("unactive-live");
+      $setViewRights.prop('disabled', true);
+      $setViewRights.css("cursor", "default");
       $viewLive.addClass("unactive-live");
       $viewLive.prop('disabled', true);
     } else {
-      $setActiveLive.removeClass("unactive-live");
-      $setActiveLive.prop('disabled', false);
-      $setActiveLive.css("cursor", "pointer");
+      $setViewRights.removeClass("unactive-live");
+      $setViewRights.prop('disabled', false);
+      $setViewRights.css("cursor", "pointer");
       $viewLive.removeClass("unactive-live");
       $viewLive.prop('disabled', false);
     }
@@ -741,6 +714,7 @@ $(document).ready(function() {
   /** Render list of department employees in view rights/publish modals */
   function renderEmployeeViewRightsList(employees) {
     $employeeViewRightsList.empty();
+    $setEmployeeViewRightsList.empty();
     for (var i=0; i < employees.length; i++) {
       var employeePk = employees[i]["id"];
       var firstName = employees[i]["first_name"];
@@ -754,6 +728,7 @@ $(document).ready(function() {
       html += "</div>";
       
       $employeeViewRightsList.append(html);
+      $setEmployeeViewRightsList.append(html);
     }
   }
   
@@ -761,21 +736,69 @@ $(document).ready(function() {
   /** Set view rights forms to current view right state */
   function setViewRightState(view_rights) {
     $("#id_all_employee_view").prop('checked', view_rights.all_employee_view);
-    
+
     // Clear department view right checkboxes, employee checkboxes are cleared via re-rendering
-    $("input[name='department_view']").prop('checked', false);
+    $("#department-view-rights-list input[name='department_view']").prop('checked', false);
+    $("#set-department-view-rights-list input[name='department_view']").prop('checked', false);
     
     var depViewRights = view_rights.department_view;
     for (var i=0; i < depViewRights.length; i++) {
-      $("input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+      $("#department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+      $("#set-department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
     }
     
     var empViewRights = view_rights.employee_view;
     for (var i=0; i < empViewRights.length; i++) {
-      $("input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
+      $("#employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
+      $("#set-employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
     }
-  }
     
+    var viewRightsHtml = _getViewRightsHtml(view_rights);
+    $currViewRightsText.html(viewRightsHtml);
+  }
+  
+  
+  /** Get text to display current view rights state */
+  function _getViewRightsHtml(view_rights) {
+    var viewRightsHtml = "";
+    
+    if (view_rights.all_employee_view) {
+      viewRightsHtml += "<p>Every employee can see this calendar's published schedules.</p>"
+      return viewRightsHtml;
+    }
+    
+    var depViewRights = view_rights.department_view;
+    var depRightsHtml = "";
+    for (var i=0; i < depViewRights.length; i++) {
+      depRightsHtml += departments[depViewRights[i]]
+      if (i == depViewRights.length - 1) {
+        depRightsHtml += " ";
+      } else {
+        depRightsHtml += ", ";
+      }
+    }
+    if (depRightsHtml) { depRightsHtml = "<p class='mb-0'><span class='bold'>Departments: </span>" + depRightsHtml + "</p>" }
+    
+    var empViewRights = view_rights.employee_view;
+    var empRightsHtml = "";
+    for (var i=0; i < empViewRights.length; i++) {
+      var empName = employeeNameDict[empViewRights[i]];
+      empRightsHtml += (empName.firstName + " " + empName.lastName);
+      if (i == empViewRights.length - 1) {
+        empRightsHtml += " ";
+      } else {
+        empRightsHtml += ", ";
+      }
+    }
+    if (empRightsHtml) { empRightsHtml = "<p><span class='bold'>Employees: </span>" + empRightsHtml + "</p>" }
+    
+    
+    viewRightsHtml += depRightsHtml
+    viewRightsHtml += empRightsHtml
+    if (!viewRightsHtml) { viewRightsHtml += "<p>No employee can currently see the published schedules.</p>" }
+    return viewRightsHtml;
+  }
+  
   
   /**
    * Given an HTTP response of employee objects, create a mapping from employee
@@ -2206,9 +2229,9 @@ $(document).ready(function() {
   }
   
   
-  // Turn publish live success into a callback function
+  // Turn publish live and update view rights success into a callback function
   $("#push-changes-live-form").ajaxForm(successfulCalendarPush); 
-  
+  $("#update-view-rights-form").ajaxForm(successfulCalendarPush); 
   
   // Load schedule upon loading page relative to current date
   var liveCalDate = new Date($calendarLoaderForm.data("date"));

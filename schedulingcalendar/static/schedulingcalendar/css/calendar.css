@@ -285,7 +285,8 @@ td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; }
 /* Calendar publishing and view rights styling
 --------------------------------------------------------------------------------------------------*/
 
-#department-view-rights-list, #employee-view-rights-list {
+#department-view-rights-list, #employee-view-rights-list,
+#set-department-view-rights-list, #set-employee-view-rights-list {
   height: 200px;
   max-height: 200px;
   overflow-y: auto;

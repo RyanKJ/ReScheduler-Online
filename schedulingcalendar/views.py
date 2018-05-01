@@ -1009,7 +1009,12 @@ def push_changes_live(request):
                 
             # Set specific view rights
             set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
-            json_info = json.dumps({'message': 'Successfully pushed calendar live!'})
+            view_rights = {'all_employee_view': all_employee_view, 
+                           'department_view': department_view,
+                           'employee_view': employee_view}     
+                           
+                           
+            json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
         
         json_info = json.dumps({'message': 'Failed to push calendar live.'})
@@ -1021,40 +1026,40 @@ def push_changes_live(request):
         
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def set_active_state(request):
+def update_view_rights(request):
     """Deactivate or reactivate the live_calendar for given month"""
     logged_in_user = request.user
     if request.method == 'POST':
-        form = SetActiveStateLiveCalForm(request.POST)
+        form = SetStateLiveCalForm(logged_in_user, None, request.POST)
         if form.is_valid():
             date = form.cleaned_data['date']
-            department_id = form.cleaned_data['department']
-            new_active_state = form.cleaned_data['active']
-            try: # Get live_calendar to find out if calendar is active
-              live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
-                                                       date=date, 
-                                                       department=department_id)
-              live_calendar.active = new_active_state
-              live_calendar.save()
-              # Return success message
-              if new_active_state:
-                  message = 'Successfully reactivated the live calendar!'
-                  active_state = True
-              else:
-                  message = 'Successfully deactivated the live calendar.'
-                  active_state = False
-            except LiveCalendar.DoesNotExist:
-                message = 'No live calendar currently exists for this month, year, and department.'
-                active_state = None
-                
-            json_info = json.dumps({'message': message, 'is_active': active_state})
-            return JsonResponse(json_info, safe=False)
+            department_pk = form.cleaned_data['department']
+            all_employee_view = form.cleaned_data['all_employee_view']
+            department_view = form.cleaned_data['department_view']
+            employee_view = form.cleaned_data['employee_view']
             
-        json_info = json.dumps({'message': 'Invalid data used to set active state of live calendar.'})
+            # Get or created live calendar
+            department = Department.objects.get(pk=department_pk)
+            live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
+                                                     date=date, 
+                                                     department=department)                  
+            live_calendar.all_employee_view = all_employee_view
+            live_calendar.save()
+ 
+            # Set specific view rights
+            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
+            view_rights = {'all_employee_view': all_employee_view, 
+                           'department_view': department_view,
+                           'employee_view': employee_view}        
+            
+            json_info = json.dumps({'message': 'Successfully updated view rights', 'view_rights': view_rights})
+            return JsonResponse(json_info, safe=False)
+        
+        json_info = json.dumps({'message': 'Failed to push calendar live.'})
         return JsonResponse(json_info, safe=False)
     else:
         pass
-        #TODO: Implement reponse for non-POST requests      
+        #TODO: Implement reponse for non-POST requests
         
    
 @login_required

@@ -1,0 +1,112 @@
+<!-- Modal -->
+<div id="setViewRightsModal" class="modal fade scrollbar-modal" role="dialog">
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title text-center">Edit View Rights Of Published Schedules</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="text-center bold mb-0">Current Viewing Rights Of Published Schedules:</p>
+        <div id="current-view-righr-state" class="text-center"></div>
+      
+        <form id="update-view-rights-form"
+              action="{% url 'schedulingcalendar:update_view_rights' %}"
+              method="post">
+          {% csrf_token %}
+          
+          <input id="set_live_date" name="date" value="" type="hidden">
+          <input id="set_live_department" name="department" value="" type="hidden">
+          
+          <div class="push-changes-view-rights-div">
+            <h5 class="text-center bold">1. Edit Viewing Rights Of Published Schedules</h5>
+            <div class="visible-checkbox text-center mb-3">
+              {{ set_live_cal_form.all_employee_view.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.all_employee_view }} 
+                <label for="id_all_employee_view">Let Every Employee See This Calendar</label>
+              </span>
+            </div>
+            
+            <span id="specific-view-rights">
+              <div class="half-inline">
+                <h6 class="bold mb-0">Allow Specific Departments</h6>
+                <div id="set-department-view-rights-list">
+                {% for checkbox in set_live_cal_form.department_view %}
+                  <div class="visible-checkbox">
+                    {{ checkbox.errors }}
+                    {{ checkbox }}
+                  </div>
+                {% endfor %}
+                </div>
+              </div>
+   
+              <div class="half-inline">
+                <h6 class="bold mb-0">Allow Specific Employees</h6>
+                <div id="set-employee-view-rights-list">
+                {% for checkbox in set_live_cal_form.employee_view %}
+                  <div class="visible-checkbox">
+                    {{ checkbox.errors }}
+                    {{ checkbox }}
+                  </div>
+                {% endfor %}
+                </div>
+              </div>
+            </span>
+          </div>
+          <br>
+          
+          <div class="notify-changes-view-rights-div">
+            <h5 class="text-center bold">2. Choose How Employees Who Can Now See Schedules Are Notified</h5>
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_all.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_all }} 
+                <label for="id_notify_all">Notify Every Employee That Can View This Calendar</label>
+              </span>
+            </div>
+            <p>If Checked, every employee that can view the calendar will be notified, 
+               regardless if they have schedules or changes. If not checked,
+               only the employees with changes will be notified.</p>
+            
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_by_sms.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_by_sms }} 
+                <label for="id_notify_by_sms">Send A Text Informing Employee Of Changes</label>
+              </span>
+            </div>
+            
+            <div class="visible-checkbox">
+              {{ set_live_cal_form.notify_by_email.errors }}
+              <span class="checkbox-custom-text">
+                {{ set_live_cal_form.notify_by_email }} 
+                <label for="id_notify_by_email">Send An Email Informing Employee Of Changes</label>
+              </span>
+            </div>
+          </div>
+          <br>
+          <button type="button" 
+                  class="btn btn-outline-primary"   
+                  data-dismiss="modal">Close And Do Nothing</button>
+                  
+          <button type="button" 
+                  id="update-view-rights-btn"
+                  class="btn btn-primary float-right" 
+                  data-dismiss="modal">Update View Rights</button>
+                  
+          <input type="submit" 
+                 id="update-view-rights"
+                 class="btn btn-primary float-right"   
+                 style="display: none;"
+                 value="Update View Rights">
+        </form> 
+      </div>
+    </div>
+  </div>
+</div>
