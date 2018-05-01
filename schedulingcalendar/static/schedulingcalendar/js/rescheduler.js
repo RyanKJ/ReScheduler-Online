@@ -78,7 +78,7 @@ $(document).ready(function() {
   var $allEmployeeViewCheckbox = $("#id_all_employee_view");
   var $employeeViewRightsList = $("#employee-view-rights-list");
   var $setEmployeeViewRightsList = $("#set-employee-view-rights-list");
-  var $currViewRightsText = $("#current-view-righr-state");
+  var $currViewRightsText = $("#current-view-right-state");
   
   // Start and end schedule time pickers
   var st_picker = $startTimePicker.pickatime("picker");
@@ -650,7 +650,9 @@ $(document).ready(function() {
     // Set styles of View Live and De/Reactivate buttons depending on state
     setCalLiveButtonStyles();
     var msg = info["message"];
+    var viewRights = info["view_rights"];
     successfulLiveCalStateChange(msg);
+    setViewRightState(viewRights);
   }
   
   
@@ -675,23 +677,7 @@ $(document).ready(function() {
       $setViewRightsModal.modal('show');
     }
   }
-  
-  
-  /** 
-   * Inform user that the active state of live calendar was set and update
-   * styles and state of variables representing the live calendar's state.
-   */
-  function successfulActiveStateSet(data) {
-    var info = JSON.parse(data);
-    var msg = info["message"];
-    var viewRights = info["view_rights"];
-    calActive = info["is_active"];
-    // Set styles of buttons and update form state
-    setCalLiveButtonStyles();
-    successfulLiveCalStateChange(msg);
-    setViewRightState(viewRights);
-  }
-  
+
   
   /** Set styles of view live view right button states */
   function setCalLiveButtonStyles() {
@@ -737,9 +723,11 @@ $(document).ready(function() {
   function setViewRightState(view_rights) {
     $("#id_all_employee_view").prop('checked', view_rights.all_employee_view);
 
-    // Clear department view right checkboxes, employee checkboxes are cleared via re-rendering
+    // Clear department and employee view-right checkboxes
     $("#department-view-rights-list input[name='department_view']").prop('checked', false);
     $("#set-department-view-rights-list input[name='department_view']").prop('checked', false);
+    $("#employee-view-rights-list input[name='employee_view']").prop('checked', false);
+    $("#set-employee-view-rights-list input[name='employee_view']").prop('checked', false);
     
     var depViewRights = view_rights.department_view;
     for (var i=0; i < depViewRights.length; i++) {
