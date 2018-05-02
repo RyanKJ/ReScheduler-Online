@@ -881,7 +881,7 @@ def copy_schedules(request):
                                                              
             # Create copied schedules and get availability of copied schedules with employees
             # We only add the availability if there is a conflict between employee and schedules
-            schedule_availabilities = {}                       
+            schedule_availabilities = {}
             copied_schedules = []
             for sch in schedules:
                 new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)

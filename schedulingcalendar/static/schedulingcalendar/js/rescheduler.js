@@ -31,7 +31,9 @@ $(document).ready(function() {
   var dayNoteHeaders = {};
   var dayNoteBodies = {};
   var scheduleNotes = {};
-  var copySchedulePksList = [];
+  var copyBtnActive = null;
+  var copyDaySchedulePksList = [];
+  var copyWeekSchedulePksList = [];
   var copyConflictSchedules = [];
   var preEditedSchedule = {'oldStartDatetime': null, oldEndDatetime: null, 
                            'oldHideStart': null, 'oldHideEnd': null};
@@ -101,7 +103,8 @@ $(document).ready(function() {
   $dayNoteHeaderBtn.click(postDayNoteHeader);
   $dayNoteBodyBtn.click(postDayNoteBody);
   $scheduleNoteBtn.click(postScheduleNote);
-  $copyDayBtn.click(copySchedulePks);
+  $copyDayBtn.click(copyDaySchedulePks);
+  $copyWeekBtn.click(copyWeekSchedulePks);
   $copyConflictBtn.click(commitCopyConflicts);
   $editConflictBtn.click(undoScheduleEdit);
   $allEmployeeViewCheckbox.change(showDepEmployeeViews);
@@ -266,7 +269,8 @@ $(document).ready(function() {
     $eligableList.empty();
     employeesAssigned = [];
     _removeDayNoteHeaders();
-    copySchedulePksList = [];
+    copyDaySchedulePksList = [];
+    copyWeekSchedulePksList = [];
     
     var info = JSON.parse(json_data);
     console.log("LoadSchedule info is:", info);
@@ -1799,21 +1803,70 @@ $(document).ready(function() {
   }
   
   
-  /** Callback function load schedule pks into array to create copies later */
-  function copySchedulePks() {
+  /** Load schedule pks that belong to selected date for copying day. */
+  function copyDaySchedulePks() {
     $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
     if ($prev_day_clicked.length) {
+      copyBtnActive = 'day';
       var date = $addScheduleDate.val();
+      
+      // Find all events with date belonging to selected date
       var schedulePks = [];
       var fullCalEvents = $fullCal.fullCalendar("clientEvents");
       for (var i=0; i<fullCalEvents.length; i++) {
         var start = moment(fullCalEvents[i].start);
         var eventDate = start.format(DATE_FORMAT);
-        if (date == eventDate && fullCalEvents[i].isSchedule) {
+        if (date === eventDate && fullCalEvents[i].isSchedule) {
           schedulePks.push(fullCalEvents[i].id);
         }
       }
-      copySchedulePksList = schedulePks;
+      copyDaySchedulePksList = schedulePks;
+    } else {
+      $alertDayNoteModal = $("#noteAlertModal");
+      $alertDayNoteModal.css("margin-top", Math.max(0, ($(window).height() - $alertDayNoteModal.height()) / 2));
+      $alertDayNoteModal.modal('show');
+    }
+  }
+  
+  
+  /** Load schedule pks that belong to selected date for copying week. */
+  function copyWeekSchedulePks() {
+    $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
+    if ($prev_day_clicked.length) {
+      copyBtnActive = 'week';
+      var date = $addScheduleDate.val();
+      
+      // Get start and end of week given selected date
+      var selectedDate = moment(date);
+      var dayOfWeek = selectedDate.day();
+      var startOfWeek = moment(selectedDate).subtract(dayOfWeek, 'days');
+      var endOfWeek = moment(startOfWeek).add(7, 'days');
+      
+      console.log("startOfWeek is:", startOfWeek);
+      console.log("endOfWeek is:", endOfWeek);
+      // Get dates in week
+      var weekDates = _enumerateDaysBetweenDates(startOfWeek, endOfWeek);
+      console.log("weekDates are:", weekDates);
+      // Find all events with date belonging to any date within selected week
+      var schedulePks = [];
+      var fullCalEvents = $fullCal.fullCalendar("clientEvents");
+      for (var i=0; i<fullCalEvents.length; i++) {
+        if (fullCalEvents[i].isSchedule) {
+          var start = moment(fullCalEvents[i].start);
+          var eventDate = start.format(DATE_FORMAT);
+          for (var j=0; j<weekDates.length; j++) {
+            console.log("dayInWeek is:", weekDates[j]);
+            console.log("eventDate is:", eventDate);
+            
+            if (weekDates[j] === eventDate) {
+              schedulePks.push(fullCalEvents[i].id);
+              break;
+            }
+          }
+        }
+      }
+      console.log("schedulePks are:", schedulePks);
+      copyWeekSchedulePksList = schedulePks;
     } else {
       $alertDayNoteModal = $("#noteAlertModal");
       $alertDayNoteModal.css("margin-top", Math.max(0, ($(window).height() - $alertDayNoteModal.height()) / 2));
@@ -1825,11 +1878,22 @@ $(document).ready(function() {
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     copyConflictSchedules = [];
-    if (copySchedulePksList.length) {
+    var copySchedulePks = [];
+    
+    // Get copied schedule pks of active copy button
+    if (copyBtnActive === 'day') {
+      copySchedulePks = copyDaySchedulePksList;
+    } else if (copyBtnActive === 'week') {
+      copySchedulePks = copyWeekSchedulePksList;
+    }
+    
+    console.log("copySchedulePks are: ", copySchedulePks)
+    
+    if (copySchedulePks.length) {
       var strCalDate = calDate.format(DATE_FORMAT);
       $("body").css("cursor", "progress");
       $.post("copy_schedules",
-             {date: $addScheduleDate.val(), schedule_pks: copySchedulePksList, cal_date: strCalDate},
+             {date: $addScheduleDate.val(), schedule_pks: copySchedulePks, cal_date: strCalDate},
              _createCopySchedules);
     }
   }
