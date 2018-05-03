@@ -6,4 +6,4 @@ ScheduleHours is designed to function both as a printable calendar of employee s
 
 ## Authors
 
-* **Ryan Johnson** - *Initial work* - [Ryan KJ](https://github.com/RyanKJ)
+* **Ryan Johnson** - [Ryan KJ](https://github.com/RyanKJ)
