@@ -6,7 +6,7 @@
 }
 
 .dropdown-menu {
-	background: #0079D7;
+  background: linear-gradient(to bottom right, #006ece, #005fbe);
 	border-radius: 0;
 	border: 0;
 }

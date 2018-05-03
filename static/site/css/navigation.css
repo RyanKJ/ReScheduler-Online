@@ -20,3 +20,10 @@ nav .nav-front-link:hover { color: white; }
 
 .custom-nav-item:hover { background: #00BFFF !important; }
 
+.custom-nav-btn { background: #006ece !important; border: solid #0062cc 1px !important; }
+
+.custom-toggle-split { background: #006ece !important; border: solid #0062cc 1px !important; }
+
+.custom-nav-btn:hover, .custom-toggle-split:hover { background: #00BFFF !important;; border-color: #00BFFF !important;; }
+
+.employee-btn-group { margin-left: 8px; margin-right: 10px; }

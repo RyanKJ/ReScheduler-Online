@@ -10,17 +10,30 @@
     <ul class="navbar-nav">
       {% if user.is_authenticated %}
         {% if user|has_group:"Managers" %}
-        <li class="nav-item custom-nav-item active">
-          <a class="nav-link" href="{% url 'schedulingcalendar:calendar_page' %}">Calendar<span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item custom-nav-item dropdown active">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Business</a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{% url 'schedulingcalendar:employee_list' %}">Employees</a>
-            <a class="dropdown-item" href="{% url 'schedulingcalendar:department_list' %}">Departments</a>
-            <a class="dropdown-item" href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Monthly Revenue</a>
-            <a class="dropdown-item" href="{% url 'schedulingcalendar:business_update' %}">Settings</a>
+        <li class="nav-item custom-nav-item">
+          <div class="btn-group">
+            <a class="nav-link active btn btn-primary custom-nav-btn" href="{% url 'schedulingcalendar:calendar_page' %}">Calendar<span class="sr-only">(current)</span></a>
+            <button type="button" class="btn btn-primary active dropdown-toggle dropdown-toggle-split custom-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="#">Export To CSV</a>
+              <a class="dropdown-item" href="#">Display Settings</a>
+            </div>         
           </div>
+        </li>
+        <li class="nav-item custom-nav-item employee-btn-group">
+          <div class="btn-group">
+            <a class="nav-link active btn custom-nav-btn" href="{% url 'schedulingcalendar:employee_list' %}">Employees<span class="sr-only">(current)</span></a>
+            <button type="button" class="btn btn-primary active dropdown-toggle dropdown-toggle-split custom-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="{% url 'schedulingcalendar:department_list' %}">Departments</a>
+              <a class="dropdown-item" href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Monthly Revenue</a>
+              <a class="dropdown-item" href="{% url 'schedulingcalendar:business_update' %}">Business Settings</a>
+            </div>        
+          </div>   
         </li>
         <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
         {% else %}
@@ -31,6 +44,9 @@
           <a class="nav-link" href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a>
         </li>
         {% endif %}
+      <li class="nav-item custom-nav-item active">
+        <a class="nav-link" href="#">Help</a>
+      </li>
       {% else %}
         <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'login' %}">Login</a>
@@ -40,14 +56,11 @@
         </li>
       {% endif %}
       <li class="nav-item custom-nav-item active">
-        <a class="nav-link" href="#">Help</a>
-      </li>
+        <a class="nav-link" href="#">About</a>
+      </li>   
       <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="#">Contact</a>
       </li> 
-      <li class="nav-item custom-nav-item active">
-        <a class="nav-link" href="#">About</a>
-      </li>   
       {% if user.is_authenticated %}
         <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
