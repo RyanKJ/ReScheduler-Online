@@ -465,6 +465,30 @@ def time_dur_in_hours(start_datetime, end_datetime,
     
     return hours
     
+    
+def get_dates_in_week(date):
+    """Given date, return all dates that fall in week of date.
+    
+    Args:
+        Python date object
+    Returns:
+        A list of python dates objects that represent each date in a week,
+        where Sunday is the first day of the week.
+    """
+    
+    week_dates = []
+    week_day = date.weekday()
+
+    start_of_week = date
+    if week_day != 6: # 6 means Sunday, 0 means Monday
+        start_of_week = date - timedelta(week_day + 1)
+        
+    for i in range(0, 7):
+        week_date = start_of_week + timedelta(i)
+        week_dates.append(week_date)
+    
+    return week_dates
+    
 
 def get_avg_monthly_revenue(user, month):
     """Calculate average revenue of a given month.

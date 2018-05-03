@@ -31,7 +31,8 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
                              get_start_end_of_calendar, edit_schedule_cost_change,
                              calculate_cost_delta, get_start_end_of_weekday,
-                             get_availability, _availability_to_dict, set_view_rights)
+                             get_availability, _availability_to_dict, get_dates_in_week,
+                             set_view_rights)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -848,6 +849,7 @@ def copy_schedules(request):
     if request.method == 'POST':
         form = CopySchedulesForm(request.POST)
         if form.is_valid():
+            is_day_copy = form.cleaned_data['is_day_copy']
             schedule_pks = form.cleaned_data['schedule_pks']
             date = form.cleaned_data['date']
             cal_date = form.cleaned_data['cal_date']
@@ -884,8 +886,17 @@ def copy_schedules(request):
             schedule_availabilities = {}
             copied_schedules = []
             for sch in schedules:
-                new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)
-                new_end_dt = sch.end_datetime.replace(year=date.year, month=date.month, day=date.day)
+                if is_day_copy:
+                    new_start_dt = sch.start_datetime.replace(year=date.year, month=date.month, day=date.day)
+                    new_end_dt = sch.end_datetime.replace(year=date.year, month=date.month, day=date.day)
+                else: # Copy week
+                    week_dates = get_dates_in_week(date)
+                    for day in week_dates:
+                        if sch.start_datetime.weekday() == day.weekday():
+                            new_start_dt = sch.start_datetime.replace(year=day.year, month=day.month, day=day.day)
+                            new_end_dt = sch.end_datetime.replace(year=day.year, month=day.month, day=day.day)
+                            break
+                
                 copy_schedule = Schedule(user=logged_in_user,
                                          start_datetime=new_start_dt, 
                                          end_datetime=new_end_dt,

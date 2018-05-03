@@ -223,6 +223,10 @@ a:active {
   vertical-align: middle;
 }
 
+.copy-active {
+  background: #00BFFF;
+}
+
 
 /* Day and week calendar cost/hours styling
 --------------------------------------------------------------------------------------------------*/

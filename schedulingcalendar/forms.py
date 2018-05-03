@@ -266,7 +266,8 @@ class CopySchedulesForm(forms.Form):
     date = forms.DateField()
     cal_date = forms.DateField()
     schedule_pks = MultipleIntField()
-
+    is_day_copy = forms.BooleanField(label="", required=False)
+    
                 
 class DepartmentMembershipForm(forms.ModelForm):
     """Form for creating and editing department memberships."""                                                                               

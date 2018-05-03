@@ -112,7 +112,6 @@ $(document).ready(function() {
   $("#publish-changes-btn").click(function() { $("#publish-changes").trigger("click"); });
   $("#update-view-rights-btn").click(function() { $("#update-view-rights").trigger("click"); });
   
-  
   // Set up sticky functions for toolbar and calendar
   var toolbar = document.getElementById("toolbar-sticky");
   var calendarDiv = document.getElementById("stick-cal");
@@ -1804,11 +1803,18 @@ $(document).ready(function() {
   
   
   /** Load schedule pks that belong to selected date for copying day. */
-  function copyDaySchedulePks() {
+  function copyDaySchedulePks() { 
     $prev_day_clicked = $(".fc-day-clicked"); // Check if a date has been clicked
     if ($prev_day_clicked.length) {
       copyBtnActive = 'day';
       var date = $addScheduleDate.val();
+      
+      // Style copy buttons and tooltips
+      $(".copy-active").removeClass("copy-active");
+      $copyDayBtn.addClass("copy-active");
+      var dateStr = moment(date).format("dddd, MMMM Do");
+      copyButtonTooltips(dateStr); 
+
       
       // Find all events with date belonging to selected date
       var schedulePks = [];
@@ -1835,18 +1841,23 @@ $(document).ready(function() {
     if ($prev_day_clicked.length) {
       copyBtnActive = 'week';
       var date = $addScheduleDate.val();
-      
+
       // Get start and end of week given selected date
       var selectedDate = moment(date);
       var dayOfWeek = selectedDate.day();
       var startOfWeek = moment(selectedDate).subtract(dayOfWeek, 'days');
       var endOfWeek = moment(startOfWeek).add(7, 'days');
-      
-      console.log("startOfWeek is:", startOfWeek);
-      console.log("endOfWeek is:", endOfWeek);
+  
       // Get dates in week
       var weekDates = _enumerateDaysBetweenDates(startOfWeek, endOfWeek);
-      console.log("weekDates are:", weekDates);
+      
+      // Style copy buttons and tooltips
+      $(".copy-active").removeClass("copy-active");
+      $copyWeekBtn.addClass("copy-active");
+      var startDateStr = startOfWeek.format("MMMM Do");
+      var endDateStr = endOfWeek.subtract(1, 'days').format("MMMM Do");
+      copyButtonTooltips(startDateStr + " - " + endDateStr); 
+      
       // Find all events with date belonging to any date within selected week
       var schedulePks = [];
       var fullCalEvents = $fullCal.fullCalendar("clientEvents");
@@ -1855,9 +1866,6 @@ $(document).ready(function() {
           var start = moment(fullCalEvents[i].start);
           var eventDate = start.format(DATE_FORMAT);
           for (var j=0; j<weekDates.length; j++) {
-            console.log("dayInWeek is:", weekDates[j]);
-            console.log("eventDate is:", eventDate);
-            
             if (weekDates[j] === eventDate) {
               schedulePks.push(fullCalEvents[i].id);
               break;
@@ -1865,7 +1873,6 @@ $(document).ready(function() {
           }
         }
       }
-      console.log("schedulePks are:", schedulePks);
       copyWeekSchedulePksList = schedulePks;
     } else {
       $alertDayNoteModal = $("#noteAlertModal");
@@ -1875,16 +1882,37 @@ $(document).ready(function() {
   }
   
   
+  /** Helper function to render and destroy tooltips for copy day buttons. */
+  function copyButtonTooltips(dateStr) {
+    $copyDayBtn.tooltip('dispose');
+    $copyWeekBtn.tooltip('dispose');
+    
+    if (copyBtnActive === 'day') {
+      $copyDayBtn.attr("data-toggle", "tooltip");
+      $copyDayBtn.attr("data-placement", "bottom");
+      $copyDayBtn.prop('title', dateStr);
+      $copyDayBtn.tooltip();
+    } else {
+      $copyWeekBtn.attr("data-toggle", "tooltip");
+      $copyWeekBtn.attr("data-placement", "bottom");
+      $copyWeekBtn.prop('title', dateStr);
+      $copyWeekBtn.tooltip();
+    }
+  }
+  
+  
   /** Helper function to send post request to server to copy schedules */
   function dblClickHelper() {
     copyConflictSchedules = [];
     var copySchedulePks = [];
+    var isDayCopy = true;
     
     // Get copied schedule pks of active copy button
     if (copyBtnActive === 'day') {
       copySchedulePks = copyDaySchedulePksList;
     } else if (copyBtnActive === 'week') {
       copySchedulePks = copyWeekSchedulePksList;
+      isDayCopy = false;
     }
     
     console.log("copySchedulePks are: ", copySchedulePks)
@@ -1893,7 +1921,8 @@ $(document).ready(function() {
       var strCalDate = calDate.format(DATE_FORMAT);
       $("body").css("cursor", "progress");
       $.post("copy_schedules",
-             {date: $addScheduleDate.val(), schedule_pks: copySchedulePks, cal_date: strCalDate},
+             {date: $addScheduleDate.val(), schedule_pks: copySchedulePks, 
+              cal_date: strCalDate, is_day_copy: isDayCopy},
              _createCopySchedules);
     }
   }
