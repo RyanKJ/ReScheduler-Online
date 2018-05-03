@@ -12,9 +12,10 @@
 {% block content %}
   <div class="jumbotron rounded-0 landing-page-bg-top">
     <div class="container text-center">
-      <h3 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h3>
-      <p>Schedule employees in the simplest possible way. 
-      Designed to feel like you're making schedules for humans, not a database.</p>
+      <h2 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h2>
+      <h4 class="bold">A hybrid online/offline retail employee scheduling application.
+      Designed to be both print native and fully online to achieve the best of both worlds
+      for managers and employees.</h4>
       <br>
       <p>
         <a class="btn btn-primary btn-lg landing-page-btn" href="{% url 'schedulingcalendar:register' %}" role="button">Register For Free &raquo;</a> 
@@ -22,34 +23,6 @@
     </div>
   </div>
 
-  <section class="call-to-action landing-page-bg-bottom">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-4">
-          <div class="text-center">
-            <span class="glyphicon glyphicon-tower glyphicon-large" aria-hidden="true"></span>
-            <h3>Intelligent</h3>
-          </div>
-          <p>Our calendar is responsive to the various needs and desires of both you and your employees. It informs you of scheduling conflicts such as overtime, vacations, other jobs, recommends employees according to times and hours they wish to work, and much more.</p>
-        </div>
-        <div class="col-md-4">
-          <div class="text-center">
-            <span class="glyphicon glyphicon-leaf glyphicon-large" aria-hidden="true"></span>
-          <h3>Simple</h3>
-          </div>
-          <p>ReScheduler is built for maximum simplicity. There is not a headache inducing amount of feature bloat. Everything you need and nothing you don't, because we're not selling you ReScheduler as part of a larger product package.</p>
-        </div>
-        <div class="col-md-4">
-          <div class="text-center">
-            <span class="glyphicon glyphicon-usd glyphicon-large" aria-hidden="true"></span>
-          <h3>Reduce Costs</h3>
-          </div>
-          <p>Every time you add, edit, or remove a schedule the monthly employement cost relative to monthly revenue is updated for you to keep track of employement costs allowing you to maximize profits.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <br>
   <section class="landing-page-bg-example">
     <div class="container">
       <div class="row">
@@ -63,14 +36,16 @@
       <div class="row">
         <div class="col-md-12">
           <div class="text-center">
-            <a class="cart-view" href="/static/site/images/front-page-ex-large.jpg" onClick="return Pop(this.href,500,499)">
-              <img class="img-fluid" src="/static/site/images/front-page-ex-large.jpg" alt="Example Picture">
+            <a class="cart-view" href="/static/site/images/front-page-2.png" onClick="return Pop(this.href,500,499)">
+              <img class="img-fluid" src="/static/site/images/front-page-2.png" alt="Example Picture">
             </a>
           </div>
         </div>
       </div>
     </div>      
   </section>
+  
+  <br>
 {% endblock content %}
 
 {% block javascript %}

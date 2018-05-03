@@ -185,13 +185,13 @@ $(document).ready(function() {
       }
     },
         
-    /** Highlight event when mouse hovers over event. */
+    /** Highlight day containing event when mouse hovers over event. */
     eventMouseover: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").addClass("fc-days-event-mouseover");
     },
         
-    /** De-highlight event when mouse stops hovering over event. */
+    /** De-highlight day containing event when mouse stops hovering over event. */
     eventMouseout: function(calEvent, jsEvent, view) {
       var date = calEvent.start.format(DATE_FORMAT);
       $("td[data-date="+date+"]").removeClass("fc-days-event-mouseover");

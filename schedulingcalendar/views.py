@@ -40,7 +40,8 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     DepartmentMembershipForm, DayNoteHeaderForm, 
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
                     ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
-                    EmployeeDisplaySettingsForm, SetStateLiveCalForm)
+                    EmployeeDisplaySettingsForm, SetStateLiveCalForm,
+                    CalendarDisplaySettingsForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, time, timedelta
 from itertools import chain
@@ -2125,6 +2126,27 @@ class BusinessDataUpdateView(UserIsManagerMixin, UpdateView):
     template_name = 'schedulingcalendar/businessSettings.html'
     success_url = reverse_lazy('schedulingcalendar:business_update')
     form_class = BusinessDataForm
+    
+    
+    def get(self, request, **kwargs):
+        self.object = BusinessData.objects.get(user=self.request.user)
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+        
+    def get_object(self, queryset=None):
+        obj = BusinessData.objects.get(user=self.request.user)
+        return obj
+        
+        
+@method_decorator(login_required, name='dispatch')
+class CalendarDisplayUpdateView(UserIsManagerMixin, UpdateView):
+    """Display calendar display settings form."""
+    template_name = 'schedulingcalendar/calendarDisplaySettings.html'
+    success_url = reverse_lazy('schedulingcalendar:calendar_display_settings')
+    form_class = CalendarDisplaySettingsForm
     
     
     def get(self, request, **kwargs):

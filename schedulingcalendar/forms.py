@@ -341,14 +341,8 @@ class DesiredTimeForm(forms.ModelForm):
         fields = ['start_time', 'end_time', 'weekday']
         
         
-class BusinessDataForm(forms.ModelForm):
-    """Form for editing business data."""   
-    workweek_weekday_start = forms.IntegerField(label='Workweek Start Day', 
-                                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
-                                                min_value=0, max_value=6)
-    workweek_time_start =  forms.TimeField(label='Workweek Start Time', 
-                                           input_formats=TIME_FORMATS,
-                                           widget=forms.TimeInput(format='%I:%M %p'))
+class CalendarDisplaySettingsForm(forms.ModelForm):
+    """Form for setting calendar display settings."""   
     display_am_pm = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
     display_minutes = forms.BooleanField(label="", required=False,
@@ -366,11 +360,25 @@ class BusinessDataForm(forms.ModelForm):
 
     class Meta:
         model = BusinessData
-        fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
-                  'workweek_time_start', 'display_am_pm', 'display_minutes', 
+        fields = ['display_am_pm', 'display_minutes', 
                   'display_nonzero_minutes', 'display_last_names', 
                   'display_first_char_last_name', 'desired_hours_overshoot_alert', 
                   'sort_by_names', 'unique_row_per_employee']
+        
+        
+class BusinessDataForm(forms.ModelForm):
+    """Form for editing business data."""   
+    workweek_weekday_start = forms.IntegerField(label='Workweek Start Day', 
+                                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
+                                                min_value=0, max_value=6)
+    workweek_time_start =  forms.TimeField(label='Workweek Start Time', 
+                                           input_formats=TIME_FORMATS,
+                                           widget=forms.TimeInput(format='%I:%M %p'))
+    
+    class Meta:
+        model = BusinessData
+        fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start', 
+                  'workweek_time_start']
         
         
 class MonthlyRevenueForm(forms.ModelForm):
