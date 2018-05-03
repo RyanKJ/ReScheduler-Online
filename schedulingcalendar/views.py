@@ -77,6 +77,22 @@ def front_page(request):
 
     return HttpResponse(template.render(context, request))
     
+    
+def about_page(request):
+    """Display the about page for the website."""
+    template = loader.get_template('schedulingcalendar/about.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
+    
+    
+def contact_page(request):
+    """Display the front page for the website."""
+    template = loader.get_template('schedulingcalendar/contact.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
+    
 
 def manager_check(user):
     """Checks if user is a manager user or not."""
