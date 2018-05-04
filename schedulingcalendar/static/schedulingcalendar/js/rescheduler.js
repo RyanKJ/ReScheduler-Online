@@ -737,16 +737,21 @@ $(document).ready(function() {
     $("#employee-view-rights-list input[name='employee_view']").prop('checked', false);
     $("#set-employee-view-rights-list input[name='employee_view']").prop('checked', false);
     
-    var depViewRights = view_rights.department_view;
-    for (var i=0; i < depViewRights.length; i++) {
-      $("#department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
-      $("#set-department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+    
+    if (view_rights.hasOwnProperty('department_view')) {
+      var depViewRights = view_rights.department_view;
+      for (var i=0; i < depViewRights.length; i++) {
+        $("#department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+        $("#set-department-view-rights-list input[name='department_view'][value='"+depViewRights[i]+"']").prop('checked', true);
+      }
     }
     
-    var empViewRights = view_rights.employee_view;
-    for (var i=0; i < empViewRights.length; i++) {
-      $("#employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
-      $("#set-employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
+    if (view_rights.hasOwnProperty('employee_view')) {
+      var empViewRights = view_rights.employee_view;
+      for (var i=0; i < empViewRights.length; i++) {
+        $("#employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
+        $("#set-employee-view-rights-list input[name='employee_view'][value='"+empViewRights[i]+"']").prop('checked', true);
+      }
     }
     
     var viewRightsHtml = _getViewRightsHtml(view_rights);
@@ -757,37 +762,41 @@ $(document).ready(function() {
   /** Get text to display current view rights state */
   function _getViewRightsHtml(view_rights) {
     var viewRightsHtml = "";
+    var depRightsHtml = "";
+    var empRightsHtml = "";
     
     if (view_rights.all_employee_view) {
       viewRightsHtml += "<p>Every employee can see this calendar's published schedules.</p>"
       return viewRightsHtml;
     }
     
-    var depViewRights = view_rights.department_view;
-    var depRightsHtml = "";
-    for (var i=0; i < depViewRights.length; i++) {
-      depRightsHtml += departments[depViewRights[i]]
-      if (i == depViewRights.length - 1) {
-        depRightsHtml += " ";
-      } else {
-        depRightsHtml += ", ";
+    if (view_rights.hasOwnProperty('department_view')) {
+      var depViewRights = view_rights.department_view;
+      var depRightsHtml = "";
+      for (var i=0; i < depViewRights.length; i++) {
+        depRightsHtml += departments[depViewRights[i]]
+        if (i == depViewRights.length - 1) {
+          depRightsHtml += " ";
+        } else {
+          depRightsHtml += ", ";
+        }
       }
+      if (depRightsHtml) { depRightsHtml = "<p class='mb-0'><span class='bold'>Departments: </span>" + depRightsHtml + "</p>" }
     }
-    if (depRightsHtml) { depRightsHtml = "<p class='mb-0'><span class='bold'>Departments: </span>" + depRightsHtml + "</p>" }
     
-    var empViewRights = view_rights.employee_view;
-    var empRightsHtml = "";
-    for (var i=0; i < empViewRights.length; i++) {
-      var empName = employeeNameDict[empViewRights[i]];
-      empRightsHtml += (empName.firstName + " " + empName.lastName);
-      if (i == empViewRights.length - 1) {
-        empRightsHtml += " ";
-      } else {
-        empRightsHtml += ", ";
+    if (view_rights.hasOwnProperty('employee_view')) {
+      var empViewRights = view_rights.employee_view;
+      for (var i=0; i < empViewRights.length; i++) {
+        var empName = employeeNameDict[empViewRights[i]];
+        empRightsHtml += (empName.firstName + " " + empName.lastName);
+        if (i == empViewRights.length - 1) {
+          empRightsHtml += " ";
+        } else {
+          empRightsHtml += ", ";
+        }
       }
+      if (empRightsHtml) { empRightsHtml = "<p><span class='bold'>Employees: </span>" + empRightsHtml + "</p>" }
     }
-    if (empRightsHtml) { empRightsHtml = "<p><span class='bold'>Employees: </span>" + empRightsHtml + "</p>" }
-    
     
     viewRightsHtml += depRightsHtml
     viewRightsHtml += empRightsHtml
@@ -1729,7 +1738,7 @@ $(document).ready(function() {
           isNote: true,
           customSort: 1,
           eventRowSort: 2000,
-          className: "blank-event"
+          className: "blank-event bold note"
         }
         $fullCal.fullCalendar("renderEvent", event);
     }
