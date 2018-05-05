@@ -1,10 +1,19 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load schedule_calendar_extras %}
+{% load widget_tweaks %}
 
-{% block form_content %}
+{% block content %}
+  {{ block.super }}  
   <h2 class="card-title text-center">My Profile</h2>
-  <br>
-  <div class="card">
-    <div class="card-block">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+      
+      
+
+  <div class="card border-0 w-75">
+    <div class="card-body">
+      <h4>Calendar Display Settings</h4>
       <form id="update-employee-settings-form"
         name= "UpdateEmployeeSettingsForm"
         action="{% url 'schedulingcalendar:employee_profile_settings' %}"
@@ -27,7 +36,7 @@
           automatically for small devices instead of a calendar. If it is on, the 
           schedules will always display as a normal calendar even on a small 
           screen.</p>
-          <br><br>
+          <br>
           
           <div class="checkbox-custom-container">
             <div class="checkbox-custom">
@@ -45,8 +54,156 @@
         schedules for departments that you belong to. If it is on, you can see
         all current schedules for all departments.</p>
           
-        <input type="submit" class="btn btn-primary" value="Save Settings">
+        <div class="text-center">
+        <input type="submit" class="btn btn-primary" value="Save Display Settings">
+        </div>
       </form>
     </div>
+    
+    
+    
+    
+    </div>
+    </div>
+    </div>
+    
+    
+    
+    
+    
+    <br>
+    
+    
+    
+    
+   <div class="row">
+      <div class="col-md-12">
+    
+    
+      <div class="card border-0 w-75">
+    <div class="card-body">
+    
+    
+    <div>
+        <h4>My Availability</h4>
+        <ul  class="nav nav-tabs" role="tablist">
+          <!-- Availability Tabs -->
+          <li class="nav-item"><a class="nav-link active" href="#vacation-tab" data-toggle="tab" role="tab" aria-controls="vacation-tab" aria-selected="true">Vacations</a></li>
+          <li class="nav-item"><a class="nav-link" href="#unavailability-tab" data-toggle="tab" role="tab" aria-controls="unavailability-tab" aria-selected="false">Unavailability</a></li>
+          <li class="nav-item"><a class="nav-link" href="#repeat-unavailability-tab" data-toggle="tab" role="tab" aria-controls="repeat-unavailability-tab" aria-selected="false">Repeat Unavailabilities</a></li>
+          <li class="nav-item"><a class="nav-link" href="#desired-times-tab" data-toggle="tab" role="tab" aria-controls="desired-times-tab" aria-selected="false">Desired Times</a></li>
+        </ul>
+        
+        <div class="tab-content">
+          <!-- Vacation Tab -->
+          <div class="tab-pane fade show active" id="vacation-tab" role="tabpanel" aria-labelledby="vacation-tab">
+            <!-- Vacation Sub-Tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+              <li class="nav-item"><a class="nav-link active" href="#curr-future-vacation-tab" data-toggle="tab" role="tab" aria-controls="curr-future-vacation-tab" aria-selected="true">Future</a></li>
+              <li class="nav-item"><a class="nav-link" href="#past-vacation-tab" data-toggle="tab" aria-controls="past-vacation-tab" aria-selected="false">Past</a></li>
+            </ul>
+            
+            <!-- Current and future vacations -->
+            <div class="tab-content">
+              <div class="tab-pane fade show active" id="curr-future-vacation-tab" role="tabpanel" aria-labelledby="curr-future-vacation-tab">
+                <ul class="list-group">
+                  {% for future_vacation in future_vacation_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ future_vacation.id }}">
+                        <li class="list-inline-item float-left">{{ future_vacation.start_datetime }} - {{ future_vacation.end_datetime }}</li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              
+              <!-- Past vacations -->
+              <div class="tab-pane fade" id="past-vacation-tab" role="tabpanel" aria-labelledby="past-vacation-tab">
+                <ul class="list-group">
+                  {% for past_vacation in past_vacation_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ past_vacation.id }}">
+                        <li class="list-inline-item">{{ past_vacation.start_datetime }} - {{ past_vacation.end_datetime }}</li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Absence Tab -->
+          <div class="tab-pane fade" id="unavailability-tab" role="tabpanel" aria-labelledby="unavailability-tab">
+            <!-- Absence Sub-Tabs -->
+            <ul class="nav nav-tabs role="tablist">
+              <li class="nav-item"><a class="nav-link active" href="#curr-future-absence-tab" data-toggle="tab" role="tab" aria-controls="curr-future-absence-tab" aria-selected="true">Future</a></li>
+              <li class="nav-item"><a class="nav-link" href="#past-absence-tab" data-toggle="tab" role="tab" aria-controls="past-absence-tab" aria-selected="false">Past</a></li>
+            </ul>
+            
+            <!-- Current and future Absences -->
+            <div class="tab-content">
+              <div class="tab-pane fade show active" id="curr-future-absence-tab" role="tabpanel" aria-labelledby="curr-future-absence-tab">
+                <ul class="list-group">
+                  {% for future_absence in future_absence_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ future_absence.id }}">
+                        <li class="list-inline-item">{{ future_absence.start_datetime }} - {{ future_absence.end_datetime }}</li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              
+              <!-- Past Absences -->
+              <div class="tab-pane fade" id="past-absence-tab" role="tabpanel" aria-labelledby="past-absence-tab">
+                <ul class="list-group">
+                  {% for past_absence in past_absence_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ past_absence.id }}">
+                        <li class="list-inline-item">{{ past_absence.start_datetime }} - {{ past_absence.end_datetime }}</li>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Repeat Unavailability Tab -->
+          <div class="tab-pane fade" id="repeat-unavailability-tab" role="tabpanel" aria-labelledby="repeat-unavailability-tab">
+            <ul class="list-group">
+              {% for repeat_unav in repeating_unavailable_list %}
+                <li class="list-group-item">
+                  <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
+                    <li class="list-inline-item">{{ repeat_unav.weekday|int_to_weekday }}: {{ repeat_unav.start_time|datetime_to_time }} - {{ repeat_unav.end_time|datetime_to_time }}</li>
+                  </ul>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+            
+          <!-- Desired Time Tab -->
+          <div class="tab-pane fade" id="desired-times-tab" role="tabpanel" aria-labelledby="desired-times-tab">
+              <ul class="list-group">
+                {% for desired_time in desired_time_list %}
+                  <li class="list-group-item">
+                    <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
+                      <li class="list-inline-item">{{ desired_time.weekday|int_to_weekday }}: {{ desired_time.start_time|datetime_to_time }} - {{ desired_time.end_time|datetime_to_time }}</li>
+                    </ul>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div> 
+        </div>
+  
+  
   </div>
-{% endblock form_content %}  
+  </div>
+  
+  
+  </div>
+  </div>
+  </div>
+  
+{% endblock content %}  

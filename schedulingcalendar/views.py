@@ -1293,6 +1293,51 @@ class EmployeeUpdateProfileSettings(UpdateView):
         obj = Employee.objects.get(employee_user=self.request.user)
         return obj
         
+        
+    def get_context_data(self, **kwargs):
+        """Add this employee's availability to their profile context."""
+        now = datetime.now()
+        context = super(EmployeeUpdateProfileSettings, self).get_context_data(**kwargs)
+        
+        employee_user = Employee.objects.get(employee_user=self.request.user)
+        manager_user = employee_user.user
+        
+        context['desired_hours'] = employee_user.desired_hours
+        
+        context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=employee_user,
+                                                                              user=manager_user)
+                                                                      .order_by('priority', 'seniority'))   
+                                                                      
+        context['future_vacation_list'] = (Vacation.objects.filter(employee=employee_user,
+                                                                   user=manager_user,
+                                                                   end_datetime__gte=now)
+                                                           .order_by('start_datetime', 'end_datetime'))
+                                                           
+        context['past_vacation_list'] = (Vacation.objects.filter(employee=employee_user,
+                                                                 user=manager_user,
+                                                                 end_datetime__lt=now)
+                                                         .order_by('start_datetime', 'end_datetime'))    
+                                                         
+        context['future_absence_list'] = (Absence.objects.filter(employee=employee_user,
+                                                                user=manager_user,
+                                                                end_datetime__gte=now)
+                                                        .order_by('start_datetime', 'end_datetime'))
+                                                           
+        context['past_absence_list'] = (Absence.objects.filter(employee=employee_user,
+                                                              user=manager_user,
+                                                              end_datetime__lt=now)
+                                                      .order_by('start_datetime', 'end_datetime'))                         
+                                                         
+        context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=employee_user,
+                                                                                     user=manager_user)
+                                                                     .order_by('weekday', 'start_time', 'end_time'))
+                                                                     
+        context['desired_time_list'] = (DesiredTime.objects.filter(employee=employee_user,
+                                                                  user=manager_user)       
+                                                           .order_by('weekday', 'start_time', 'end_time'))                                                                  
+
+        return context
+          
                   
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(UserIsManagerMixin, ListView):

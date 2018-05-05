@@ -196,20 +196,19 @@
           <!-- Desired Time Tab -->
           <div class="tab-pane fade" id="desired-times-tab" role="tabpanel" aria-labelledby="desired-times-tab">
             <a href="{% url 'schedulingcalendar:desired_time_create' employee.id %}">New Desired Time</a>
-              <ul class="list-group">
-                {% for desired_time in desired_time_list %}
-                  <li class="list-group-item">
-                    <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
-                      <li class="list-inline-item">{{ desired_time.weekday|int_to_weekday }}: {{ desired_time.start_time|datetime_to_time }} - {{ desired_time.end_time|datetime_to_time }}</li>
-                      <li class="list-inline-item"><a href="{% url 'schedulingcalendar:desired_time_update' employee.id desired_time.id %}">Edit</a></li>
-                      <li class="list-inline-item"><a href="{% url 'schedulingcalendar:desired_time_delete' employee.id desired_time.id %}">Delete</a></li>
-                    </ul>
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div> 
-        </div>
+            <ul class="list-group">
+              {% for desired_time in desired_time_list %}
+                <li class="list-group-item">
+                  <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
+                    <li class="list-inline-item">{{ desired_time.weekday|int_to_weekday }}: {{ desired_time.start_time|datetime_to_time }} - {{ desired_time.end_time|datetime_to_time }}</li>
+                    <li class="list-inline-item"><a href="{% url 'schedulingcalendar:desired_time_update' employee.id desired_time.id %}">Edit</a></li>
+                    <li class="list-inline-item"><a href="{% url 'schedulingcalendar:desired_time_delete' employee.id desired_time.id %}">Delete</a></li>
+                  </ul>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div> 
       </div>
     </div>
   </div>
