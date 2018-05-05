@@ -14,6 +14,11 @@
       <div>
         <div class="card-block">
           <h4 class="card-title text-center">Business Settings:</h4>
+          <!-- Company name -->
+          {{ form.company_name.errors }}
+          {{ form.company_name.label_tag }}
+          {{ form.company_name|add_class:'form-control' }}
+          <br>
           <!-- Overtime form input -->
           <div class="form-group">
             {{ form.overtime.errors }}

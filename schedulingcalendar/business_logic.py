@@ -1403,15 +1403,8 @@ def send_employee_texts(user, business_data, live_calendar):
     
     
     employees = get_employees_to_text(user, live_calendar)
-    text_msg_content = "New schedules have been posted for " + business_data.company_name
-    
-    
-    ("New schedules have been posted for A. Johnson & Sons Florist. Your schedules are: " +
-                        "Monday: Watch Anime " +
-                        "Tuesday: Watch more anime " +
-                        "Thursday: Snuggle with KOS-MOS " +
-                        "Friday: Affirmative.")
-    
+    text_msg_content = "You have new schedules for " + "$Front Sales$ on $April$ at " 
+    text_msg_content += business_data.company_name + "have been posted. Check them out at: www.schedulehours.com/live_calendar"
     for employee in employees:
         message = client.messages.create(body=text_msg_content,
                                          from_="+16123244570",

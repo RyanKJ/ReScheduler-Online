@@ -1361,10 +1361,10 @@ class EmployeeListView(UserIsManagerMixin, ListView):
 class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
     """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
-    fields = ['first_name', 'last_name', 'employee_id', 'email',
-              'wage', 'desired_hours', 'monthly_medical', 
-              'social_security', 'min_time_for_break',
-              'break_time_in_min']
+    fields = ['first_name', 'last_name', 'employee_id', 'email', 'phone_number',
+              'wage', 'desired_hours', 'min_time_for_break',
+              'break_time_in_min', 'monthly_medical', 
+              'social_security']
     
     def get(self, request, **kwargs):
         self.object = Employee.objects.get(pk=self.kwargs['employee_pk'], 
@@ -1435,10 +1435,10 @@ class EmployeeCreateView(UserIsManagerMixin, CreateView):
     template_name = 'schedulingcalendar/employeeCreate.html'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
-    fields = ['first_name', 'last_name', 'employee_id', 'email',
-              'wage', 'desired_hours', 'monthly_medical', 
-              'social_security', 'min_time_for_break',
-              'break_time_in_min']
+    fields = ['first_name', 'last_name', 'employee_id', 'email', 'phone_number',
+              'wage', 'desired_hours', 'min_time_for_break',
+              'break_time_in_min', 'monthly_medical', 
+              'social_security']
               
               
     def form_valid(self, form):
