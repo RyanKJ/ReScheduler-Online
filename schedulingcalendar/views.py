@@ -32,7 +32,7 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              get_start_end_of_calendar, edit_schedule_cost_change,
                              calculate_cost_delta, get_start_end_of_weekday,
                              get_availability, _availability_to_dict, get_dates_in_week,
-                             set_view_rights)
+                             set_view_rights, send_employee_texts)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -1018,6 +1018,7 @@ def push_changes_live(request):
             all_employee_view = form.cleaned_data['all_employee_view']
             department_view = form.cleaned_data['department_view']
             employee_view = form.cleaned_data['employee_view']
+            notify_by_sms = form.cleaned_data['notify_by_sms']
             
             # Get or created live calendar
             department = Department.objects.get(pk=department_pk)
@@ -1038,7 +1039,12 @@ def push_changes_live(request):
             set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
             view_rights = {'all_employee_view': all_employee_view, 
                            'department_view': department_view,
-                           'employee_view': employee_view}     
+                           'employee_view': employee_view}   
+
+            # Send texts to emails with new/changed schedules if text send is true
+            if notify_by_sms:
+                business_data = BusinessData.objects.get(user=logged_in_user)
+                send_employee_texts(logged_in_user, business_data, live_calendar)
                            
                            
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})

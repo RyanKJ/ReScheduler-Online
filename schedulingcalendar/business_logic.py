@@ -18,6 +18,7 @@ from .models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar,
                      LiveCalendarDepartmentViewRights, LiveCalendarEmployeeViewRights)
+from twilio.rest import Client
 
 
 def get_eligibles(user, schedule):
@@ -1391,6 +1392,50 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
                                               employee__in=employee_pks)
                                             
     return {'vacations': dep_vacations, 'unavailabilities': unavailabilities}
+    
+    
+def send_employee_texts(user, business_data, live_calendar):
+    """Send texts to employees who have new or edited schedules."""
+    # Your Account Sid and Auth Token from twilio.com/console
+    account_sid = ''
+    auth_token = ''
+    client = Client(account_sid, auth_token)
+    
+    
+    employees = get_employees_to_text(user, live_calendar)
+    text_msg_content = "New schedules have been posted for " + business_data.company_name
+    
+    
+    ("New schedules have been posted for A. Johnson & Sons Florist. Your schedules are: " +
+                        "Monday: Watch Anime " +
+                        "Tuesday: Watch more anime " +
+                        "Thursday: Snuggle with KOS-MOS " +
+                        "Friday: Affirmative.")
+    
+    for employee in employees:
+        message = client.messages.create(body=text_msg_content,
+                                         from_="+16123244570",
+                                         to="+1" + employee.phone_number)
+    
+    
+
+def get_employees_to_text(user, live_calendar):
+    """Get list of employees who have new or edited schedules to send SMS text."""
+    
+
+
+def _hasRightToView(employee, view_rights):
+    """Return boolean that says if the employee can view the given live calendar."""
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
 def get_tro_dates_to_dict(tro_dates):

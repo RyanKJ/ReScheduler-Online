@@ -15,6 +15,7 @@ class Employee(models.Model):
     first_name = models.CharField(max_length=80, default="")
     last_name = models.CharField(max_length=80, default="")
     email = models.EmailField(null=True, blank=True)
+    phone_number = models.CharField('phone number', null=True, blank=True, max_length=17, default="")
     employee_id = models.IntegerField('employee id', default=0)
     wage = models.FloatField('employee wage', default=0)
     desired_hours = models.IntegerField('desired weekly hours', default=30)
@@ -286,6 +287,10 @@ class BusinessData(models.Model):
     #5) 24 hour time option
     #6) Count overlapping time or not?
     #7) Option to customize eligable sort?
+    
+        
+    # Company Name
+    company_name = models.CharField(default="", max_length=120)
     
     # Business Settings
     overtime = models.IntegerField('Overtime In Hours', default=40)
