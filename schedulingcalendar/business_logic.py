@@ -1396,8 +1396,8 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
     
 def send_employee_texts(user, department, date, business_data, live_calendar, view_rights):
     """Send texts to employees who have new or edited schedules."""
-    account_sid = 'AC780fb66bd8575b2e6190c5532149e690'
-    auth_token = '1b2fbac81b479c72f19ba45184796387'
+    account_sid = ''
+    auth_token = ''
     client = Client(account_sid, auth_token)
     
     # Get employees who have new/edited schedules who have a phone # and right to view
