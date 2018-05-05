@@ -1020,7 +1020,7 @@ def push_changes_live(request):
             employee_view = form.cleaned_data['employee_view']
             notify_by_sms = form.cleaned_data['notify_by_sms']
             
-            # Get or created live calendar
+            # Get or create live calendar
             department = Department.objects.get(pk=department_pk)
             live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
                                                                         date=date, 
@@ -1044,7 +1044,7 @@ def push_changes_live(request):
             # Send texts to emails with new/changed schedules if text send is true
             if notify_by_sms:
                 business_data = BusinessData.objects.get(user=logged_in_user)
-                send_employee_texts(logged_in_user, business_data, live_calendar)
+                send_employee_texts(logged_in_user, department, date, business_data, live_calendar, view_rights)
                            
                            
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})

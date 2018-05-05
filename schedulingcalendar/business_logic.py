@@ -1394,36 +1394,69 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
     return {'vacations': dep_vacations, 'unavailabilities': unavailabilities}
     
     
-def send_employee_texts(user, business_data, live_calendar):
+def send_employee_texts(user, department, date, business_data, live_calendar, view_rights):
     """Send texts to employees who have new or edited schedules."""
-    # Your Account Sid and Auth Token from twilio.com/console
-    account_sid = ''
-    auth_token = ''
+    account_sid = 'AC780fb66bd8575b2e6190c5532149e690'
+    auth_token = '1b2fbac81b479c72f19ba45184796387'
     client = Client(account_sid, auth_token)
     
-    
-    employees = get_employees_to_text(user, live_calendar)
-    text_msg_content = "You have new schedules for " + "$Front Sales$ on $April$ at " 
-    text_msg_content += business_data.company_name + "have been posted. Check them out at: www.schedulehours.com/live_calendar"
+    # Get employees who have new/edited schedules who have a phone # and right to view
+    # Then send them an appropriately templated SMS message.
+    employees = get_employees_to_text(user, live_calendar, view_rights)
+    text_msg_content = "You have new schedules for " + department.name + " on " + date.strftime("%B") + " at " 
+    text_msg_content += business_data.company_name + ". Check them out at: https://schedulehours.com/live_calendar"
     for employee in employees:
         message = client.messages.create(body=text_msg_content,
                                          from_="+16123244570",
                                          to="+1" + employee.phone_number)
     
-    
 
-def get_employees_to_text(user, live_calendar):
+def get_employees_to_text(user, live_calendar, view_rights):
     """Get list of employees who have new or edited schedules to send SMS text."""
+    employees = []
     
+    live_schedules = (LiveSchedule.objects.select_related('employee')
+                                          .filter(user=user,
+                                                  calendar=live_calendar,
+                                                  version=live_calendar.version))
+                                                  
+    for live_sch in live_schedules:
+        employee = live_sch.employee
+        if employee.phone_number and employee not in employees:
+            if _hasRightToView(employee, view_rights, live_calendar, user):
+                employees.append(employee)
+            
+    
+    #1) Get all employees that belong to a live_schedule that belongs to this calendar
+    #2) For each employee, if they have a phone number and right to view, add to list
+    #3) Return employees
 
+    return employees
 
-def _hasRightToView(employee, view_rights):
+def _hasRightToView(employee, view_rights, live_calendar, user):
     """Return boolean that says if the employee can view the given live calendar."""
-
+    if view_rights['all_employee_view']:
+        return True
+        
+    # Check if employee belongs to a department that has right to view live calendar
+    departments_of_employee = (DepartmentMembership.objects.select_related('department')
+                                                           .filter(user=user, employee=employee))
+    for dep_view_right in view_rights['department_view']:
+        for dep_mem_of_employee in departments_of_employee:
+            if dep_view_right == departments_of_employee.department.id:
+                  return True      
+                  
+    # Check if employee has explicit view rights
+    for emp_view_right in view_rights['employee_view']:
+        if emp_view_right == employee.id:
+            return True
+    
+    return False
     
     
     
-    
+def are_live_sch_same(live_sch_old, live_sch_new):
+    pass
     
     
     
