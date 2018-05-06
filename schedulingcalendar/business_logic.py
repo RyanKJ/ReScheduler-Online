@@ -1402,36 +1402,35 @@ def send_employee_texts(user, department, date, business_data, live_calendar, vi
     
     # Get employees who have new/edited schedules who have a phone # and right to view
     # Then send them an appropriately templated SMS message.
-    end_body = business_data.company_name + ". Check them out at: https://schedulehours.com/live_calendar"
+    end_body = business_data.company_name + ". Check your schedules at: https://schedulehours.com/live_calendar"
     employees_and_changes = get_employees_to_notify(user, live_calendar, view_rights, notify_all)
     for emp_sch_change in employees_and_changes:
         employee = emp_sch_change[0]
         if employee.phone_number:
             type = emp_sch_change[1]['change_type']
             if type == 'new' and live_calendar.version == 1:
-                start_body = "You have new schedules for department " + department.name + " for " + date.strftime("%B") + " at " 
+                start_body = "You have new schedules for department " + department.name + " in " + date.strftime("%B") + " at " 
             elif type == 'new' and notify_all:
-                start_body = "A new version of the calendar has been published for department " + department.name + " for " + date.strftime("%B") + " at " 
+                start_body = "A new version of the calendar has been published for department " + department.name + " in " + date.strftime("%B") + " at " 
             elif type == 'multiple':
-                start_body = "You have multiple schedule changes for department " + department.name + " for " + date.strftime("%B") + " at " 
+                start_body = "You have multiple schedule changes for department " + department.name + " in " + date.strftime("%B") + " at " 
             elif type == 'delete':
-                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
-                start_body = "One of your schedules has been removed on " + sch_date
-                start_body += " for " + department.name + " at " 
-            elif type == 'employee_edit':
-                
+                sch_date = emp_sch_change[1]['live_sch'].start_datetime.strftime("%A, %B %d")
+                start_body = "Your schedule on " + sch_date + " has been removed"
+                start_body += " in department " + department.name + " at "  
             elif type == 'time_edit':
-                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
-                start_body = "One of your schedules has had its time edited on " + sch_date
-                start_body += " for " + department.name + " at " 
+                sch_date = emp_sch_change[1]['live_sch'].start_datetime.strftime("%A, %B %d")
+                start_body = "Your schedule on " + sch_date +  " had its time changed" 
+                start_body += " in department " + department.name + " at " 
             elif type == 'note_edit':
-                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
-                start_body = "One of your schedules has had its note edited on " + sch_date
-                start_body += " for " + department.name + " at "  
+                sch_date = emp_sch_change[1]['live_sch'].start_datetime.strftime("%A, %B %d")
+                start_body = "Your schedule on " + sch_date +  " had its note changed" 
+                start_body += " in department " + department.name + " at "  
             elif type == 'add':
-                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
-                start_body = "You have been added to a new schedule on " + sch_date
-                start_body += " for " + department.name + " at "  
+                sch_date = emp_sch_change[1]['live_sch'].start_datetime.strftime("%A, %B %d")
+                start_body = "You have been added to a schedule on the date " + sch_date
+                start_body += " in department " + department.name + " at "  
+                
             message = client.messages.create(body=start_body + end_body,
                                              from_="+16123244570",
                                              to="+1" + employee.phone_number)
@@ -1449,14 +1448,14 @@ def get_employees_to_notify(user, live_calendar, view_rights, notify_all):
     if live_calendar.version == 1 or notify_all:
         for live_sch in live_schedules:
             employee = live_sch.employee
-            if not any(emp[0] == employee for emp in employees_and_changes)):
+            if not any(emp[0] == employee for emp in employees_and_changes):
                 if _has_right_to_view(employee, view_rights, live_calendar, user):
-                    employees.append((employee, {'change_type': 'new'})
+                    employees_and_changes.append((employee, {'change_type': 'new'}))
     else:
         old_live_schedules = (LiveSchedule.objects.select_related('employee')
                                                   .filter(user=user,
                                                           calendar=live_calendar,
-                                                          version=live_calendar.version - 1))
+                                                          version=live_calendar.version - 1))      
         for old_live_sch in old_live_schedules:
             employee = old_live_sch.employee
             # Case where old schedule was deleted
@@ -1467,22 +1466,49 @@ def get_employees_to_notify(user, live_calendar, view_rights, notify_all):
                         if emp_change[0] == employee:
                             emp_in_list = True
                             emp_change[1] = {'change_type': 'multiple'}
+                            break
                     if not emp_in_list:
-                        employees.append((employee, {'change_type': 'delete', 'live_sch': old_live_sch}))
+                        employees_and_changes.append([employee, {'change_type': 'delete', 'live_sch': old_live_sch}])
                             
             # Check for case where old schedule was changed
             for new_live_sch in live_schedules:
                 if old_live_sch.schedule == new_live_sch.schedule:
                     has_schedule_changed, info = _has_schedule_changed(old_live_sch, new_live_sch)
                     if has_schedule_changed:
-                        # TODO: Check if newly added employee in edit_employee case belongs to employees_and_changes or not
-                        emp_in_list = None
-                        for emp_change in employees_and_changes:
-                            if emp_change[0] == employee:
-                                emp_in_list = True
-                                emp_change[1] = {'change_type': 'multiple'}
-                        if not emp_in_list:
-                            employees.append((employee, info))
+                        # Case where schedule had employee change requires notifying 2 different employees
+                        if info['change_type'] == 'employee_edit':
+                            new_employee = info['new_live_sch'].employee
+                            
+                            # Check if new employee is already in notification list
+                            new_emp_in_list = None
+                            for emp_change in employees_and_changes:
+                                if emp_change[0] == new_employee:
+                                    new_emp_in_list = True
+                                    emp_change[1] = {'change_type': 'multiple'}
+                                    break
+                            if not new_emp_in_list:
+                                employees_and_changes.append([employee, {'change_type': 'add', 'live_sch': info['new_live_sch']}])     
+                              
+                            # Check if old employee is already in notification list
+                            emp_in_list = None
+                            for emp_change in employees_and_changes:
+                                if emp_change[0] == employee:
+                                    emp_in_list = True
+                                    emp_change[1] = {'change_type': 'multiple'}
+                                    break
+                            if not emp_in_list:
+                                employees_and_changes.append([employee, {'change_type': 'delete', 'live_sch': info['old_live_sch']}])     
+                      
+                        # Case where time or note was edited
+                        else:
+                          emp_in_list = None
+                          for emp_change in employees_and_changes:
+                              if emp_change[0] == employee:
+                                  emp_in_list = True
+                                  emp_change[1] = {'change_type': 'multiple'}
+                                  break
+                          if not emp_in_list:
+                              employees_and_changes.append([employee, info])     
                     break
         
         # Check for newly added schedules
@@ -1494,8 +1520,9 @@ def get_employees_to_notify(user, live_calendar, view_rights, notify_all):
                     if emp_change[0] == employee:
                         emp_in_list = True
                         emp_change[1] = {'change_type': 'multiple'}
+                        break
                 if not emp_in_list:
-                    employees.append((employee, {'change_type': 'add', 'live_sch': live_sch}))
+                    employees_and_changes.append([employee, {'change_type': 'add', 'live_sch': live_sch}])
                                         
     return employees_and_changes
  
@@ -1526,7 +1553,7 @@ def _has_schedule_changed(old_live_sch, new_live_sch):
     has_changed = False
     info = {}
     
-    if old_live_sch.employee != new_live_sch.employee
+    if old_live_sch.employee != new_live_sch.employee:
         has_changed = True
         info = {'change_type': 'employee_edit', 'old_live_sch': old_live_sch, 'new_live_sch': new_live_sch}
     elif (old_live_sch.start_datetime != new_live_sch.start_datetime or
