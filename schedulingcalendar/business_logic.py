@@ -1419,19 +1419,56 @@ def get_employees_to_text(user, live_calendar, view_rights):
                                           .filter(user=user,
                                                   calendar=live_calendar,
                                                   version=live_calendar.version))
-                                                  
-    for live_sch in live_schedules:
-        employee = live_sch.employee
-        if employee.phone_number and employee not in employees:
-            if _hasRightToView(employee, view_rights, live_calendar, user):
-                employees.append(employee)
+                                            
+    if live_calendar.version == 1:
+        for live_sch in live_schedules:
+            employee = live_sch.employee
+            if employee.phone_number and employee not in employees:
+                if _hasRightToView(employee, view_rights, live_calendar, user):
+                    employees.append(employee)
+    else:
+        old_live_schedules = (LiveSchedule.objects.select_related('employee')
+                                                  .filter(user=user,
+                                                          calendar=live_calendar,
+                                                          version=live_calendar.version - 1))
+                                                          
+        for old_live_sch in old_live_schedules:
+            employee = old_live_sch.employee
+            if employee.phone_number:
+                # Case where old schedule was deleted
+                if old_live_sch.schedule == None:
+                    if _hasRightToView(employee, view_rights, live_calendar, user):
+                            employees.append((employee, 'delete'))
+                # Check for case where old schedule was changed
+                for new_live_sch in live_schedules:
+                    if old_live_sch.schedule == new_live_sch.schedule:
+                        if scheduleHasChanged(old_live_sch, new_live_sch):
+                            employees.append((employee, 'edited'))
+                        break
+        
+        # Check for newly added schedules
+        for live_sch in live_schedules:
+            employee = live_sch.employee
+            if employee.phone_number:
+                if not any(live_sch.schedule == old_live_sch.schedule for old_live_sch in old_live_schedules):
+                    employees.append((employee, 'added'))
+                    
+                    
+                    
+                    
+            
+                
+                
+                                                          
+        
+        
             
     
     #1) Get all employees that belong to a live_schedule that belongs to this calendar
     #2) For each employee, if they have a phone number and right to view, add to list
     #3) Return employees
 
-    return employees
+    
 
 def _hasRightToView(employee, view_rights, live_calendar, user):
     """Return boolean that says if the employee can view the given live calendar."""
@@ -1455,7 +1492,7 @@ def _hasRightToView(employee, view_rights, live_calendar, user):
     
     
     
-def are_live_sch_same(live_sch_old, live_sch_new):
+def scheduleHasChanged(old_live_sch, new_live_sch):
     pass
     
     
