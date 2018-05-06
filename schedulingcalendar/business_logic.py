@@ -1394,7 +1394,7 @@ def get_tro_dates(user, department, lower_bound_dt, upper_bound_dt):
     return {'vacations': dep_vacations, 'unavailabilities': unavailabilities}
     
     
-def send_employee_texts(user, department, date, business_data, live_calendar, view_rights):
+def send_employee_texts(user, department, date, business_data, live_calendar, view_rights, notify_all):
     """Send texts to employees who have new or edited schedules."""
     account_sid = ''
     auth_token = ''
@@ -1402,75 +1402,105 @@ def send_employee_texts(user, department, date, business_data, live_calendar, vi
     
     # Get employees who have new/edited schedules who have a phone # and right to view
     # Then send them an appropriately templated SMS message.
-    employees = get_employees_to_text(user, live_calendar, view_rights)
-    text_msg_content = "You have new schedules for " + department.name + " on " + date.strftime("%B") + " at " 
-    text_msg_content += business_data.company_name + ". Check them out at: https://schedulehours.com/live_calendar"
-    for employee in employees:
-        message = client.messages.create(body=text_msg_content,
-                                         from_="+16123244570",
-                                         to="+1" + employee.phone_number)
+    end_body = business_data.company_name + ". Check them out at: https://schedulehours.com/live_calendar"
+    employees_and_changes = get_employees_to_notify(user, live_calendar, view_rights, notify_all)
+    for emp_sch_change in employees_and_changes:
+        employee = emp_sch_change[0]
+        if employee.phone_number:
+            type = emp_sch_change[1]['change_type']
+            if type == 'new' and live_calendar.version == 1:
+                start_body = "You have new schedules for department " + department.name + " for " + date.strftime("%B") + " at " 
+            elif type == 'new' and notify_all:
+                start_body = "A new version of the calendar has been published for department " + department.name + " for " + date.strftime("%B") + " at " 
+            elif type == 'multiple':
+                start_body = "You have multiple schedule changes for department " + department.name + " for " + date.strftime("%B") + " at " 
+            elif type == 'delete':
+                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
+                start_body = "One of your schedules has been removed on " + sch_date
+                start_body += " for " + department.name + " at " 
+            elif type == 'employee_edit':
+                
+            elif type == 'time_edit':
+                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
+                start_body = "One of your schedules has had its time edited on " + sch_date
+                start_body += " for " + department.name + " at " 
+            elif type == 'note_edit':
+                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
+                start_body = "One of your schedules has had its note edited on " + sch_date
+                start_body += " for " + department.name + " at "  
+            elif type == 'add':
+                sch_date = emp_sch_change[1]['live_sch'].strftime("%A, %B %d")
+                start_body = "You have been added to a new schedule on " + sch_date
+                start_body += " for " + department.name + " at "  
+            message = client.messages.create(body=start_body + end_body,
+                                             from_="+16123244570",
+                                             to="+1" + employee.phone_number)
     
 
-def get_employees_to_text(user, live_calendar, view_rights):
+def get_employees_to_notify(user, live_calendar, view_rights, notify_all):
     """Get list of employees who have new or edited schedules to send SMS text."""
-    employees = []
+    employees_and_changes = []
     
     live_schedules = (LiveSchedule.objects.select_related('employee')
                                           .filter(user=user,
                                                   calendar=live_calendar,
                                                   version=live_calendar.version))
                                             
-    if live_calendar.version == 1:
+    if live_calendar.version == 1 or notify_all:
         for live_sch in live_schedules:
             employee = live_sch.employee
-            if employee.phone_number and employee not in employees:
-                if _hasRightToView(employee, view_rights, live_calendar, user):
-                    employees.append(employee)
+            if not any(emp[0] == employee for emp in employees_and_changes)):
+                if _has_right_to_view(employee, view_rights, live_calendar, user):
+                    employees.append((employee, {'change_type': 'new'})
     else:
         old_live_schedules = (LiveSchedule.objects.select_related('employee')
                                                   .filter(user=user,
                                                           calendar=live_calendar,
                                                           version=live_calendar.version - 1))
-                                                          
         for old_live_sch in old_live_schedules:
             employee = old_live_sch.employee
-            if employee.phone_number:
-                # Case where old schedule was deleted
-                if old_live_sch.schedule == None:
-                    if _hasRightToView(employee, view_rights, live_calendar, user):
-                            employees.append((employee, 'delete'))
-                # Check for case where old schedule was changed
-                for new_live_sch in live_schedules:
-                    if old_live_sch.schedule == new_live_sch.schedule:
-                        if scheduleHasChanged(old_live_sch, new_live_sch):
-                            employees.append((employee, 'edited'))
-                        break
+            # Case where old schedule was deleted
+            if old_live_sch.schedule == None:
+                if _has_right_to_view(employee, view_rights, live_calendar, user):
+                    emp_in_list = None
+                    for emp_change in employees_and_changes:
+                        if emp_change[0] == employee:
+                            emp_in_list = True
+                            emp_change[1] = {'change_type': 'multiple'}
+                    if not emp_in_list:
+                        employees.append((employee, {'change_type': 'delete', 'live_sch': old_live_sch}))
+                            
+            # Check for case where old schedule was changed
+            for new_live_sch in live_schedules:
+                if old_live_sch.schedule == new_live_sch.schedule:
+                    has_schedule_changed, info = _has_schedule_changed(old_live_sch, new_live_sch)
+                    if has_schedule_changed:
+                        # TODO: Check if newly added employee in edit_employee case belongs to employees_and_changes or not
+                        emp_in_list = None
+                        for emp_change in employees_and_changes:
+                            if emp_change[0] == employee:
+                                emp_in_list = True
+                                emp_change[1] = {'change_type': 'multiple'}
+                        if not emp_in_list:
+                            employees.append((employee, info))
+                    break
         
         # Check for newly added schedules
         for live_sch in live_schedules:
             employee = live_sch.employee
-            if employee.phone_number:
-                if not any(live_sch.schedule == old_live_sch.schedule for old_live_sch in old_live_schedules):
-                    employees.append((employee, 'added'))
-                    
-                    
-                    
-                    
-            
-                
-                
-                                                          
-        
-        
-            
-    
-    #1) Get all employees that belong to a live_schedule that belongs to this calendar
-    #2) For each employee, if they have a phone number and right to view, add to list
-    #3) Return employees
+            if not any(live_sch.schedule == old_live_sch.schedule for old_live_sch in old_live_schedules):
+                emp_in_list = None
+                for emp_change in employees_and_changes:
+                    if emp_change[0] == employee:
+                        emp_in_list = True
+                        emp_change[1] = {'change_type': 'multiple'}
+                if not emp_in_list:
+                    employees.append((employee, {'change_type': 'add', 'live_sch': live_sch}))
+                                        
+    return employees_and_changes
+ 
 
-    
-
-def _hasRightToView(employee, view_rights, live_calendar, user):
+def _has_right_to_view(employee, view_rights, live_calendar, user):
     """Return boolean that says if the employee can view the given live calendar."""
     if view_rights['all_employee_view']:
         return True
@@ -1491,14 +1521,25 @@ def _hasRightToView(employee, view_rights, live_calendar, user):
     return False
     
     
+def _has_schedule_changed(old_live_sch, new_live_sch):
+    """Compare 2 live schedules from different version to check if they have changed."""
+    has_changed = False
+    info = {}
     
-def scheduleHasChanged(old_live_sch, new_live_sch):
-    pass
+    if old_live_sch.employee != new_live_sch.employee
+        has_changed = True
+        info = {'change_type': 'employee_edit', 'old_live_sch': old_live_sch, 'new_live_sch': new_live_sch}
+    elif (old_live_sch.start_datetime != new_live_sch.start_datetime or
+          old_live_sch.end_datetime != new_live_sch.end_datetime or
+          old_live_sch.hide_start_time != new_live_sch.hide_start_time or
+          old_live_sch.hide_end_time != new_live_sch.hide_end_time):
+        has_changed = True
+        info = {'change_type': 'time_edit', 'live_sch': new_live_sch}
+    elif old_live_sch.schedule_note != new_live_sch.schedule_note:
+        has_changed = True
+        info = {'change_type': 'note_edit', 'live_sch': new_live_sch}
     
-    
-    
-    
-    
+    return has_changed, info
     
     
 def get_tro_dates_to_dict(tro_dates):
