@@ -1569,6 +1569,75 @@ def _has_schedule_changed(old_live_sch, new_live_sch):
     return has_changed, info
     
     
+def view_right_send_employee_texts(user, department, date, business_data, live_calendar, new_view_rights):  
+    """Send texts to employees who did not previously have right to view schedules."""
+    
+    if live_calendar.all_employee_view: # Every employee could already see schedules
+        return
+    
+    # Get old view rights
+    old_view_rights = {'department_view': [], 'employee_view': []}        
+    department_view_rights = LiveCalendarDepartmentViewRights.objects.filter(user=user, live_calendar=live_calendar)
+    employee_view_rights = LiveCalendarEmployeeViewRights.objects.filter(user=user, live_calendar=live_calendar)      
+    for dep_view_right in department_view_rights:
+        old_view_rights['department_view'].append(dep_view_right.department_view_rights.id)
+    for emp_view_right in employee_view_rights:
+        old_view_rights['employee_view'].append(emp_view_right.employee_view_rights.id)
+    
+    # Get list of employees to notify
+    employees = view_right_get_employees_to_notify(user, old_view_rights, new_view_rights)
+    
+    # Notify employees
+    account_sid = 'AC780fb66bd8575b2e6190c5532149e690'
+    auth_token = '3c8e9e5e718ccd529416f64b29f9fd67'
+    client = Client(account_sid, auth_token)
+    body = "New schedules have been posted for department " + department.name + " in " + date.strftime("%B") + " at " 
+    body += business_data.company_name + ". Check your schedules at: https://schedulehours.com/live_calendar"
+    for employee in employees:
+        if employee.phone_number:
+            message = client.messages.create(body=body,
+                                             from_="+16123244570",
+                                             to="+1" + employee.phone_number)
+        
+    
+def view_right_get_employees_to_notify(user, old_view_rights, new_view_rights):
+    """Get list of employees who did not have right to view schedules, but now do."""
+    employees = []
+    
+    # Remove departments and employees who can already see the published schedules
+    dep_with_prev_view_rights = []
+    for dep in new_view_rights['department_view']:
+        if dep in old_view_rights['department_view']:
+            index = new_view_rights['department_view'].index(dep)
+            dep_id = new_view_rights['department_view'].pop(index)
+            dep_with_prev_view_rights.append(dep_id)
+    for employee in new_view_rights['employee_view']:
+        if employee in old_view_rights['employee_view']:
+            new_view_rights['employee_view'].remove(employee)
+            
+    # Get employees that belong to each department that can now view it
+    dep_memberships = (DepartmentMembership.objects.select_related('employee')
+                                                   .filter(user=user, department__in=new_view_rights['department_view']))
+    employees.extend(dep_mem.employee for dep_mem in dep_memberships)
+    
+    # Get employees who can explicitly view it, only add if they aren't already in list
+    explicit_employees = Employee.objects.filter(user=user, id__in=new_view_rights['employee_view'])
+    for employee in explicit_employees:
+        if not employee in employees:
+            employees.append(employee)
+    
+    # Subtract employees who could already see schedules due to membership in another department
+    # that has previous view right
+    dep_memberships_with_prev_view_rights = (DepartmentMembership.objects.select_related('employee')
+                                                               .filter(user=user, department__in=dep_with_prev_view_rights))
+    prev_view_right_employees = [dep_mem.employee for dep_mem in dep_memberships_with_prev_view_rights]
+    for employee in prev_view_right_employees:
+        if employee in employees:
+            employees.remove(employee)
+    
+    return employees
+    
+    
 def get_tro_dates_to_dict(tro_dates):
     """Convert tro_dates into a dict ready for json serialization."""
     vacations = tro_dates['vacations']

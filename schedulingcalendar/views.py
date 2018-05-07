@@ -14,7 +14,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.views.generic import (ListView, FormView, CreateView, UpdateView, 
+from django.views.generic import (View, ListView, FormView, CreateView, UpdateView, 
                                   DeleteView)
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
                                        SetPasswordForm)
@@ -32,7 +32,8 @@ from .business_logic import (get_eligibles, eligable_list_to_dict,
                              get_start_end_of_calendar, edit_schedule_cost_change,
                              calculate_cost_delta, get_start_end_of_weekday,
                              get_availability, _availability_to_dict, get_dates_in_week,
-                             set_view_rights, send_employee_texts)
+                             set_view_rights, send_employee_texts, 
+                             view_right_send_employee_texts)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -1071,20 +1072,25 @@ def update_view_rights(request):
             all_employee_view = form.cleaned_data['all_employee_view']
             department_view = form.cleaned_data['department_view']
             employee_view = form.cleaned_data['employee_view']
+            notify_by_sms = form.cleaned_data['notify_by_sms']
             
-            # Get or created live calendar
+            # Get live calendar and text appropriate employees
             department = Department.objects.get(pk=department_pk)
             live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                      date=date, 
-                                                     department=department)                  
+                                                     department=department)    
+            view_rights = {'all_employee_view': all_employee_view, 
+                           'department_view': department_view,
+                           'employee_view': employee_view}   
+            if notify_by_sms:
+                business_data = BusinessData.objects.get(user=logged_in_user)
+                view_right_send_employee_texts(logged_in_user, department, date, business_data, live_calendar, view_rights.copy())
+    
             live_calendar.all_employee_view = all_employee_view
             live_calendar.save()
  
             # Set specific view rights
-            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
-            view_rights = {'all_employee_view': all_employee_view, 
-                           'department_view': department_view,
-                           'employee_view': employee_view}        
+            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)    
             
             json_info = json.dumps({'message': 'Successfully updated view rights', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
@@ -1280,6 +1286,57 @@ def schedule_swap_disapproval(request):
         return JsonResponse(json_info, safe=False)
         
         
+@login_required 
+def employee_availability(request):
+    """Display employee availabilities."""
+    logged_in_user = request.user
+    if request.method == 'GET':
+        # Get manager corresponding to employee
+        employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=logged_in_user))
+        manager_user = employee.user
+        
+        template = loader.get_template('schedulingcalendar/employeeAvailability.html')
+        context = {}
+
+        # Get availability information for employee
+        now = datetime.now()
+        context['desired_hours'] = employee.desired_hours
+            
+        context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=employee,
+                                                                              user=manager_user)
+                                                                      .order_by('priority', 'seniority'))   
+                                                                          
+        context['future_vacation_list'] = (Vacation.objects.filter(employee=employee,
+                                                                   user=manager_user,
+                                                                   end_datetime__gte=now)
+                                                           .order_by('start_datetime', 'end_datetime'))
+                                                           
+        context['past_vacation_list'] = (Vacation.objects.filter(employee=employee,
+                                                                 user=manager_user,
+                                                                 end_datetime__lt=now)
+                                                         .order_by('start_datetime', 'end_datetime'))    
+                                                             
+        context['future_absence_list'] = (Absence.objects.filter(employee=employee,
+                                                                user=manager_user,
+                                                                end_datetime__gte=now)
+                                                        .order_by('start_datetime', 'end_datetime'))
+                                                               
+        context['past_absence_list'] = (Absence.objects.filter(employee=employee,
+                                                               user=manager_user,
+                                                               end_datetime__lt=now)
+                                                       .order_by('start_datetime', 'end_datetime'))                         
+                                                             
+        context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=employee,
+                                                                                     user=manager_user)
+                                                                     .order_by('weekday', 'start_time', 'end_time'))
+                                                                         
+        context['desired_time_list'] = (DesiredTime.objects.filter(employee=employee,
+                                                                   user=manager_user))   
+            
+        return HttpResponse(template.render(context, request))
+        
+        
 @method_decorator(login_required, name='dispatch')
 class EmployeeUpdateProfileSettings(UpdateView):
     """Display employee settings and form to update these settings."""
@@ -1299,52 +1356,7 @@ class EmployeeUpdateProfileSettings(UpdateView):
     def get_object(self, queryset=None):
         obj = Employee.objects.get(employee_user=self.request.user)
         return obj
-        
-        
-    def get_context_data(self, **kwargs):
-        """Add this employee's availability to their profile context."""
-        now = datetime.now()
-        context = super(EmployeeUpdateProfileSettings, self).get_context_data(**kwargs)
-        
-        employee_user = Employee.objects.get(employee_user=self.request.user)
-        manager_user = employee_user.user
-        
-        context['desired_hours'] = employee_user.desired_hours
-        
-        context['department_mem_list'] = (DepartmentMembership.objects.filter(employee=employee_user,
-                                                                              user=manager_user)
-                                                                      .order_by('priority', 'seniority'))   
-                                                                      
-        context['future_vacation_list'] = (Vacation.objects.filter(employee=employee_user,
-                                                                   user=manager_user,
-                                                                   end_datetime__gte=now)
-                                                           .order_by('start_datetime', 'end_datetime'))
-                                                           
-        context['past_vacation_list'] = (Vacation.objects.filter(employee=employee_user,
-                                                                 user=manager_user,
-                                                                 end_datetime__lt=now)
-                                                         .order_by('start_datetime', 'end_datetime'))    
-                                                         
-        context['future_absence_list'] = (Absence.objects.filter(employee=employee_user,
-                                                                user=manager_user,
-                                                                end_datetime__gte=now)
-                                                        .order_by('start_datetime', 'end_datetime'))
-                                                           
-        context['past_absence_list'] = (Absence.objects.filter(employee=employee_user,
-                                                              user=manager_user,
-                                                              end_datetime__lt=now)
-                                                      .order_by('start_datetime', 'end_datetime'))                         
-                                                         
-        context['repeating_unavailable_list'] = (RepeatUnavailability.objects.filter(employee=employee_user,
-                                                                                     user=manager_user)
-                                                                     .order_by('weekday', 'start_time', 'end_time'))
-                                                                     
-        context['desired_time_list'] = (DesiredTime.objects.filter(employee=employee_user,
-                                                                  user=manager_user)       
-                                                           .order_by('weekday', 'start_time', 'end_time'))                                                                  
-
-        return context
-          
+           
                   
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(UserIsManagerMixin, ListView):

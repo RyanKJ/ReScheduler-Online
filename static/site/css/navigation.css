@@ -27,3 +27,11 @@ nav .nav-front-link:hover { color: white; }
 .custom-nav-btn:hover, .custom-toggle-split:hover { background: #00BFFF !important;; border-color: #00BFFF !important;; }
 
 .employee-btn-group { margin-left: 8px; margin-right: 10px; }
+
+/* Mobile styling
+--------------------------------------------------------------------------------------------------*/
+
+
+@media screen and (max-width: 767px) {
+  nav .nav-front-link { font-size: 1.6em; color: white; }
+}

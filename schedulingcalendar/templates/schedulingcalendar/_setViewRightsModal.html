@@ -61,16 +61,9 @@
           
           <div class="notify-changes-view-rights-div">
             <h5 class="text-center bold">2. Choose How Employees Who Can Now See Schedules Are Notified</h5>
-            <div class="visible-checkbox">
-              {{ set_live_cal_form.notify_all.errors }}
-              <span class="checkbox-custom-text">
-                {{ set_live_cal_form.notify_all }} 
-                <label for="id_notify_all">Notify Every Employee That Can View This Calendar</label>
-              </span>
-            </div>
-            <p>If Checked, every employee that can view the calendar will be notified, 
-               regardless if they have schedules or changes. If not checked,
-               only the employees with changes will be notified.</p>
+            <p>Texts and emails will only be sent out to employees who did not previously have the right
+            to view the published schedules but will on update. Employees who can already see the schedules 
+            will not be notified. Employees who lose their view rights will not be notified.</p>
             
             <div class="visible-checkbox">
               {{ set_live_cal_form.notify_by_sms.errors }}

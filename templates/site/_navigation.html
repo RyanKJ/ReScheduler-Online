@@ -35,18 +35,21 @@
             </div>        
           </div>   
         </li>
+        <li class="nav-item custom-nav-item active">
+          <a class="nav-link" href="#">Help</a>
+        </li>
         <!-- TODO: Add schedule swaps: <li id="pending-approvals-btn"><a href="{% url 'schedulingcalendar:pending_approvals' %}">Pending Approvals</a></li> -->
         {% else %}
         <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'schedulingcalendar:employee_calendar_page' %}">Schedules</a>
         </li>
         <li class="nav-item custom-nav-item active">
-          <a class="nav-link" href="{% url 'schedulingcalendar:employee_profile_settings' %}">My Profile</a>
+          <a class="nav-link" href="{% url 'schedulingcalendar:employee_availability' %}">My Availability</a>
+        </li>
+        <li class="nav-item custom-nav-item active">
+          <a class="nav-link" href="{% url 'schedulingcalendar:employee_profile_settings' %}">Display Settings</a>
         </li>
         {% endif %}
-      <li class="nav-item custom-nav-item active">
-        <a class="nav-link" href="#">Help</a>
-      </li>
       {% else %}
         <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="{% url 'login' %}">Login</a>
