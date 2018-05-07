@@ -49,6 +49,7 @@ from itertools import chain
 import bisect
 import pytz
 import json
+import copy
 
 
 def ssl_http(request):
@@ -1084,7 +1085,7 @@ def update_view_rights(request):
                            'employee_view': employee_view}   
             if notify_by_sms:
                 business_data = BusinessData.objects.get(user=logged_in_user)
-                view_right_send_employee_texts(logged_in_user, department, date, business_data, live_calendar, view_rights.copy())
+                view_right_send_employee_texts(logged_in_user, department, date, business_data, live_calendar, copy.deepcopy(view_rights))
     
             live_calendar.all_employee_view = all_employee_view
             live_calendar.save()
