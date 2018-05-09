@@ -14,7 +14,7 @@ class Employee(models.Model):
 
     first_name = models.CharField(max_length=80, default="")
     last_name = models.CharField(max_length=80, default="")
-    email = models.EmailField(null=True, blank=True)
+    email = models.EmailField(null=True, blank=True, default="")
     phone_number = models.CharField('phone number', null=True, blank=True, max_length=17, default="")
     employee_id = models.IntegerField('employee id', default=0)
     wage = models.FloatField('employee wage', default=0)
@@ -64,6 +64,9 @@ class DepartmentMembership(models.Model):
     # department for the employee (1st, 2nd, ... tier)
     priority = models.IntegerField('Department priority for employee', default=0)
     seniority = models.IntegerField('seniority', null=True, default=0)
+    
+    def __str__(self):             
+        return "Dep mem for: " + self.employee.__str__() + " in dep " + self.department.name
     
 
 class Schedule(models.Model):
@@ -219,7 +222,7 @@ class DesiredTime(models.Model):
     start_time = models.DateTimeField('start time', default=timezone.now)
     end_time = models.DateTimeField('end time', default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
-    weekday = models.IntegerField('weekday')
+    weekday = models.IntegerField('weekday', default=0)
     
     employee = models.ForeignKey(Employee)
     
@@ -235,8 +238,8 @@ class MonthlyRevenue(models.Model):
     """Representation of total revenue for a business for given month & year."""
     user = models.ForeignKey(User)
 
-    monthly_total = models.IntegerField('monthly total revenue')
-    month_year = models.DateField('month and year')
+    monthly_total = models.IntegerField('monthly total revenue', default=0)
+    month_year = models.DateField('month and year', default=date.today)
     
     
 class DayNoteHeader(models.Model):

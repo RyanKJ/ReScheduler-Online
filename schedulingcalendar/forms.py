@@ -103,6 +103,7 @@ class LiveCalendarManagerForm(forms.Form):
     not edit the live calendar, but can view previous versions of that year and
     department.
     """
+    
     def __init__(self, user, num_of_versions=1, *args, **kwargs): 
         super(LiveCalendarManagerForm, self).__init__(*args, **kwargs)
         

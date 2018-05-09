@@ -1648,8 +1648,6 @@ def view_right_get_employees_to_notify(user, old_view_rights, new_view_rights):
         if employee in employees:
             employees.remove(employee)
             
-    print "************** employees are: ", employees 
-            
     return employees
     
     
