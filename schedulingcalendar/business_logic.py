@@ -1588,8 +1588,8 @@ def view_right_send_employee_texts(user, department, date, business_data, live_c
     employees = view_right_get_employees_to_notify(user, old_view_rights, new_view_rights)
     
     # Notify employees
-    account_sid = 'AC780fb66bd8575b2e6190c5532149e690'
-    auth_token = '3c8e9e5e718ccd529416f64b29f9fd67'
+    account_sid = ''
+    auth_token = ''
     client = Client(account_sid, auth_token)
     body = "New schedules have been posted for department " + department.name + " in " + date.strftime("%B") + " at " 
     body += business_data.company_name + ". Check your schedules at: https://schedulehours.com/live_calendar"
@@ -1603,38 +1603,53 @@ def view_right_send_employee_texts(user, department, date, business_data, live_c
 def view_right_get_employees_to_notify(user, old_view_rights, new_view_rights):
     """Get list of employees who did not have right to view schedules, but now do."""
     employees = []
-    
-    # Remove departments and employees who can already see the published schedules
+    original_new_dep = []
+    original_new_emp = []
     dep_with_prev_view_rights = []
+    emp_with_prev_view_rights = []
+    
+    # Sort departments and employees by whether they already had right to view or not 
     for dep in new_view_rights['department_view']:
         if dep in old_view_rights['department_view']:
-            index = new_view_rights['department_view'].index(dep)
-            dep_id = new_view_rights['department_view'].pop(index)
-            dep_with_prev_view_rights.append(dep_id)
+            dep_with_prev_view_rights.append(dep)
+        else:
+            original_new_dep.append(dep)   
     for employee in new_view_rights['employee_view']:
         if employee in old_view_rights['employee_view']:
-            new_view_rights['employee_view'].remove(employee)
-            
+            emp_with_prev_view_rights.append(employee)
+        else:
+            original_new_emp.append(employee)
+
     # Get employees that belong to each department that can now view it
     dep_memberships = (DepartmentMembership.objects.select_related('employee')
-                                                   .filter(user=user, department__in=new_view_rights['department_view']))
+                                                   .filter(user=user, department__in=original_new_dep))
     employees.extend(dep_mem.employee for dep_mem in dep_memberships)
     
     # Get employees who can explicitly view it, only add if they aren't already in list
-    explicit_employees = Employee.objects.filter(user=user, id__in=new_view_rights['employee_view'])
+    explicit_employees = Employee.objects.filter(user=user, id__in=original_new_emp)
     for employee in explicit_employees:
         if not employee in employees:
             employees.append(employee)
     
     # Subtract employees who could already see schedules due to membership in another department
-    # that has previous view right
+    # that had previous view right
     dep_memberships_with_prev_view_rights = (DepartmentMembership.objects.select_related('employee')
-                                                               .filter(user=user, department__in=dep_with_prev_view_rights))
+                                                                 .filter(user=user, department__in=dep_with_prev_view_rights))
     prev_view_right_employees = [dep_mem.employee for dep_mem in dep_memberships_with_prev_view_rights]
     for employee in prev_view_right_employees:
         if employee in employees:
             employees.remove(employee)
-    
+            
+    # Subtract employees who could already see schedules due to explicitly checked
+    # But then were added into list beause they were a part of a department that
+    # could not previously view but now can view
+    explicit_prev_employees = Employee.objects.filter(user=user, id__in=emp_with_prev_view_rights)
+    for employee in explicit_prev_employees:
+        if employee in employees:
+            employees.remove(employee)
+            
+    print "************** employees are: ", employees 
+            
     return employees
     
     

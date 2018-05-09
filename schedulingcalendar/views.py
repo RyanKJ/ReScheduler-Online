@@ -186,7 +186,7 @@ def calendar_page(request):
     
 @login_required
 def employee_calendar_page(request):
-    """Display the schedule editing page for a managing user."""
+    """Display the live calendar page for an employee user."""
     logged_in_user = request.user
     # Get manager corresponding to employee
     employee = (Employee.objects.select_related('user')
