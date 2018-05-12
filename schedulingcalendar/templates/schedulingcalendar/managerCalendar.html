@@ -4,9 +4,9 @@
   {{ block.super }}
   {% load static %}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-custom.css' %}" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.print.css " media="print" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.print.css " media="print" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/fullcalendar-print-custom.css' %}" media="print" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/manager.calendar.css' %}" />
 {% endblock stylesheets %}
@@ -16,10 +16,10 @@
   {% include "schedulingcalendar/_noCalendarModal.html" %}
     
   <div class="container-fluid">
-    <div class="row">
+    <div class="row no-print">
       <div class="col-md pl-0 pr-0">
         <aside class="calendar-page-toolbar">
-          <div class="row no-print">
+          <div class="row">
             <!-- Link back to schedule editing page -->
             <div class="col-lg-3 col-md-12">
               <section class="calendar-loader">
@@ -84,7 +84,7 @@
 
 {% block javascript %}
   {{ block.super }}     
-  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js" ></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js" ></script>
   <script src="{% static 'schedulingcalendar/js/manager.rescheduler.js' %}" ></script>
 {% endblock javascript %}    
 
