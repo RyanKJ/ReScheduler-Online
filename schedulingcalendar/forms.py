@@ -262,6 +262,12 @@ class AddEmployeeToScheduleForm(forms.Form):
     employee_pk = forms.IntegerField(label='employee id')
     cal_date = forms.DateField()
     
+    
+class RemoveScheduleForm(forms.Form):
+    """Form for user to remove schedule."""
+    schedule_pk = forms.IntegerField(label='schedule id')
+    cal_date = forms.DateField()
+    
                                   
 class EditScheduleForm(forms.Form):
     """Form for user to edit the start/end times & hide time booleans of a schedule."""

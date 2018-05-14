@@ -42,7 +42,8 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
                     ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
                     EmployeeDisplaySettingsForm, SetStateLiveCalForm,
-                    CalendarDisplaySettingsForm, SchedulePkForm)
+                    CalendarDisplaySettingsForm, SchedulePkForm, AddEmployeeToScheduleForm, 
+                    RemoveScheduleForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, time, timedelta
 from itertools import chain
@@ -80,7 +81,7 @@ def about_page(request):
     
     
 def contact_page(request):
-    """Display the front page for the website."""
+    """Display the contact page for the website."""
     template = loader.get_template('schedulingcalendar/contact.html')
     context = {}
 
@@ -692,45 +693,48 @@ def get_proto_schedule_info(request):
 def add_employee_to_schedule(request):
     """Assign employee to schedule."""
     logged_in_user = request.user
-    schedule_pk = request.POST['schedule_pk']
-    employee_pk = request.POST['employee_pk']
-    cal_date = datetime.strptime(request.POST['cal_date'], "%Y-%m-%d")
-    # Get schedule and its cost with old employee
-    schedule = (Schedule.objects.select_related('department', 'employee')
-                                .get(user=logged_in_user, pk=schedule_pk))
-                                
-    new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
-    
-    # Get cost of assigning new employee to schedule
-    departments = Department.objects.filter(user=logged_in_user)
-    business_data = BusinessData.objects.get(user=logged_in_user)
-    cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
-                                          departments, business_data, cal_date)
-    
-    # Get length of schedule for new employee, and old employee if exists
-    new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
-                                         None, None, min_time_for_break=new_employee.min_time_for_break,
-                                         break_time_in_min=new_employee.break_time_in_min)
-    old_sch_duration = 0
-    if schedule.employee:
-        prev_employee = schedule.employee
-        old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
-                                             None, None, min_time_for_break=prev_employee.min_time_for_break,
-                                             break_time_in_min=prev_employee.break_time_in_min)
-    
-    # Assign new employee to schedule
-    schedule.employee = new_employee
-    schedule.save(update_fields=['employee'])
-    
-    # Process information for json dump
-    schedule_dict = model_to_dict(schedule)
-    employee_dict = model_to_dict(new_employee)
-    data = {'schedule': schedule_dict, 'employee': employee_dict, 
-            'cost_delta': cost_delta, 'new_sch_duration': new_sch_duration,
-            'old_sch_duration': old_sch_duration}
-    json_data = json.dumps(data, default=date_handler)
-    
-    return JsonResponse(json_data, safe=False)
+    if request.method == 'POST':
+        form = AddEmployeeToScheduleForm(request.POST)
+        if form.is_valid():
+            schedule_pk = form.cleaned_data['schedule_pk']
+            employee_pk = form.cleaned_data['employee_pk']
+            cal_date = form.cleaned_data['cal_date']
+            # Get schedule and its cost with old employee
+            schedule = (Schedule.objects.select_related('department', 'employee')
+                                        .get(user=logged_in_user, pk=schedule_pk))
+                                        
+            new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
+            
+            # Get cost of assigning new employee to schedule
+            departments = Department.objects.filter(user=logged_in_user)
+            business_data = BusinessData.objects.get(user=logged_in_user)
+            cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
+                                                  departments, business_data, cal_date)
+            
+            # Get length of schedule for new employee, and old employee if exists
+            new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                                 None, None, min_time_for_break=new_employee.min_time_for_break,
+                                                 break_time_in_min=new_employee.break_time_in_min)
+            old_sch_duration = 0
+            if schedule.employee:
+                prev_employee = schedule.employee
+                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                                                     None, None, min_time_for_break=prev_employee.min_time_for_break,
+                                                     break_time_in_min=prev_employee.break_time_in_min)
+            
+            # Assign new employee to schedule
+            schedule.employee = new_employee
+            schedule.save(update_fields=['employee'])
+            
+            # Process information for json dump
+            schedule_dict = model_to_dict(schedule)
+            employee_dict = model_to_dict(new_employee)
+            data = {'schedule': schedule_dict, 'employee': employee_dict, 
+                    'cost_delta': cost_delta, 'new_sch_duration': new_sch_duration,
+                    'old_sch_duration': old_sch_duration}
+            json_data = json.dumps(data, default=date_handler)
+            
+            return JsonResponse(json_data, safe=False)
     
 
 @login_required
@@ -738,24 +742,27 @@ def add_employee_to_schedule(request):
 def remove_schedule(request):
     """Remove schedule from the database."""
     logged_in_user = request.user
-    schedule_pk = request.POST['schedule_pk']
-    cal_date = datetime.strptime(request.POST['cal_date'], "%Y-%m-%d")
-    schedule = (Schedule.objects.select_related('department', 'employee')
-                                .get(user=logged_in_user, pk=schedule_pk))
-                                
-    cost_delta = 0
-    if schedule.employee: # Get change of cost if employee was assigned
-      departments = Department.objects.filter(user=logged_in_user)
-      business_data = BusinessData.objects.get(user=logged_in_user)
-      cost_delta = remove_schedule_cost_change(logged_in_user, schedule,
-                                               departments, business_data,
-                                               cal_date)
-      
-    schedule.delete()
-    json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},
-                            default=date_handler)
-                            
-    return JsonResponse(json_info, safe=False)
+    if request.method == 'POST':
+        form = RemoveScheduleForm(request.POST)
+        if form.is_valid():
+            schedule_pk = form.cleaned_data['schedule_pk']
+            cal_date = form.cleaned_data['cal_date']
+            schedule = (Schedule.objects.select_related('department', 'employee')
+                                        .get(user=logged_in_user, pk=schedule_pk))
+                                        
+            cost_delta = 0
+            if schedule.employee: # Get change of cost if employee was assigned
+              departments = Department.objects.filter(user=logged_in_user)
+              business_data = BusinessData.objects.get(user=logged_in_user)
+              cost_delta = remove_schedule_cost_change(logged_in_user, schedule,
+                                                       departments, business_data,
+                                                       cal_date)
+              
+            schedule.delete()
+            json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},
+                                    default=date_handler)
+                                    
+            return JsonResponse(json_info, safe=False)
     
     
 @login_required
