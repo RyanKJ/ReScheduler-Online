@@ -67,5 +67,4 @@ urlpatterns = [
     url(r'^pending_approvals/schedule_swap_disapproval$', views.schedule_swap_disapproval, name='schedule_swap_disapproval'),
     url(r'^my_profile/$', views.EmployeeUpdateProfileSettings.as_view(), name='employee_profile_settings'),
     url(r'^my_availability/$', views.employee_availability, name='employee_availability'),
-    url(r'^.well-known/pki-validation/735B730461563A26284BCE64D8EE12C5.txt$', views.ssl_http, name='ssl_http'),
 ]

@@ -197,8 +197,33 @@ class ViewLiveCalendarForm(forms.Form):
     dep_attrs = {'id': 'view-live-department', 'value': '', 'name': 'department'}
     department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
                                     min_value=0, max_value=1000)
-                                    
-                                    
+                   
+                   
+class SchedulePkForm(forms.Form):
+    """Form to validate schedule pk."""
+    schedule_pk = forms.IntegerField(label='schedule id')
+    
+                                  
+class ProtoScheduleForm(forms.Form):
+    """Form for user to create a proto (fake) schedule to get an eligible list."""                     
+    date_attrs = {'id': 'add-date', 'value': '', 'name': 'date'}
+    add_date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+    
+    dep_attrs = {'id': 'new-schedule-dep', 'value': '', 'name': 'department'}
+    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
+                                    min_value=0, max_value=1000)
+    
+    start_time_attrs = {'id': 'start-timepicker', 'name': 'start-timepicker'}
+    start_time =  forms.TimeField(label='Start Time',
+                                  widget=forms.TextInput(attrs=start_time_attrs),
+                                  input_formats=TIME_FORMATS)
+                                  
+    end_time_attrs = {'id': 'end-timepicker', 'name': 'end-timepicker'}                      
+    end_time = forms.TimeField(label='End Time',
+                               widget=forms.TextInput(attrs=end_time_attrs),
+                               input_formats=TIME_FORMATS)
+
+                 
 class AddScheduleForm(forms.Form):
     """Form for user to create a new schedule."""
 
@@ -231,25 +256,12 @@ class AddScheduleForm(forms.Form):
                                   widget=forms.CheckboxInput(attrs=hide_end_attrs))
                                   
                                   
-class ProtoScheduleForm(forms.Form):
-    """Form for user to create a proto (fake) schedule to get an eligible list."""                     
-    date_attrs = {'id': 'add-date', 'value': '', 'name': 'date'}
-    add_date = forms.DateField(widget=forms.HiddenInput(attrs=date_attrs))
+class AddEmployeeToScheduleForm(forms.Form):
+    """Form for user to add employee to schedule."""
+    schedule_pk = forms.IntegerField(label='schedule id')
+    employee_pk = forms.IntegerField(label='employee id')
+    cal_date = forms.DateField()
     
-    dep_attrs = {'id': 'new-schedule-dep', 'value': '', 'name': 'department'}
-    department = forms.IntegerField(widget=forms.HiddenInput(attrs=dep_attrs),
-                                    min_value=0, max_value=1000)
-    
-    start_time_attrs = {'id': 'start-timepicker', 'name': 'start-timepicker'}
-    start_time =  forms.TimeField(label='Start Time',
-                                  widget=forms.TextInput(attrs=start_time_attrs),
-                                  input_formats=TIME_FORMATS)
-                                  
-    end_time_attrs = {'id': 'end-timepicker', 'name': 'end-timepicker'}                      
-    end_time = forms.TimeField(label='End Time',
-                               widget=forms.TextInput(attrs=end_time_attrs),
-                               input_formats=TIME_FORMATS)
-                                  
                                   
 class EditScheduleForm(forms.Form):
     """Form for user to edit the start/end times & hide time booleans of a schedule."""
@@ -260,6 +272,7 @@ class EditScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", required=False)
     cal_date = forms.DateField()
     undo_edit = forms.BooleanField(label="", required=False)
+    
     
     
 class CopySchedulesForm(forms.Form):
@@ -330,8 +343,8 @@ class DesiredTimeForm(forms.ModelForm):
                                widget=forms.Select(choices=WEEKDAY_CHOICES), 
                                min_value=0, max_value=6)
     start_time = TzAwareTimeField(label='Start Time', 
-                                         input_formats=TIME_FORMATS,
-                                         widget=forms.TimeInput(format='%I:%M %p'))                           
+                                  input_formats=TIME_FORMATS,
+                                  widget=forms.TimeInput(format='%I:%M %p'))                           
     end_time = TzAwareTimeField(label='End Time', 
                                 input_formats=TIME_FORMATS,
                                 widget=forms.TimeInput(format='%I:%M %p'))                            

@@ -1,4 +1,16 @@
+@page {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
 @media print {
+   html, body { overflow: visible !important; }
+  
+  [class*="col-md"], [class*="col-sm"], [class*="col-xs"] {
+    { display: block !important; }
+  }
+  .row { display: block !important; }
+  #calendar { max-width: 670px; }
   .col-md { padding: 0 !important; }
   .no-print, .no-print * { display: none; }
   .blank-event:not(.tro-event):not(.note) { display: none; }

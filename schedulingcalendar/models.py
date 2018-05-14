@@ -150,6 +150,7 @@ class LiveSchedule(models.Model):
     department = models.ForeignKey(Department)
     employee = models.ForeignKey(Employee)
     
+    
     def __str__(self):
         start_str = self.start_datetime.strftime("%B %d, %I:%M %p")
         end_str = self.end_datetime.strftime("%I:%M %p")
@@ -165,7 +166,11 @@ class LiveCalendarDepartmentViewRights(models.Model):
     user = models.ForeignKey(User)
     live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
     department_view_rights = models.ForeignKey(Department, on_delete=models.CASCADE)
-                                   
+    
+    
+    def __str__(self):
+        return "Department Pks " + self.department_view_rights + " for live calendar " + self.live_calendar    
+        
                                    
 class LiveCalendarEmployeeViewRights(models.Model):
     """Join table of LiveCalendar & employees that list which
@@ -175,6 +180,10 @@ class LiveCalendarEmployeeViewRights(models.Model):
     user = models.ForeignKey(User)
     live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
     employee_view_rights = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    
+    
+    def __str__(self):
+        return "Employee Pks " + self.employee_view_rights + " for live calendar " + self.live_calendar
     
         
 class Vacation(models.Model):
@@ -187,6 +196,13 @@ class Vacation(models.Model):
     employee = models.ForeignKey(Employee)
     
     
+    def __str__(self):
+        start_str = self.end_datetime.strftime("%Y/%m/%d")
+        end_str = self.end_datetime.strftime("%Y/%m/%d")
+        
+        return "Vacation for employee: " + self.employee + " from " + start_str + " - " + end_str
+   
+    
 class Absence(models.Model):
     """Representation of an absent block of time for employee."""
     user = models.ForeignKey(User)
@@ -194,7 +210,14 @@ class Absence(models.Model):
     start_datetime = models.DateTimeField('start datetime', default=timezone.now)
     end_datetime = models.DateTimeField('end datetime', default=timezone.now)
     
-    employee = models.ForeignKey(Employee)    
+    employee = models.ForeignKey(Employee)   
+
+
+    def __str__(self):
+        start_str = self.end_datetime.strftime("%Y/%m/%d")
+        end_str = self.end_datetime.strftime("%Y/%m/%d")
+        
+        return "Unavailability for employee: " + self.employee + " from " + start_str + " - " + end_str    
     
     
 class RepeatUnavailability(models.Model):
@@ -242,6 +265,11 @@ class MonthlyRevenue(models.Model):
     month_year = models.DateField('month and year', default=date.today)
     
     
+    def __str__(self):
+        date_str = self.month_year.strftime("%Y, %B")
+        return "Monthly revenue for: " + date_str + ". Amount: " + self.monthly_total
+    
+    
 class DayNoteHeader(models.Model):
     """Note for a given date that is rendered in a day's header near day number."""
     user = models.ForeignKey(User)
@@ -250,6 +278,11 @@ class DayNoteHeader(models.Model):
     date = models.DateField('Date', default=date.today)
     header_text = models.CharField('Note', default="", blank=True, max_length=140)
     
+    
+    def __str__(self):
+        date_str = self.date.strftime("%Y/%m/%d")
+        return "Day header note for department " + self.department.name + " on " + date_str
+ 
  
 class DayNoteBody(models.Model):
     """Note for a given date that is rendered in a day's body near schedules."""
@@ -258,6 +291,11 @@ class DayNoteBody(models.Model):
 
     date = models.DateField('Date', default=date.today)
     body_text = models.CharField('Note', default="", blank=True, max_length=280)
+    
+    
+    def __str__(self):
+        date_str = self.date.strftime("%Y/%m/%d")
+        return "Day body note for department " + self.department.name + " on " + date_str
     
     
 class ScheduleSwapPetition(models.Model):
@@ -270,6 +308,10 @@ class ScheduleSwapPetition(models.Model):
     approved = models.NullBooleanField(default=None, blank=True)
     
     
+    def __str__(self):
+        return "Schedule swap petition for " + self.employee + ". Is approved? " + self.approved
+    
+    
 class ScheduleSwapApplication(models.Model):
     """Object to store information about a schedule swap application."""
     user = models.ForeignKey(User)
@@ -277,6 +319,10 @@ class ScheduleSwapApplication(models.Model):
     employee = models.ForeignKey(Employee)
     approved = models.NullBooleanField(default=None, blank=True)
 
+    
+    def __str__(self):
+        return "Schedule swap petition for " + self.employee + ". Is approved? " + self.approved
+    
     
 class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
@@ -320,4 +366,10 @@ class BusinessData(models.Model):
     # Last calendar loaded of manager user
     last_cal_date_loaded = models.DateField('last_cal_date', default=date.today, null=True)
     last_cal_department_loaded = models.ForeignKey(Department, default=None, on_delete=models.SET_NULL, null=True)
+    
+    
+    def __str__(self):
+        date_str = self.date.strftime("%Y/%m/%d")
+        return "Business profile for company " + self.company_name
+    
     

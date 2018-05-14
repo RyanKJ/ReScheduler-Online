@@ -42,7 +42,7 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     DayNoteBodyForm, ScheduleNoteForm, ScheduleSwapPetitionForm, 
                     ScheduleSwapDecisionForm, EditScheduleForm, CopySchedulesForm,
                     EmployeeDisplaySettingsForm, SetStateLiveCalForm,
-                    CalendarDisplaySettingsForm)
+                    CalendarDisplaySettingsForm, SchedulePkForm)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, time, timedelta
 from itertools import chain
@@ -51,15 +51,6 @@ import pytz
 import json
 import copy
 
-
-def ssl_http(request):
-    """http method for verifying SSL security cerftificate for NameCheap."""
-    filename = "735B730461563A26284BCE64D8EE12C5.txt"
-    content = '7219FE0C73F963798762C6D0968492E633BB373A52590DB4DDA354447E194D19 comodoca.com 5a96e2950377c'
-    response = HttpResponse(content, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
-    return response
-    
     
 def front_or_cal_page(request):
     """Redirect to calendar if logged in, otherwise redirect to front page."""
@@ -638,18 +629,20 @@ def add_schedule(request):
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")    
 def get_schedule_info(request):
-    """Returns information for schedule such as eligable employees."""
+    """Returns eligible list of employees for given schedule pk."""
     logged_in_user = request.user
-
-    schedule_pk = request.GET['pk']
-    schedule = (Schedule.objects.select_related('department', 'employee', 'user')
-                                .get(user=logged_in_user, pk=schedule_pk))
-    
-    eligable_list = get_eligibles(logged_in_user, schedule)
-    eligable_dict_list = eligable_list_to_dict(eligable_list)
-    json_data = json.dumps(eligable_dict_list, default=date_handler)
-    
-    return JsonResponse(json_data, safe=False)
+    if request.method == 'GET':
+        form = SchedulePkForm(request.GET)
+        if form.is_valid():
+            schedule_pk = form.cleaned_data['schedule_pk']
+            schedule = (Schedule.objects.select_related('department', 'employee', 'user')
+                                        .get(user=logged_in_user, pk=schedule_pk))
+            
+            eligable_list = get_eligibles(logged_in_user, schedule)
+            eligable_dict_list = eligable_list_to_dict(eligable_list)
+            json_data = json.dumps(eligable_dict_list, default=date_handler)
+            
+            return JsonResponse(json_data, safe=False)
     
     
 @login_required

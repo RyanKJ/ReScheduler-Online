@@ -177,7 +177,7 @@ $(document).ready(function() {
         $scheduleNoteText.val(scheduleNote);
         $scheduleNoteBtn.prop('disabled', false);
         // Get eligibles for this schedule
-        $.get("get_schedule_info", {pk: pk}, displayEligables);
+        $.get("get_schedule_info", {schedule_pk: pk}, displayEligables);
       } else { //Non-schedule fc-event was clicked
         getProtoEligibles({data: {date: date}});
         $scheduleNoteText.val("Please Select A Schedule First");
@@ -1395,7 +1395,7 @@ $(document).ready(function() {
     $scheduleNoteText.val("");
     $scheduleNoteBtn.prop('disabled', false);
     // Get eligables for this new schedule
-    $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
+    $.get("get_schedule_info", {schedule_pk: schedulePk}, displayEligables);
   }
   
   
@@ -1609,7 +1609,7 @@ $(document).ready(function() {
     $event_div.addClass("fc-event-clicked"); 
     
     // Get eligibles for this schedule
-    $.get("get_schedule_info", {pk: schedulePk}, displayEligables);
+    $.get("get_schedule_info", {schedule_pk: schedulePk}, displayEligables);
   }
   
   
