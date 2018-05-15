@@ -24,14 +24,12 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
                      LiveCalendarEmployeeViewRights)
-from .business_logic import (get_eligibles, eligable_list_to_dict,
-                             date_handler, all_calendar_hours_and_costs, 
+from .business_logic import (get_eligibles, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
-                             get_tro_dates, get_tro_dates_to_dict, time_dur_in_hours,
-                             get_start_end_of_calendar, edit_schedule_cost_change,
-                             calculate_cost_delta, get_start_end_of_weekday,
-                             get_availability, _availability_to_dict, get_dates_in_week,
+                             get_tro_dates, time_dur_in_hours, get_start_end_of_calendar, 
+                             edit_schedule_cost_change, calculate_cost_delta, 
+                             get_start_end_of_weekday, get_availability, get_dates_in_week,
                              set_view_rights, send_employee_texts, 
                              view_right_send_employee_texts)
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
@@ -44,6 +42,8 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     EmployeeDisplaySettingsForm, SetStateLiveCalForm,
                     CalendarDisplaySettingsForm, SchedulePkForm, AddEmployeeToScheduleForm, 
                     RemoveScheduleForm)
+from .serializers import (date_handler, get_json_err_response, eligable_list_to_dict,
+                          get_tro_dates_to_dict, _availability_to_dict)
 from custom_mixins import UserIsManagerMixin
 from datetime import datetime, date, time, timedelta
 from itertools import chain
@@ -332,11 +332,13 @@ def get_schedules(request):
             combined_json = json.dumps(combined_dict, default=date_handler)
             
             return JsonResponse(combined_json, safe=False)
-    
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-      # err_msg = "Year, Month, or Department was not selected."
-      # TODO: Send back Unsuccessful Response
-      pass
+      msg = 'HTTP request needs to be GET. Got: ' + request.method
+      return get_json_err_response(msg)
 
   
 @login_required  
@@ -431,11 +433,12 @@ def get_live_schedules(request):
                 message = "No Schedules For " + department_name + " Calendar: " + cal_date.strftime("%B, %Y")
                 response = HttpResponseNotFound(message)
                 return response
-    
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-      # err_msg = "Year, Month, or Department was not selected."
-      # TODO: Send back Unsuccessful Response
-      pass  
+      msg = 'HTTP request needs to be GET. Got: ' + request.method
+      return get_json_err_response(msg)
       
       
 @login_required  
@@ -573,10 +576,12 @@ def employee_get_live_schedules(request):
                 response = HttpResponseNotFound(message)
                 return response
     
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-      # err_msg = "Year, Month, or Department was not selected."
-      # TODO: Send back Unsuccessful Response
-      pass  
+      msg = 'HTTP request needs to be GET. Got: ' + request.method
+      return get_json_err_response(msg)
       
     
 @login_required
@@ -622,9 +627,12 @@ def add_schedule(request):
             
             return JsonResponse(schedule_json, safe=False)
             
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        # TODO: Case where invalid HTTP Request handling
-        pass
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
        
      
 @login_required
@@ -644,6 +652,13 @@ def get_schedule_info(request):
             json_data = json.dumps(eligable_dict_list, default=date_handler)
             
             return JsonResponse(json_data, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be GET. Got: ' + request.method
+        return get_json_err_response(msg)
     
     
 @login_required
@@ -683,9 +698,13 @@ def get_proto_schedule_info(request):
             json_data = json.dumps(eligable_dict_list, default=date_handler)
             
             return JsonResponse(json_data, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        # TODO: Case where invalid HTTP Request handling
-        pass
+        msg = 'HTTP request needs to be GET. Got: ' + request.method
+        return get_json_err_response(msg)
     
     
 @login_required
@@ -735,6 +754,13 @@ def add_employee_to_schedule(request):
             json_data = json.dumps(data, default=date_handler)
             
             return JsonResponse(json_data, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
     
 
 @login_required
@@ -763,6 +789,14 @@ def remove_schedule(request):
                                     default=date_handler)
                                     
             return JsonResponse(json_info, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+    
     
     
 @login_required
@@ -858,6 +892,13 @@ def edit_schedule(request):
                                     'oldHideEnd': oldHideEnd},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
             
     
 @login_required
@@ -966,11 +1007,14 @@ def copy_schedules(request):
                                     'availability': availability_as_dicts},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
-    
-    json_info = json.dumps({'schedule_pks': "failed to do anything", 'cost_delta': 0},
-                            default=date_handler)
-    return JsonResponse(json_info, safe=False)
-    
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+   
    
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")    
@@ -1005,6 +1049,13 @@ def remove_conflict_copy_schedules(request):
             # Return cost delta to front end to be rendered    
             json_info = json.dumps({'cost_delta': cost_delta}, default=date_handler)      
             return JsonResponse(json_info, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
 
             
 @login_required
@@ -1053,11 +1104,12 @@ def push_changes_live(request):
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
         
-        json_info = json.dumps({'message': 'Failed to push calendar live.'})
-        return JsonResponse(json_info, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
         
         
 @login_required
@@ -1096,11 +1148,12 @@ def update_view_rights(request):
             json_info = json.dumps({'message': 'Successfully updated view rights', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
         
-        json_info = json.dumps({'message': 'Failed to push calendar live.'})
-        return JsonResponse(json_info, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
         
    
 @login_required
@@ -1133,11 +1186,12 @@ def view_live_schedules(request):
             json_info = json.dumps({'message': message})
             return JsonResponse(json_info, safe=False)      
                
-        json_info = json.dumps({'message': 'Invalid data used to view live calendar.'})
-        return JsonResponse(json_info, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests     
+        msg = 'HTTP request needs to be GET. Got: ' + request.method
+        return get_json_err_response(msg)    
         
         
 @login_required
@@ -1160,9 +1214,13 @@ def add_edit_day_note_header(request):
             day_note_header_json = json.dumps(day_note_header_dict, default=date_handler)
             
             return JsonResponse(day_note_header_json, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests    
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)   
 
         
 @login_required
@@ -1185,9 +1243,13 @@ def add_edit_day_note_body(request):
             day_note_body_json = json.dumps(day_note_body_dict, default=date_handler)
             
             return JsonResponse(day_note_body_json, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests    
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)    
         
         
 @login_required
@@ -1208,9 +1270,13 @@ def edit_schedule_note(request):
             schedule_json = json.dumps(schedule_dict, default=date_handler)
             
             return JsonResponse(schedule_json, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests    
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)   
         
         
 @login_required
@@ -1237,11 +1303,13 @@ def create_schedule_swap_petition(request):
             
             json_info = json.dumps({'message': 'Successfully created schedule swap petition!'})
             return JsonResponse(json_info, safe=False)
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        pass
-        #TODO: Implement reponse for non-POST requests    
-        json_info = json.dumps({'message': 'Could not create schedule swap petition'})
-        return JsonResponse(json_info, safe=False)
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
         
 
 @login_required 
@@ -1280,11 +1348,13 @@ def schedule_swap_disapproval(request):
             json_info = json.dumps({'message': 'Successfully disapproved schedule swap.',
                                     'sch_swap_id': schedule_swap_pk})
             return JsonResponse(json_info, safe=False)
-    
+            
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
     else:
-        #TODO: Implement reponse for non-POST requests    
-        json_info = json.dumps({'message': 'Could not disapprove schedule swap petition'})
-        return JsonResponse(json_info, safe=False)
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
         
         
 @login_required 
@@ -1336,6 +1406,10 @@ def employee_availability(request):
                                                                    user=manager_user))   
             
         return HttpResponse(template.render(context, request))
+        
+    else:
+        msg = 'HTTP request needs to be GET. Got: ' + request.method
+        return get_json_err_response(msg)
         
         
 @method_decorator(login_required, name='dispatch')
