@@ -24,14 +24,14 @@ from .models import (Schedule, Department, DepartmentMembership, Employee,
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
                      LiveCalendarEmployeeViewRights)
-from .business_logic import (get_eligibles, all_calendar_hours_and_costs, 
+from business_logic import (get_eligibles, all_calendar_hours_and_costs, 
                              get_avg_monthly_revenue, add_employee_cost_change,
                              remove_schedule_cost_change, create_live_schedules,
                              get_tro_dates, time_dur_in_hours, get_start_end_of_calendar, 
                              edit_schedule_cost_change, calculate_cost_delta, 
                              get_start_end_of_weekday, get_availability, get_dates_in_week,
                              set_view_rights, send_employee_texts, 
-                             view_right_send_employee_texts)
+                             view_right_send_employee_texts)            
 from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
