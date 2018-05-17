@@ -1,38 +1,25 @@
 from django.core import serializers
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render, redirect, get_list_or_404
-from django.http import (HttpResponseRedirect, HttpResponse, 
-                         HttpResponseNotFound, JsonResponse)
+from django.shortcuts import render, redirect
+from django.http import (HttpResponseRedirect, HttpResponse)
 from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, update_session_auth_hash
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.mixins import UserPassesTestMixin
-from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.forms.models import model_to_dict
 from django.views.generic import (View, ListView, FormView, CreateView, UpdateView, 
                                   DeleteView)
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm, 
                                        SetPasswordForm)
-from .models import (Schedule, Department, DepartmentMembership, Employee, 
+from ..models import (Schedule, Department, DepartmentMembership, Employee, 
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
-                     LiveCalendarEmployeeViewRights)
-from business_logic import (get_eligibles, all_calendar_hours_and_costs, 
-                             get_avg_monthly_revenue, add_employee_cost_change,
-                             remove_schedule_cost_change, create_live_schedules,
-                             get_tro_dates, time_dur_in_hours, get_start_end_of_calendar, 
-                             edit_schedule_cost_change, calculate_cost_delta, 
-                             get_start_end_of_weekday, get_availability, get_dates_in_week,
-                             set_view_rights, send_employee_texts, 
-                             view_right_send_employee_texts)            
-from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
+                     LiveCalendarEmployeeViewRights)    
+from ..forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
                     LiveCalendarForm, LiveCalendarManagerForm, ViewLiveCalendarForm, 
@@ -42,15 +29,11 @@ from .forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     EmployeeDisplaySettingsForm, SetStateLiveCalForm,
                     CalendarDisplaySettingsForm, SchedulePkForm, AddEmployeeToScheduleForm, 
                     RemoveScheduleForm)
-from .serializers import (date_handler, get_json_err_response, eligable_list_to_dict,
-                          get_tro_dates_to_dict, _availability_to_dict)
-from custom_mixins import UserIsManagerMixin
-from datetime import datetime, date, time, timedelta
-from itertools import chain
-import bisect
-import pytz
+from ..serializers import get_json_err_response
+from ..custom_mixins import UserIsManagerMixin
+from .views_basic_pages import manager_check
+from datetime import datetime, date, time
 import json
-import copy
 
 
 
