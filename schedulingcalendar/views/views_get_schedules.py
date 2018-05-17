@@ -371,6 +371,15 @@ def employee_get_live_schedules(request):
                     schedules_as_dicts.append(schedule_dict)
                 for e in employees:
                     employee_dict = model_to_dict(e)
+                    del employee_dict['wage']
+                    del employee_dict['monthly_medical']
+                    del employee_dict['social_security']
+                    del employee_dict['phone_number']
+                    del employee_dict['email']
+                    del employee_dict['desired_hours']
+                    del employee_dict['min_time_for_break']
+                    del employee_dict['break_time_in_min']
+                    del employee_dict['workmans_comp']
                     employees_as_dicts.append(employee_dict)
                 for day_hdr in day_note_header:
                     day_hdr_dict = model_to_dict(day_hdr)

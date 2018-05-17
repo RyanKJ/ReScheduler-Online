@@ -1,6 +1,7 @@
 import json
 import bisect
 import calendar
+import pytz
 from datetime import date, datetime, timedelta, time
 from operator import itemgetter
 from django.utils import timezone
@@ -201,14 +202,17 @@ def get_start_end_of_calendar(year, month):
         A tuple of the start and end datetimes of the calendar.
     """
     
+    time_zone = timezone.get_default_timezone_name()
     cal_date = datetime(year, month, 1)
+    cal_date = pytz.timezone(time_zone).localize(cal_date)
     last_day_num_of_month = calendar.monthrange(year, month)[1]
     last_date_of_month = datetime(year, month, last_day_num_of_month)
+    last_date_of_month = pytz.timezone(time_zone).localize(last_date_of_month)
     start_of_month_weekday = cal_date.isoweekday()
     end_of_month_weekday = last_date_of_month.isoweekday()
     lower_bound_dt = cal_date - timedelta(start_of_month_weekday % 7)
     upper_bound_dt = (last_date_of_month 
                       + timedelta(((6 - end_of_month_weekday) % 7) + 1) 
                       - timedelta(seconds=1))
-    
+                     
     return (lower_bound_dt, upper_bound_dt)

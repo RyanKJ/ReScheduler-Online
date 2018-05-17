@@ -304,9 +304,9 @@ class DepartmentMembershipForm(forms.ModelForm):
 class VacationForm(forms.ModelForm):
     """Form for creating and editing vacations."""
     start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
-                                     input_formats=DATETIME_FORMATS)
+                                         input_formats=DATETIME_FORMATS)
     end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
-                                   input_formats=DATETIME_FORMATS)
+                                       input_formats=DATETIME_FORMATS)
 
     class Meta:
         model = Vacation
@@ -316,9 +316,9 @@ class VacationForm(forms.ModelForm):
 class AbsentForm(forms.ModelForm):
     """Form for creating and editing vacations."""
     start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
-                                     input_formats=DATETIME_FORMATS)
+                                         input_formats=DATETIME_FORMATS)
     end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
-                                   input_formats=DATETIME_FORMATS)
+                                       input_formats=DATETIME_FORMATS)
 
     class Meta:
         model = Absence
