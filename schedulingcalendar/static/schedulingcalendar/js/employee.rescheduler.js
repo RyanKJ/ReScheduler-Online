@@ -275,7 +275,6 @@ $(document).ready(function() {
           var eventRowEmployeePk = employeesNotAssignedOnThisDate[i];
           eventRow = employeeSortedIdList.indexOf(eventRowEmployeePk);
           var fullCalEvent = _createBlankEvent(date, eventRowEmployeePk, eventRow);
-          console.log("className is: ", fullCalEvent.className);
           if (viewType === "month") {
             scheduleEvents.push(fullCalEvent);
           } else if (viewType === "listYear" && fullCalEvent.className !== "blank-event") {
