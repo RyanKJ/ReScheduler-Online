@@ -1,9 +1,13 @@
 from django import forms
 from datetime import datetime
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import (Employee, Department, DepartmentMembership, 
                      Vacation, Absence, RepeatUnavailability, DesiredTime, 
                      MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody)
 from custom_formfields import TzAwareTimeField, MultipleIntField
+
+
 
 DATE_FORMAT = '%Y, %B'
 DATE_FORMATS = [DATE_FORMAT]
@@ -13,11 +17,17 @@ MONTH_CHOICES = ((1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
                  (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December'))
 WEEKDAY_CHOICES = ((0, 'Monday'), (1, 'Tuesday'), (2, 'Wednesday'),
                    (3, 'Thursday'), (4, 'Friday'), (5, 'Saturday'), 
-                   (6, 'Sunday'))                 
-                 
-                 
+                   (6, 'Sunday'))                            
 DATETIME_FORMAT = "%B %d, %Y at %I:%M %p"
 DATETIME_FORMATS = [DATETIME_FORMAT]
+
+
+class SignUpForm(UserCreationForm):
+    email = forms.EmailField(max_length=254, help_text='Required. Inform a valid email address.')
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password1', 'password2', )
 
 
 class CalendarForm(forms.Form):
@@ -278,7 +288,6 @@ class EditScheduleForm(forms.Form):
     hide_end = forms.BooleanField(label="", required=False)
     cal_date = forms.DateField()
     undo_edit = forms.BooleanField(label="", required=False)
-    
     
     
 class CopySchedulesForm(forms.Form):

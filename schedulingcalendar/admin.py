@@ -4,7 +4,7 @@ from .models import (Employee, Department, Schedule, Vacation,
                      RepeatUnavailability, DesiredTime, MonthlyRevenue, 
                      DepartmentMembership, BusinessData, LiveSchedule,
                      LiveCalendar, DayNoteHeader, DayNoteBody,
-                     ScheduleSwapPetition)
+                     ScheduleSwapPetition, ManagerProfile)
 
 admin.site.register(Employee)
 admin.site.register(Department)
@@ -20,3 +20,4 @@ admin.site.register(LiveCalendar)
 admin.site.register(DayNoteHeader)
 admin.site.register(DayNoteBody)
 admin.site.register(ScheduleSwapPetition)
+admin.site.register(ManagerProfile)

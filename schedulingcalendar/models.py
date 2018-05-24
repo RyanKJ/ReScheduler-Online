@@ -1,8 +1,30 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from datetime import datetime, date, time
+
+
+
+class ManagerProfile(models.Model):
+    """Meta-data and addition info for manager users"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email_confirmed = models.BooleanField(default=False)
+    
+    
+@receiver(post_save, sender=User)
+def update_user_profile(sender, instance, created, **kwargs):
+    print "*********** got here 1"
+    print "*********** got here 2"
+    if created:
+        print "*********** got here 3"
+        manager_profile = ManagerProfile.objects.create(user=instance)
+        manager_profile.save()
+        print "*********** got here 4"
+    else:
+        instance.managerprofile.save()
 
 
 class Employee(models.Model):
