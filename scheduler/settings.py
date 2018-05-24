@@ -122,10 +122,10 @@ USE_TZ = True
 
 EMAIL_HOST = 'smtp.webfaction.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'schedule_hours'
-EMAIL_HOST_PASSWORD = '332133Rkj!'
-DEFAULT_FROM_EMAIL = 'info@schedulehours.com'
-SERVER_EMAIL = 'info@schedulehours.com'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = ''
+SERVER_EMAIL = ''
 EMAIL_USE_TLS = True
 
 
