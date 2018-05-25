@@ -18,14 +18,12 @@ class TzAwareTimeField(TimeField):
     """Time field for django forms that preserves timezone information."""
     def prepare_value(self, value):
         if isinstance(value, datetime):
-            value = to_current_timezone(value).time()
+            value = value.time()
         return super(TzAwareTimeField, self).prepare_value(value)
 
     def clean(self, value):
         value = super(TzAwareTimeField, self).to_python(value)
-        time_zone = timezone.get_default_timezone_name()
-        dt = datetime.now()
-        dt = pytz.timezone(time_zone).localize(dt)
+        dt = timezone.now()
         dt = dt.replace(hour=value.hour, minute=value.minute,
                         second=value.second, microsecond=value.microsecond)
         return dt
