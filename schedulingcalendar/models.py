@@ -16,13 +16,9 @@ class ManagerProfile(models.Model):
     
 @receiver(post_save, sender=User)
 def update_user_profile(sender, instance, created, **kwargs):
-    print "*********** got here 1"
-    print "*********** got here 2"
     if created:
-        print "*********** got here 3"
         manager_profile = ManagerProfile.objects.create(user=instance)
         manager_profile.save()
-        print "*********** got here 4"
     else:
         instance.managerprofile.save()
 

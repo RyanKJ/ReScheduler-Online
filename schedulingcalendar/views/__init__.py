@@ -3,3 +3,4 @@ from views_schedule_editing import *
 from views_get_schedules import *
 from views_employee_crud import *
 from views_pending_approvals import *
+from views_authentication import *

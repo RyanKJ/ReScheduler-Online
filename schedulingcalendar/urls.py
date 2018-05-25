@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^login_success/$', login_success, name='login_success'),
     url(r'^register/$', register, name='register'),
     url(r'^account_activation_sent/$', account_activation_sent, name='account_activation_sent'),
+    url(r'^account_activation_success/$', account_activation_success, name='account_activation_success'),
     url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', activate, name='activate'),
     url(r'^calendar/$', calendar_page, name='calendar_page'),
     url(r'^calendar/add_schedule$', add_schedule, name='add_schedule'),
