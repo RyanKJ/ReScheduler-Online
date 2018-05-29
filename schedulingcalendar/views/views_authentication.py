@@ -100,4 +100,6 @@ def account_activation_success(request):
     context = {}
 
     return HttpResponse(template.render(context, request))
+    
+    
    
