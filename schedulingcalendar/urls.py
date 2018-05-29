@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^about/$', about_page, name='about_page'),
     url(r'^contact/$', contact_page, name='contact_page'),
     url(r'^login_success/$', login_success, name='login_success'),
+    url(r'^account_settings/$', account_settings, name='account_settings'),
     url(r'^register/$', register, name='register'),
     url(r'^account_activation_sent/$', account_activation_sent, name='account_activation_sent'),
     url(r'^account_activation_success/$', account_activation_success, name='account_activation_success'),

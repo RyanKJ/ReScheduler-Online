@@ -66,8 +66,16 @@
       </li> 
       {% if user.is_authenticated %}
         <li class="nav-item custom-nav-item active">
-          <a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
-        </li>  
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="accountDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              My Account
+            </button>
+            <div class="dropdown-menu" aria-labelledby="accountDropdownMenuButton">
+              <a class="dropdown-item nav-link" href="{% url 'schedulingcalendar:account_settings' %}">Account Settings</a>
+              <a class="dropdown-item nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
+            </div>
+          </div>
+        </li> 
       {% endif %}
     </ul>
   </div>

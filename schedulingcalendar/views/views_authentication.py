@@ -12,6 +12,7 @@ from django.template import loader
 from django.core.mail import send_mail
 from ..tokens import account_activation_token
 from ..models import Department, DepartmentMembership, Employee, BusinessData     
+from ..forms import SignUpForm
 from datetime import datetime, date
     
     
@@ -19,6 +20,15 @@ from datetime import datetime, date
 def manager_check(user):
     """Checks if user is a manager user or not."""
     return user.groups.filter(name="Managers").exists()
+ 
+ 
+@login_required 
+def account_settings(request):
+    """Page to edit account such as changing password."""
+    template = loader.get_template('registration/account_settings.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
     
  
 @login_required 
@@ -100,6 +110,8 @@ def account_activation_success(request):
     context = {}
 
     return HttpResponse(template.render(context, request))
+    
+   
     
     
    
