@@ -1,0 +1,8 @@
+{% autoescape off %}
+Hey {{ user.username }},
+
+We are sad to see you go. By clicking this link, all information will be permanently
+deleted from our database.
+
+http://{{ domain }}{% url 'schedulingcalendar:delete_confirm' uidb64=uid token=token %}
+{% endautoescape %}

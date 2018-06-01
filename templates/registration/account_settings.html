@@ -5,8 +5,14 @@
 {% block form_content %}
   <h3 class="card-title text-center">Account Settings</h3>
   
-  <div class="text-center">
-    <a href="#">Change Password</a>
-    <a href="#">Delete Account</a>
+  <div class="text-center pt-3">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item pb-5">
+        <a class="btn btn-primary text-white" href="{% url 'schedulingcalendar:change_password' %}">Change Password</a>
+      </li>
+      <li class="list-group-item pt-5">
+        <a class="btn btn-danger text-white" href="{% url 'schedulingcalendar:delete_account' %}">Delete Account</a>
+      </li>
+    </ul>
   </div>
 {% endblock %}

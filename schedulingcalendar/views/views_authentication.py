@@ -1,18 +1,18 @@
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import login
+from django.contrib import messages
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.http import urlsafe_base64_decode
 from django.template import loader
 from django.core.mail import send_mail
-from ..tokens import account_activation_token
+from ..tokens import account_activation_token, account_delete_token
 from ..models import Department, DepartmentMembership, Employee, BusinessData     
-from ..forms import SignUpForm
+from ..forms import SignUpForm, DeleteAccountForm, DeleteAccountFeedbackForm
 from datetime import datetime, date
     
     
@@ -111,7 +111,90 @@ def account_activation_success(request):
 
     return HttpResponse(template.render(context, request))
     
+    
+@login_required 
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def change_password(request):
+    """Change password of manager user"""
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('/account_settings/')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+        
+    return render(request, 'registration/password_change.html', {'form': form})
+    
+    
+@login_required 
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def delete_account(request):
+    """Send email confirmation asking user to confirm desire to delete account."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = DeleteAccountForm(request.POST)
+        if form.is_valid():
+            delete_str = form.cleaned_data['delete_str']
+            if delete_str == "DELETEMYACCOUNT":
+                current_site = get_current_site(request)
+                subject = 'Delete your Schedule Hours account'
+                message = loader.render_to_string('registration/account_delete_email.html', {
+                    'user': logged_in_user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(logged_in_user.pk)),
+                    'token': account_delete_token.make_token(logged_in_user),
+                })
+                logged_in_user.email_user(subject, message)
+                return redirect("/account_delete_sent/")
+            else:
+                form = DeleteAccountForm()
+    else:
+        form = DeleteAccountForm()
+    return render(request, 'registration/delete_account.html', {'form': form})
+ 
    
+@login_required 
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def delete_confirm(request, uidb64, token):
+    """Activate user if user's token matches url token."""
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_delete_token.check_token(user, token):
+        print "******************* DELETE ACCOUNT HERE."
+        form = DeleteAccountFeedbackForm()
+        return render(request, 'registration/delete_account_feedback.html', {'form': form})
+    else:
+        return render(request, 'registration/account_delete_invalid.html')
     
     
+def account_delete_sent(request):
+    """Display the confirmation email sent page for user account termination."""
+    template = loader.get_template('registration/account_delete_sent.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
+    
+    
+def account_delete_feedback_send(request):
+    """Submit feedback to email."""
+    if request.method == 'POST':
+        form = DeleteAccountFeedbackForm(request.POST)
+        if form.is_valid():
+            feedback_text = form.cleaned_data['feedback_text']
+            send_mail('Feedback', feedback_text, 'info@schedulehours.com', ['info@schedulehours.com'])
+            return redirect('/front/')
+        else:
+            return redirect('/frontr/')
+    else:
+        return redirect('/front/')
+
    

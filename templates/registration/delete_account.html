@@ -1,0 +1,30 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+
+{% block title %}Terminate Account{% endblock %}
+
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:account_settings' %}">Return To Account Settings</a>
+  </div>
+{% endblock sub_navbar %}  
+
+{% block form_content %}
+  <h3 class="card-title text-center">Terminate Account</h3>
+  <p><b>Warning! Once you click the link in the email, your account will
+     be permanently deleted and all information removed from the database.
+  </b></p>
+  <p>To delete your account, type DELETEMYACCOUNT in the text field below. 
+     Then a confirmation email will be sent to the email associated with your 
+     account. Once you click on the link in the email, your account will be 
+     permanently deleted.
+  </p>
+  <br>
+  <div class="text-center">
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-danger">Submit</button>
+    </form>
+  </div>
+{% endblock %}

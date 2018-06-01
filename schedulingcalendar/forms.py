@@ -464,6 +464,17 @@ class EmployeeDisplaySettingsForm(forms.ModelForm):
     class Meta:
         model = Employee
         fields = ['override_list_view', 'see_all_departments']
+        
+        
+class DeleteAccountForm(forms.Form):
+    """Form for verifying if user wants to delete account."""
+    delete_str = forms.CharField(label='', required=False, max_length=20)
+    
+    
+class DeleteAccountFeedbackForm(forms.Form):
+    """Form for getting feedback from deleted accounts."""
+    feedback_text = forms.CharField(label='', required=False, max_length=2000, 
+                                    widget=forms.Textarea())
     
     
 def get_department_tuple(user, employee=None):
