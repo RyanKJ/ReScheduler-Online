@@ -11,27 +11,27 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template import loader
 from django.core.mail import send_mail
 from ..tokens import account_activation_token, account_delete_token
-from ..models import Department, DepartmentMembership, Employee, BusinessData     
+from ..models import Department, DepartmentMembership, Employee, BusinessData
 from ..forms import SignUpForm, DeleteAccountForm, DeleteAccountFeedbackForm
 from datetime import datetime, date
-    
-    
+
+
 
 def manager_check(user):
     """Checks if user is a manager user or not."""
     return user.groups.filter(name="Managers").exists()
- 
- 
-@login_required 
+
+
+@login_required
 def account_settings(request):
     """Page to edit account such as changing password."""
     template = loader.get_template('registration/account_settings.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
- 
-@login_required 
+
+
+@login_required
 def login_success(request):
     """Redirect user based on if they are manager or employee."""
     if manager_check(request.user):
@@ -39,7 +39,7 @@ def login_success(request):
     else:
         return redirect("/live_calendar/") # Employee calendar
 
-    
+
 def register(request):
     """User registration that sends out an email confirmation with token."""
     if request.method == 'POST':
@@ -48,7 +48,7 @@ def register(request):
             user = form.save(commit=False)
             user.is_active = False
             user.save()
-            
+
             current_site = get_current_site(request)
             subject = 'Activate Your Schedule Hours Business Account'
             message = loader.render_to_string('registration/account_activation_email.html', {
@@ -62,8 +62,8 @@ def register(request):
     else:
         form = SignUpForm()
     return render(request, 'registration/signUp.html', {'form': form})
-    
-    
+
+
 def activate(request, uidb64, token):
     """Activate user if user's token matches url token."""
     try:
@@ -76,11 +76,11 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.managerprofile.email_confirmed = True
         user.save()
-        
+
         # Add user to manager group for permissions
         manager_user_group = Group.objects.get(name="Managers")
         user.groups.add(manager_user_group)
-        
+
         # TODO: Should redirect to a page to create company/departments/3 employees
         # Create business logic for user
         business_data = BusinessData(user=user)
@@ -94,25 +94,25 @@ def activate(request, uidb64, token):
         return redirect("/login/")
     else:
         return render(request, 'registration/account_activation_invalid.html')
-    
-    
+
+
 def account_activation_sent(request):
     """Display the confirmation email sent page for user registration."""
     template = loader.get_template('registration/account_activation_sent.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
-    
+
+
 def account_activation_success(request):
     """Display the account registration success page."""
     template = loader.get_template('registration/account_activation_success.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
-    
-@login_required 
+
+
+@login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def change_password(request):
     """Change password of manager user"""
@@ -127,11 +127,11 @@ def change_password(request):
             messages.error(request, 'Please correct the error below.')
     else:
         form = PasswordChangeForm(request.user)
-        
+
     return render(request, 'registration/password_change.html', {'form': form})
-    
-    
-@login_required 
+
+
+@login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def delete_account(request):
     """Send email confirmation asking user to confirm desire to delete account."""
@@ -156,9 +156,9 @@ def delete_account(request):
     else:
         form = DeleteAccountForm()
     return render(request, 'registration/delete_account.html', {'form': form})
- 
-   
-@login_required 
+
+
+@login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def delete_confirm(request, uidb64, token):
     """Activate user if user's token matches url token."""
@@ -170,20 +170,21 @@ def delete_confirm(request, uidb64, token):
 
     if user is not None and account_delete_token.check_token(user, token):
         print "******************* DELETE ACCOUNT HERE."
+        user.delete()
         form = DeleteAccountFeedbackForm()
         return render(request, 'registration/delete_account_feedback.html', {'form': form})
     else:
         return render(request, 'registration/account_delete_invalid.html')
-    
-    
+
+
 def account_delete_sent(request):
     """Display the confirmation email sent page for user account termination."""
     template = loader.get_template('registration/account_delete_sent.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
-    
+
+
 def account_delete_feedback_send(request):
     """Submit feedback to email."""
     if request.method == 'POST':
@@ -191,10 +192,8 @@ def account_delete_feedback_send(request):
         if form.is_valid():
             feedback_text = form.cleaned_data['feedback_text']
             send_mail('Feedback', feedback_text, 'info@schedulehours.com', ['info@schedulehours.com'])
-            return redirect('/front/')
+            return render(request, 'registration/feedback_thankyou.html')
         else:
-            return redirect('/frontr/')
+            return redirect('/front/')
     else:
         return redirect('/front/')
-
-   

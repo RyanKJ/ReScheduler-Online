@@ -118,6 +118,7 @@ USE_L10N = True
 USE_TZ = True
 
 
+
 #E-Mail
 
 EMAIL_HOST = 'smtp.webfaction.com'
@@ -127,6 +128,7 @@ EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = ''
 SERVER_EMAIL = ''
 EMAIL_USE_TLS = True
+
 
 
 # Static files (CSS, JavaScript, Images)
