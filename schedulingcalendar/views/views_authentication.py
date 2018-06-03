@@ -169,7 +169,6 @@ def delete_confirm(request, uidb64, token):
         user = None
 
     if user is not None and account_delete_token.check_token(user, token):
-        print "******************* DELETE ACCOUNT HERE."
         user.delete()
         form = DeleteAccountFeedbackForm()
         return render(request, 'registration/delete_account_feedback.html', {'form': form})

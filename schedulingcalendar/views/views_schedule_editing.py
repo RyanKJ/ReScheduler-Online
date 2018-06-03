@@ -8,33 +8,33 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.forms.models import model_to_dict
-from ..models import (Schedule, Department, DepartmentMembership, Employee, 
+from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      Vacation, RepeatUnavailability, DesiredTime, MonthlyRevenue,
-                     Absence, BusinessData, LiveSchedule, LiveCalendar, 
+                     Absence, BusinessData, LiveSchedule, LiveCalendar,
                      DayNoteHeader, DayNoteBody)
-from ..business_logic import (get_eligibles, all_calendar_hours_and_costs, 
-                            add_employee_cost_change, remove_schedule_cost_change,
-                            create_live_schedules, time_dur_in_hours,
-                            edit_schedule_cost_change, calculate_cost_delta, 
-                            get_start_end_of_weekday, get_availability, get_dates_in_week,
-                            set_view_rights, send_employee_texts, 
-                            view_right_send_employee_texts)            
-from ..forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
-                    LiveCalendarForm, LiveCalendarManagerForm, ViewLiveCalendarForm, 
-                    DayNoteHeaderForm, DayNoteBodyForm, ScheduleNoteForm, 
-                    EditScheduleForm, CopySchedulesForm, SetStateLiveCalForm, 
+from ..business_logic import (get_eligibles, all_calendar_hours_and_costs,
+                              add_employee_cost_change, remove_schedule_cost_change,
+                              create_live_schedules, time_dur_in_hours,
+                              edit_schedule_cost_change, calculate_cost_delta,
+                              get_start_end_of_weekday, get_availability, get_dates_in_week,
+                              set_view_rights, send_employee_notifications,
+                              view_right_send_employee_notifications)
+from ..forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
+                    LiveCalendarForm, LiveCalendarManagerForm, ViewLiveCalendarForm,
+                    DayNoteHeaderForm, DayNoteBodyForm, ScheduleNoteForm,
+                    EditScheduleForm, CopySchedulesForm, SetStateLiveCalForm,
                     SchedulePkForm, AddEmployeeToScheduleForm, RemoveScheduleForm)
-from ..serializers import (date_handler, get_json_err_response, _availability_to_dict, 
+from ..serializers import (date_handler, get_json_err_response, _availability_to_dict,
                            eligable_list_to_dict, get_tro_dates_to_dict, _availability_to_dict)
 from .views_basic_pages import manager_check
 from datetime import datetime, date, time, timedelta
 import bisect
 import pytz
 import json
-import copy 
+import copy
 
- 
-    
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def add_schedule(request):
@@ -49,7 +49,7 @@ def add_schedule(request):
             end_time = form.cleaned_data['end_time']
             hide_start = form.cleaned_data['hide_start']
             hide_end = form.cleaned_data['hide_end']
-            
+
             # Save time and hide choices to business settings
             business_data = BusinessData.objects.get(user=logged_in_user)
             business_data.schedule_start = start_time
@@ -57,7 +57,7 @@ def add_schedule(request):
             business_data.hide_start = hide_start
             business_data.hide_end = hide_end
             business_data.save()
-            
+
             # Construct start and end datetimes for schedule
             time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
@@ -75,19 +75,19 @@ def add_schedule(request):
             schedule.save()
             schedule_dict = model_to_dict(schedule)
             schedule_json = json.dumps(schedule_dict, default=date_handler)
-            
+
             return JsonResponse(schedule_json, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-       
-     
+
+
 @login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")    
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def get_schedule_info(request):
     """Returns eligible list of employees for given schedule pk."""
     logged_in_user = request.user
@@ -97,31 +97,31 @@ def get_schedule_info(request):
             schedule_pk = form.cleaned_data['schedule_pk']
             schedule = (Schedule.objects.select_related('department', 'employee', 'user')
                                         .get(user=logged_in_user, pk=schedule_pk))
-            
+
             eligable_list = get_eligibles(logged_in_user, schedule)
             eligable_dict_list = eligable_list_to_dict(eligable_list)
             json_data = json.dumps(eligable_dict_list, default=date_handler)
-            
+
             return JsonResponse(json_data, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be GET. Got: ' + request.method
         return get_json_err_response(msg)
-    
-    
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def get_proto_schedule_info(request):
     """Get eligible list for onChange response to add_schedule_form.
-    
+
     This function is used to create a mock schedule to see what the eligible
     list would be IF a user created a schedule with said parameters. It informs
     the user what employee options they would have if they created the schedule.
     """
-    
+
     logged_in_user = request.user
     if request.method == 'GET':
         form = ProtoScheduleForm(request.GET)
@@ -130,7 +130,7 @@ def get_proto_schedule_info(request):
             date = form.cleaned_data['add_date']
             start_time = form.cleaned_data['start_time']
             end_time = form.cleaned_data['end_time']
-            
+
             # Construct start and end datetimes for schedule
             time_zone = timezone.get_default_timezone_name()
             start_dt = datetime.combine(date, start_time)
@@ -143,21 +143,21 @@ def get_proto_schedule_info(request):
             schedule = Schedule(user=logged_in_user,
                                 start_datetime=start_dt, end_datetime=end_dt,
                                 department=dep)
-            
+
             eligable_list = get_eligibles(logged_in_user, schedule)
             eligable_dict_list = eligable_list_to_dict(eligable_list)
             json_data = json.dumps(eligable_dict_list, default=date_handler)
-            
+
             return JsonResponse(json_data, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be GET. Got: ' + request.method
         return get_json_err_response(msg)
-    
-    
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def add_employee_to_schedule(request):
@@ -172,47 +172,47 @@ def add_employee_to_schedule(request):
             # Get schedule and its cost with old employee
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
-                                        
+
             new_employee = Employee.objects.get(user=logged_in_user, pk=employee_pk)
-            
+
             # Get cost of assigning new employee to schedule
             departments = Department.objects.filter(user=logged_in_user)
             business_data = BusinessData.objects.get(user=logged_in_user)
             cost_delta = add_employee_cost_change(logged_in_user, schedule, new_employee,
                                                   departments, business_data, cal_date)
-            
+
             # Get length of schedule for new employee, and old employee if exists
-            new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+            new_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
                                                  None, None, min_time_for_break=new_employee.min_time_for_break,
                                                  break_time_in_min=new_employee.break_time_in_min)
             old_sch_duration = 0
             if schedule.employee:
                 prev_employee = schedule.employee
-                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
                                                      None, None, min_time_for_break=prev_employee.min_time_for_break,
                                                      break_time_in_min=prev_employee.break_time_in_min)
-            
+
             # Assign new employee to schedule
             schedule.employee = new_employee
             schedule.save(update_fields=['employee'])
-            
+
             # Process information for json dump
             schedule_dict = model_to_dict(schedule)
             employee_dict = model_to_dict(new_employee)
-            data = {'schedule': schedule_dict, 'employee': employee_dict, 
+            data = {'schedule': schedule_dict, 'employee': employee_dict,
                     'cost_delta': cost_delta, 'new_sch_duration': new_sch_duration,
                     'old_sch_duration': old_sch_duration}
             json_data = json.dumps(data, default=date_handler)
-            
+
             return JsonResponse(json_data, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-    
+
 
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
@@ -226,7 +226,7 @@ def remove_schedule(request):
             cal_date = form.cleaned_data['cal_date']
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
-                                        
+
             cost_delta = 0
             if schedule.employee: # Get change of cost if employee was assigned
               departments = Department.objects.filter(user=logged_in_user)
@@ -234,22 +234,22 @@ def remove_schedule(request):
               cost_delta = remove_schedule_cost_change(logged_in_user, schedule,
                                                        departments, business_data,
                                                        cal_date)
-              
+
             schedule.delete()
             json_info = json.dumps({'schedule_pk': schedule_pk, 'cost_delta': cost_delta},
                                     default=date_handler)
-                                    
+
             return JsonResponse(json_info, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-    
-    
-    
+
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def edit_schedule(request):
@@ -269,12 +269,12 @@ def edit_schedule(request):
             undo_edit = form.cleaned_data['undo_edit']
             schedule = (Schedule.objects.select_related('department', 'employee')
                                         .get(user=logged_in_user, pk=schedule_pk))
-                                        
+
             old_start_dt = schedule.start_datetime.isoformat()
-            old_end_dt = schedule.end_datetime.isoformat()  
+            old_end_dt = schedule.end_datetime.isoformat()
             oldHideStart = schedule.hide_start_time
             oldHideEnd = schedule.hide_start_time
-            
+
             # Construct start and end datetimes for schedule
             date = schedule.start_datetime.date()
             time_zone = timezone.get_default_timezone_name()
@@ -282,7 +282,7 @@ def edit_schedule(request):
             start_dt = pytz.timezone(time_zone).localize(start_dt)
             end_dt = datetime.combine(date, end_time)
             end_dt = pytz.timezone(time_zone).localize(end_dt)
-            
+
             # Get cost difference of changing schedule time if employee assigned
             cost_delta = 0
             old_sch_duration = 0
@@ -295,15 +295,15 @@ def edit_schedule(request):
                                                        start_dt, end_dt,
                                                        departments, business_data,
                                                        cal_date)
-                                                       
+
                 # Get length of schedule for new employee, and old employee if exists
-                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime, 
+                old_sch_duration = time_dur_in_hours(schedule.start_datetime, schedule.end_datetime,
                                                      None, None, min_time_for_break=schedule.employee.min_time_for_break,
                                                      break_time_in_min=schedule.employee.break_time_in_min)
-                new_sch_duration = time_dur_in_hours(start_dt, end_dt, 
+                new_sch_duration = time_dur_in_hours(start_dt, end_dt,
                                                      None, None, min_time_for_break=schedule.employee.min_time_for_break,
                                                      break_time_in_min=schedule.employee.break_time_in_min)
-                                   
+
             # Save time and hide choices to business settings
             business_data = BusinessData.objects.get(user=logged_in_user)
             business_data.schedule_start = start_time
@@ -311,14 +311,14 @@ def edit_schedule(request):
             business_data.hide_start = hide_start
             business_data.hide_end = hide_end
             business_data.save()
-            
+
             #Set schedule fields to form data
             schedule.start_datetime = start_dt
             schedule.end_datetime = end_dt
             schedule.hide_start_time = hide_start
-            schedule.hide_end_time = hide_end                 
+            schedule.hide_end_time = hide_end
             schedule.save()
-            
+
             # Check for any conflicts with new schedule times if employee assigned
             availability = {}
             if schedule.employee and not undo_edit:
@@ -330,30 +330,30 @@ def edit_schedule(request):
                 overtime = new_availability['(O)']
                 if other_sch or vacation or unavail or repeat_unavail or overtime:
                     availability = _availability_to_dict(new_availability)
-            
+
             schedule_dict = model_to_dict(schedule)
             json_info = json.dumps({'schedule': schedule_dict,
                                     'cost_delta': cost_delta,
                                     'new_sch_duration': new_sch_duration,
                                     'old_sch_duration': old_sch_duration,
-                                    'availability': availability, 
+                                    'availability': availability,
                                     'oldStartDatetime': old_start_dt,
                                     'oldEndDatetime': old_end_dt,
-                                    'oldHideStart': oldHideStart, 
+                                    'oldHideStart': oldHideStart,
                                     'oldHideEnd': oldHideEnd},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-            
-    
+
+
 @login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")    
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def copy_schedules(request):
     """Copy set of schedules pks with given date."""
     logged_in_user = request.user
@@ -366,8 +366,8 @@ def copy_schedules(request):
             cal_date = form.cleaned_data['cal_date']
             schedules = (Schedule.objects.select_related('employee')
                                          .filter(user=logged_in_user, id__in=schedule_pks))
-            
-            # Calculate cost of workweek before adding schedules 
+
+            # Calculate cost of workweek before adding schedules
             employees = []
             for sch in schedules:
                 if sch.employee:
@@ -388,10 +388,10 @@ def copy_schedules(request):
             old_week_cost = 0
             if workweek_schedules:
                 old_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
-                                                             workweek_schedules, [], 
-                                                             cal_date.month, cal_date.year, 
+                                                             workweek_schedules, [],
+                                                             cal_date.month, cal_date.year,
                                                              business_data, workweek)
-                                                             
+
             # Create copied schedules and get availability of copied schedules with employees
             # We only add the availability if there is a conflict between employee and schedules
             schedule_availabilities = {}
@@ -407,9 +407,9 @@ def copy_schedules(request):
                             new_start_dt = sch.start_datetime.replace(year=day.year, month=day.month, day=day.day)
                             new_end_dt = sch.end_datetime.replace(year=day.year, month=day.month, day=day.day)
                             break
-                
+
                 copy_schedule = Schedule(user=logged_in_user,
-                                         start_datetime=new_start_dt, 
+                                         start_datetime=new_start_dt,
                                          end_datetime=new_end_dt,
                                          hide_start_time=sch.hide_start_time,
                                          hide_end_time=sch.hide_end_time,
@@ -418,7 +418,7 @@ def copy_schedules(request):
                                          employee=sch.employee)
                 copy_schedule.save()
                 copied_schedules.append(copy_schedule)
-                
+
                 if copy_schedule.employee:
                     availability = get_availability(logged_in_user, copy_schedule.employee, copy_schedule)
                     other_sch = availability['(S)']
@@ -426,49 +426,49 @@ def copy_schedules(request):
                     unavail = availability['(A)']
                     repeat_unavail = availability['(U)']
                     overtime = availability['(O)']
-                    
+
                     if other_sch or vacation or unavail or repeat_unavail or overtime:
                         schedule_availabilities[copy_schedule.id] = availability
-                
+
             # Calculate cost of workweek with new copied schedules
             for schedule in copied_schedules:
                 if schedule.employee:
                     bisect.insort_left(workweek_schedules, schedule)
             new_week_cost = all_calendar_hours_and_costs(logged_in_user, departments,
-                                                         workweek_schedules, [], 
-                                                         cal_date.month, cal_date.year, 
+                                                         workweek_schedules, [],
+                                                         cal_date.month, cal_date.year,
                                                          business_data, workweek)
             if old_week_cost:
                 cost_delta = calculate_cost_delta(old_week_cost, new_week_cost, 'subtract')
             else:
                 cost_delta = new_week_cost
-                
+
             # Serialize data
             availability_as_dicts = {}
             for avail in schedule_availabilities:
                 avail_dict = _availability_to_dict(schedule_availabilities[avail])
                 availability_as_dicts[avail] = avail_dict
-            
+
             schedules_as_dicts = []
             for s in copied_schedules:
                 schedule_dict = model_to_dict(s)
                 schedules_as_dicts.append(schedule_dict)
-            
-            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': cost_delta, 
+
+            json_info = json.dumps({'schedules': schedules_as_dicts, 'cost_delta': cost_delta,
                                     'availability': availability_as_dicts},
                                     default=date_handler)
             return JsonResponse(json_info, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-   
-   
+
+
 @login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")    
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def remove_conflict_copy_schedules(request):
     """Remove copied schedules that have conflict user did not want to keep."""
     logged_in_user = request.user
@@ -480,7 +480,7 @@ def remove_conflict_copy_schedules(request):
             cal_date = form.cleaned_data['cal_date']
             schedules = (Schedule.objects.select_related('employee')
                                          .filter(user=logged_in_user, id__in=schedule_pks))
-            
+
             # Get cost delta from removing each schedule then delete schedule
             departments = Department.objects.filter(user=logged_in_user)
             business_data = BusinessData.objects.get(user=logged_in_user)
@@ -489,18 +489,18 @@ def remove_conflict_copy_schedules(request):
                 if sch.employee:
                     cost_delta = remove_schedule_cost_change(logged_in_user, sch,
                                                              departments, business_data,
-                                                             cal_date)                                      
+                                                             cal_date)
                     if not total_cost_delta:
                         total_cost_delta = cost_delta
                     else:
                         total_cost_delta = calculate_cost_delta(total_cost_delta, cost_delta, 'add')
-                        
+
                     sch.delete()
-                        
-            # Return cost delta to front end to be rendered    
-            json_info = json.dumps({'cost_delta': cost_delta}, default=date_handler)      
+
+            # Return cost delta to front end to be rendered
+            json_info = json.dumps({'cost_delta': cost_delta}, default=date_handler)
             return JsonResponse(json_info, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
@@ -508,7 +508,7 @@ def remove_conflict_copy_schedules(request):
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
 
-            
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def push_changes_live(request):
@@ -523,13 +523,14 @@ def push_changes_live(request):
             department_view = form.cleaned_data['department_view']
             employee_view = form.cleaned_data['employee_view']
             notify_by_sms = form.cleaned_data['notify_by_sms']
+            notify_by_email = form.cleaned_data['notify_by_email']
             notify_all = form.cleaned_data['notify_all']
-            
+
             # Get or create live calendar
             department = Department.objects.get(pk=department_pk)
-            live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user, 
-                                                                        date=date, 
-                                                                        department=department)                  
+            live_calendar, created = LiveCalendar.objects.get_or_create(user=logged_in_user,
+                                                                        date=date,
+                                                                        department=department)
             if created:
                 live_calendar.all_employee_view = all_employee_view
                 live_calendar.save()
@@ -539,30 +540,32 @@ def push_changes_live(request):
                 live_calendar.version += 1
                 live_calendar.save()
                 create_live_schedules(logged_in_user, live_calendar)
-                
+
             # Set specific view rights
             set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
-            view_rights = {'all_employee_view': all_employee_view, 
+            view_rights = {'all_employee_view': all_employee_view,
                            'department_view': department_view,
-                           'employee_view': employee_view}   
+                           'employee_view': employee_view}
 
-            # Send texts to emails with new/changed schedules if text send is true
-            if notify_by_sms:
+            # Send texts and emails with new/changed schedules
+            if notify_by_sms or notify_by_email:
                 business_data = BusinessData.objects.get(user=logged_in_user)
-                send_employee_texts(logged_in_user, department, date, business_data, live_calendar, view_rights, notify_all)
-                           
-                           
+                send_employee_notifications(logged_in_user, department, date, business_data,
+                                            live_calendar, view_rights, notify_all,
+                                            notify_by_sms, notify_by_email)
+
+
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
-        
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-        
-        
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def update_view_rights(request):
@@ -577,39 +580,42 @@ def update_view_rights(request):
             department_view = form.cleaned_data['department_view']
             employee_view = form.cleaned_data['employee_view']
             notify_by_sms = form.cleaned_data['notify_by_sms']
-            
+            notify_by_email = form.cleaned_data['notify_by_email']
+
             # Get live calendar and text appropriate employees
             department = Department.objects.get(pk=department_pk)
-            live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
-                                                     date=date, 
-                                                     department=department)    
-            view_rights = {'all_employee_view': all_employee_view, 
+            live_calendar = LiveCalendar.objects.get(user=logged_in_user,
+                                                     date=date,
+                                                     department=department)
+            view_rights = {'all_employee_view': all_employee_view,
                            'department_view': department_view,
-                           'employee_view': employee_view}   
-            if notify_by_sms:
+                           'employee_view': employee_view}
+            if notify_by_sms or notify_by_email:
                 business_data = BusinessData.objects.get(user=logged_in_user)
-                view_right_send_employee_texts(logged_in_user, department, date, business_data, live_calendar, copy.deepcopy(view_rights))
-    
+                view_right_send_employee_notifications(logged_in_user, department, date, business_data,
+                                                       live_calendar, copy.deepcopy(view_rights),
+                                                       notify_by_sms, notify_by_email)
+
             live_calendar.all_employee_view = all_employee_view
             live_calendar.save()
- 
+
             # Set specific view rights
-            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)    
-            
+            set_view_rights(logged_in_user, live_calendar, department_view, employee_view)
+
             json_info = json.dumps({'message': 'Successfully updated view rights', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
-        
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-        
-   
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def view_live_schedules(request):   
+def view_live_schedules(request):
     """Redirect manager to view corresponding live_calendar."""
     logged_in_user = request.user
     if request.method == 'GET':
@@ -618,8 +624,8 @@ def view_live_schedules(request):
             date = form.cleaned_data['date']
             department_id = form.cleaned_data['department']
             try: # Get live_calendar to find out if calendar is active
-                live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
-                                                         date=date, 
+                live_calendar = LiveCalendar.objects.get(user=logged_in_user,
+                                                         date=date,
                                                          department=department_id)
                 template = loader.get_template('schedulingcalendar/managerCalendar.html')
                 live_calendar_form = LiveCalendarManagerForm(logged_in_user,
@@ -633,21 +639,21 @@ def view_live_schedules(request):
                 return HttpResponse(template.render(context, request))
             except:
                 message = 'No live calendar currently exists for this month, year, and department.'
-                
+
             json_info = json.dumps({'message': message})
-            return JsonResponse(json_info, safe=False)      
-               
+            return JsonResponse(json_info, safe=False)
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be GET. Got: ' + request.method
-        return get_json_err_response(msg)    
-        
-        
+        return get_json_err_response(msg)
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def add_edit_day_note_header(request): 
+def add_edit_day_note_header(request):
     """Add or edit a day note header."""
     logged_in_user = request.user
     if request.method == 'POST':
@@ -663,20 +669,20 @@ def add_edit_day_note_header(request):
             day_note_header.save(update_fields=['header_text'])
             day_note_header_dict = model_to_dict(day_note_header)
             day_note_header_json = json.dumps(day_note_header_dict, default=date_handler)
-            
+
             return JsonResponse(day_note_header_json, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
-        return get_json_err_response(msg)   
+        return get_json_err_response(msg)
 
-        
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def add_edit_day_note_body(request): 
+def add_edit_day_note_body(request):
     """Add or edit a day note body."""
     logged_in_user = request.user
     if request.method == 'POST':
@@ -692,20 +698,20 @@ def add_edit_day_note_body(request):
             day_note_body.save(update_fields=['body_text'])
             day_note_body_dict = model_to_dict(day_note_body)
             day_note_body_json = json.dumps(day_note_body_dict, default=date_handler)
-            
+
             return JsonResponse(day_note_body_json, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
-        return get_json_err_response(msg)    
-        
-        
+        return get_json_err_response(msg)
+
+
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
-def edit_schedule_note(request): 
+def edit_schedule_note(request):
     """Add or edit a day note body."""
     logged_in_user = request.user
     if request.method == 'POST':
@@ -716,15 +722,15 @@ def edit_schedule_note(request):
             schedule = Schedule.objects.get(user=logged_in_user, pk=id)
             schedule.schedule_note = text
             schedule.save(update_fields=['schedule_note'])
-            
+
             schedule_dict = model_to_dict(schedule)
             schedule_json = json.dumps(schedule_dict, default=date_handler)
-            
+
             return JsonResponse(schedule_json, safe=False)
-            
+
         else:
             msg = 'Invalid form data'
             return get_json_err_response(msg)
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
-        return get_json_err_response(msg)   
+        return get_json_err_response(msg)
