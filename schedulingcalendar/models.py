@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from datetime import datetime, date, time
@@ -16,6 +16,7 @@ class ManagerProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def update_user_profile(sender, instance, created, **kwargs):
+    """Update or create user profile associated with manager user."""
     if created:
         manager_profile = ManagerProfile.objects.create(user=instance)
         manager_profile.save()
@@ -54,6 +55,12 @@ class Employee(models.Model):
 
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
+
+
+@receiver(post_delete, sender=Employee)
+def delete_employee_user(sender, instance, **kwargs):
+    """Delete employee user associated with deleted employee."""
+    instance.employee_user.delete()
 
 
 class Department(models.Model):
