@@ -10,7 +10,7 @@ from datetime import datetime, date, time
 
 class ManagerProfile(models.Model):
     """Meta-data and addition info for manager users"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, db_index=True, on_delete=models.CASCADE)
     email_confirmed = models.BooleanField(default=False)
 
 
@@ -26,8 +26,8 @@ def update_user_profile(sender, instance, created, **kwargs):
 
 class Employee(models.Model):
     """Representation of an employee profile and for schedule assignment."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='manager', null=True)
-    employee_user = models.OneToOneField(User, on_delete=models.SET_NULL,
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE, related_name='manager', null=True)
+    employee_user = models.OneToOneField(User, db_index=True, on_delete=models.SET_NULL,
                                          related_name='employee',
                                          null=True, blank=True)
 
@@ -65,7 +65,7 @@ def delete_employee_user(sender, instance, **kwargs):
 
 class Department(models.Model):
     """Representation of business department."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=100, default="")
     members = models.ManyToManyField(Employee, through='DepartmentMembership')
@@ -76,14 +76,14 @@ class Department(models.Model):
 
 class DepartmentMembership(models.Model):
     """Representation of relationship between an employee and department."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
     def limit_dep_choices():
         """Limit departments for membership to user that owns employee."""
         return Department.objects.filter(user=self.user)
 
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department,
+    employee = models.ForeignKey(Employee, db_index=True, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, db_index=True,
                                    on_delete=models.CASCADE)
     # Integer used to determine if this is a primary (0th tier) or secondary
     # department for the employee (1st, 2nd, ... tier)
@@ -96,18 +96,18 @@ class DepartmentMembership(models.Model):
 
 class Schedule(models.Model):
     """Representation of a work schedule for a business."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
-    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
+    start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
 
     hide_start_time = models.BooleanField(default=False)
     hide_end_time = models.BooleanField(default=False)
 
     schedule_note = models.CharField(default="", blank=True, max_length=280)
 
-    department = models.ForeignKey(Department)
-    employee = models.ForeignKey(Employee, null=True)
+    department = models.ForeignKey(Department, db_index=True)
+    employee = models.ForeignKey(Employee, db_index=True, null=True)
 
 
     def __str__(self):
@@ -136,19 +136,19 @@ class Schedule(models.Model):
 
 class LiveCalendar(models.Model):
     """Representation of a collection of live schedules for given date/dep."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    date = models.DateField('Date', default=date.today)
-    department = models.ForeignKey(Department)
-    version = models.IntegerField('Version', default=1)
+    date = models.DateField('Date', db_index=True, default=date.today)
+    department = models.ForeignKey(Department, db_index=True)
+    version = models.IntegerField('Version', db_index=True, default=1)
     all_employee_view = models.BooleanField(default=True)
 
     # View right model fields
     all_employee_view = models.BooleanField(default=True)
-    department_view_rights = models.ManyToManyField(Department,
+    department_view_rights = models.ManyToManyField(Department, db_index=True,
                                                     related_name='department_view_rights',
                                                     through='LiveCalendarDepartmentViewRights')
-    employee_view_rights = models.ManyToManyField(Employee,
+    employee_view_rights = models.ManyToManyField(Employee, db_index=True,
                                                   through='LiveCalendarEmployeeViewRights')
 
 
@@ -159,10 +159,10 @@ class LiveCalendar(models.Model):
 
 class LiveSchedule(models.Model):
     """Copy of schedule used for displaying finished calendar to employees."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    schedule = models.ForeignKey(Schedule, on_delete=models.SET_NULL, null=True)
-    calendar = models.ForeignKey(LiveCalendar)
-    version = models.IntegerField('Version', default=1)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    schedule = models.ForeignKey(Schedule, db_index=True, on_delete=models.SET_NULL, null=True)
+    calendar = models.ForeignKey(LiveCalendar, db_index=True)
+    version = models.IntegerField('Version', db_index=True, default=1)
 
     start_datetime = models.DateTimeField('start datetime', default=timezone.now)
     end_datetime = models.DateTimeField('end datetime', default=timezone.now)
@@ -172,8 +172,8 @@ class LiveSchedule(models.Model):
 
     schedule_note = models.CharField(default="", blank=True, max_length=280)
 
-    department = models.ForeignKey(Department)
-    employee = models.ForeignKey(Employee)
+    department = models.ForeignKey(Department, db_index=True)
+    employee = models.ForeignKey(Employee, db_index=True)
 
 
     def __str__(self):
@@ -188,9 +188,9 @@ class LiveCalendarDepartmentViewRights(models.Model):
     departments can view the live calendar.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
-    department_view_rights = models.ForeignKey(Department, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    live_calendar = models.ForeignKey(LiveCalendar, db_index=True, on_delete=models.CASCADE)
+    department_view_rights = models.ForeignKey(Department, db_index=True, on_delete=models.CASCADE)
 
 
     def __str__(self):
@@ -202,9 +202,9 @@ class LiveCalendarEmployeeViewRights(models.Model):
     employees can view the live calendar.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    live_calendar = models.ForeignKey(LiveCalendar, on_delete=models.CASCADE)
-    employee_view_rights = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    live_calendar = models.ForeignKey(LiveCalendar, db_index=True, on_delete=models.CASCADE)
+    employee_view_rights = models.ForeignKey(Employee, db_index=True, on_delete=models.CASCADE)
 
 
     def __str__(self):
@@ -213,12 +213,12 @@ class LiveCalendarEmployeeViewRights(models.Model):
 
 class Vacation(models.Model):
     """Representation of a vacation block of time for employee absentee."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
-    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
+    start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
 
-    employee = models.ForeignKey(Employee)
+    employee = models.ForeignKey(Employee, db_index=True)
 
 
     def __str__(self):
@@ -230,12 +230,12 @@ class Vacation(models.Model):
 
 class Absence(models.Model):
     """Representation of an absent block of time for employee."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    start_datetime = models.DateTimeField('start datetime', default=timezone.now)
-    end_datetime = models.DateTimeField('end datetime', default=timezone.now)
+    start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
 
-    employee = models.ForeignKey(Employee)
+    employee = models.ForeignKey(Employee, db_index=True)
 
 
     def __str__(self):
@@ -249,12 +249,12 @@ class RepeatUnavailability(models.Model):
     """Representation of repeating unavailability for employee absentee."""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    start_time = models.DateTimeField('start time', default=timezone.now)
-    end_time = models.DateTimeField('end time', default=timezone.now)
+    start_time = models.DateTimeField('start time', db_index=True, default=timezone.now)
+    end_time = models.DateTimeField('end time', db_index=True, default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
     weekday = models.IntegerField('weekday')
 
-    employee = models.ForeignKey(Employee)
+    employee = models.ForeignKey(Employee, db_index=True)
 
 
     def __str__(self):
@@ -265,14 +265,14 @@ class RepeatUnavailability(models.Model):
 
 class DesiredTime(models.Model):
     """Representation of repeating desired work time for employee."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    start_time = models.DateTimeField('start time', default=timezone.now)
-    end_time = models.DateTimeField('end time', default=timezone.now)
+    start_time = models.DateTimeField('start time', db_index=True, default=timezone.now)
+    end_time = models.DateTimeField('end time', db_index=True, default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
     weekday = models.IntegerField('weekday', default=0)
 
-    employee = models.ForeignKey(Employee)
+    employee = models.ForeignKey(Employee, db_index=True)
 
 
     def __str__(self):
@@ -284,10 +284,10 @@ class DesiredTime(models.Model):
 
 class MonthlyRevenue(models.Model):
     """Representation of total revenue for a business for given month & year."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
     monthly_total = models.IntegerField('monthly total revenue', default=0)
-    month_year = models.DateField('month and year', default=date.today)
+    month_year = models.DateField('month and year', db_index=True, default=date.today)
 
 
     def __str__(self):
@@ -297,10 +297,10 @@ class MonthlyRevenue(models.Model):
 
 class DayNoteHeader(models.Model):
     """Note for a given date that is rendered in a day's header near day number."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, default=1)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, db_index=True, default=1)
 
-    date = models.DateField('Date', default=date.today)
+    date = models.DateField('Date', db_index=True, default=date.today)
     header_text = models.CharField('Note', default="", blank=True, max_length=140)
 
 
@@ -311,10 +311,10 @@ class DayNoteHeader(models.Model):
 
 class DayNoteBody(models.Model):
     """Note for a given date that is rendered in a day's body near schedules."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, default=1)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, db_index=True, default=1)
 
-    date = models.DateField('Date', default=date.today)
+    date = models.DateField('Date', db_index=True, default=date.today)
     body_text = models.CharField('Note', default="", blank=True, max_length=280)
 
 
@@ -325,10 +325,10 @@ class DayNoteBody(models.Model):
 
 class ScheduleSwapPetition(models.Model):
     """Object to store information about schedule swap petition."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    live_schedule = models.ForeignKey(LiveSchedule,
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    live_schedule = models.ForeignKey(LiveSchedule, db_index=True,
                                       null=True)
-    employee = models.ForeignKey(Employee)
+    employee = models.ForeignKey(Employee, db_index=True)
     note = models.CharField('Note', default="", blank=True, max_length=280)
     approved = models.NullBooleanField(default=None, blank=True)
 
@@ -339,9 +339,9 @@ class ScheduleSwapPetition(models.Model):
 
 class ScheduleSwapApplication(models.Model):
     """Object to store information about a schedule swap application."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    schedule_swap_petition = models.ForeignKey(ScheduleSwapPetition)
-    employee = models.ForeignKey(Employee)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    schedule_swap_petition = models.ForeignKey(ScheduleSwapPetition, db_index=True)
+    employee = models.ForeignKey(Employee, db_index=True)
     approved = models.NullBooleanField(default=None, blank=True)
 
 
@@ -351,7 +351,7 @@ class ScheduleSwapApplication(models.Model):
 
 class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
     #TODO:
     #1) Add timezone of managing user
