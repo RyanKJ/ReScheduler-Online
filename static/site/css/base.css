@@ -101,6 +101,7 @@ main {
 .checkbox-custom input[type=checkbox]:checked + label {
 	left: 22px;
 	background: #0095FF;
+  background: linear-gradient(to bottom right, #00a9ff, #0095FF);
 }
 
 .checkbox-custom-text  {
@@ -132,7 +133,10 @@ input[type=checkbox] {
   	height: 30px;
     border-radius: 8%;
   }
-  .checkbox-custom input[type=checkbox]:checked + label { left: 3px; }
+  .checkbox-custom input[type=checkbox]:checked + label { 
+    left: 3px; 
+    background: linear-gradient(to bottom right, #00b3ff, #0095FF); 
+  }
   .checkbox-custom-text { top: 6px; }
   .checkbox-custom:before { width: 0px; }
 

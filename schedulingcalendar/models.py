@@ -353,16 +353,6 @@ class BusinessData(models.Model):
     """Collection of misc. business data, like overtime."""
     user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
-    #TODO:
-    #1) Add timezone of managing user
-    #2) Add time interval for timepicker option for user
-    #3) Display costs disable/enable option
-    #4) Limit amount of employees displayable in eligable list option
-    #5) 24 hour time option
-    #6) Count overlapping time or not?
-    #7) Option to customize eligable sort?
-
-
     # Company Name
     company_name = models.CharField(default="", max_length=120)
 

@@ -3,7 +3,7 @@
 {% block form_content %}
   <h4 class="card-title text-center">Department List</h4>
   <h6>{{ warning_msg }}</h6>
-  <a href="{% url 'schedulingcalendar:department_create' %}">New Department</a>
+  <a class="btn btn-primary text-white mb-2" href="{% url 'schedulingcalendar:department_create' %}">New Department</a>
   <ul class="list-group">
     {% for department in department_list %}
       <li class="list-group-item">

@@ -4,16 +4,17 @@
   margin-bottom: 15px;
   height: 40px;
   z-index: 100;
-} 
+}
 
 .go-back-link {
   position: relative;
   color: white;
   font-size: 16px;
+  font-weight: bolder;
   vertical-align: center;
   top: 6px;
-  margin-left: 8px;
-  padding: 3px 5px 3px 5px;
+  margin-left: 6px;
+  padding: 6px 9px 6px 9px;
   border: 2px solid white;
   border-radius: 1px;
   
