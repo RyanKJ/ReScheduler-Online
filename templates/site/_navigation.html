@@ -66,15 +66,19 @@
       </li> 
       {% if user.is_authenticated %}
         <li class="nav-item custom-nav-item active">
-          <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="accountDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              My Account
-            </button>
-            <div class="dropdown-menu" aria-labelledby="accountDropdownMenuButton">
-              <a class="dropdown-item nav-link" href="{% url 'schedulingcalendar:account_settings' %}">Account Settings</a>
-              <a class="dropdown-item nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
+          {% if user|has_group:"Managers" %}
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" id="accountDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                My Account
+              </button>
+              <div class="dropdown-menu" aria-labelledby="accountDropdownMenuButton">
+                <a class="dropdown-item nav-link" href="{% url 'schedulingcalendar:account_settings' %}">Account Settings</a>
+                <a class="dropdown-item nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
+              </div>
             </div>
-          </div>
+          {% else %}
+            <a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
+          {% endif %}
         </li> 
       {% endif %}
     </ul>

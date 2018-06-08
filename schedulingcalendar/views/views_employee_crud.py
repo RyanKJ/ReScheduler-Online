@@ -4,6 +4,7 @@ from django.http import (HttpResponseRedirect, HttpResponse)
 from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
@@ -93,9 +94,10 @@ def employee_availability(request):
         
         
 @method_decorator(login_required, name='dispatch')
-class EmployeeUpdateProfileSettings(UpdateView):
+class EmployeeUpdateProfileSettings(SuccessMessageMixin, UpdateView):
     """Display employee settings and form to update these settings."""
     template_name = 'schedulingcalendar/employeeProfile.html'
+    success_message = 'Schedule display settings successfully updated'
     form_class = EmployeeDisplaySettingsForm
     success_url = reverse_lazy('schedulingcalendar:employee_profile_settings')
     
@@ -126,9 +128,10 @@ class EmployeeListView(UserIsManagerMixin, ListView):
         
  
 @method_decorator(login_required, name='dispatch') 
-class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
+class EmployeeUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display employee form and associated lists, ie vacations of employee."""
     template_name = 'schedulingcalendar/employeeInfo.html'
+    success_message = 'Employee successfully updated'
     fields = ['first_name', 'last_name', 'employee_id', 'email', 'phone_number',
               'wage', 'desired_hours', 'min_time_for_break',
               'break_time_in_min', 'monthly_medical', 
@@ -198,9 +201,10 @@ class EmployeeUpdateView(UserIsManagerMixin, UpdateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeCreateView(UserIsManagerMixin, CreateView):
+class EmployeeCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display an employee form to create a new employee."""
     template_name = 'schedulingcalendar/employeeCreate.html'
+    success_message = 'Employee successfully created'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
     fields = ['first_name', 'last_name', 'employee_id', 'email', 'phone_number',
@@ -215,9 +219,10 @@ class EmployeeCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeDeleteView(UserIsManagerMixin, DeleteView):
+class EmployeeDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete employee object."""
     template_name = 'schedulingcalendar/employeeDelete.html'
+    success_message = 'Employee successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
     
@@ -237,7 +242,7 @@ def change_employee_pw_as_manager(request, **kwargs):
         form = SetPasswordForm(employee_user, request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, 'Your password was successfully updated!')
+            messages.success(request, 'Employee password was successfully updated')
             return redirect(reverse('schedulingcalendar:employee_info', 
                             kwargs={'employee_pk': employee_pk}))
         else:
@@ -250,7 +255,7 @@ def change_employee_pw_as_manager(request, **kwargs):
     
     
 @login_required
-def change_employee_pw_as_employee(request, **kwargs):
+def change_employee_pw_as_employee(request, SuccessMessageMixin, **kwargs):
     """Change password of employee user account as employee user."""
     if request.method == 'POST':
         employee = (Employee.objects.select_related('employee_user')
@@ -272,9 +277,10 @@ def change_employee_pw_as_employee(request, **kwargs):
     
     
 @method_decorator(login_required, name='dispatch')
-class EmployeeUsernameUpdateView(UserIsManagerMixin, UpdateView):
+class EmployeeUsernameUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display an employee user form to edit."""
     template_name = 'schedulingcalendar/employeeUsernameUpdate.html'
+    success_message = 'Employee username successfully updated'
     model = User
     fields = ['username']
     
@@ -315,9 +321,10 @@ class EmployeeUsernameUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class EmployeeUserCreateView(UserIsManagerMixin, CreateView):
+class EmployeeUserCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display employee user form to create employee user object."""
     template_name = 'schedulingcalendar/employeeUserCreate.html'
+    success_message = 'Employee login account successfully created'
     form_class = UserCreationForm
              
     # TODO: Correct way to get a django group
@@ -357,9 +364,10 @@ class EmployeeUserCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class EmployeeUserDeleteView(UserIsManagerMixin, DeleteView):
+class EmployeeUserDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete employee user object."""
     template_name = 'schedulingcalendar/employeeUserDelete.html'
+    success_message = 'Employee login account successfully deleted'
     model = User
 
     
@@ -378,9 +386,10 @@ class EmployeeUserDeleteView(UserIsManagerMixin, DeleteView):
     
     
 @method_decorator(login_required, name='dispatch')
-class VacationUpdateView(UserIsManagerMixin, UpdateView):
+class VacationUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display vacation form to edit vacation object."""
     template_name = 'schedulingcalendar/vacationUpdate.html'
+    success_message = 'Vacation successfully updated'
     form_class = VacationForm
     
     
@@ -415,9 +424,10 @@ class VacationUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class VacationCreateView(UserIsManagerMixin, CreateView):
+class VacationCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display vacation form to create vacation object."""
     template_name = 'schedulingcalendar/vacationCreate.html'
+    success_message = 'Vacation was created successful'
     form_class = VacationForm
               
               
@@ -446,9 +456,10 @@ class VacationCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class VacationDeleteView(UserIsManagerMixin, DeleteView):
+class VacationDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete vacation object."""
     template_name = 'schedulingcalendar/vacationDelete.html'
+    success_message = 'Vacation successfully deleted'
     model = Vacation
     
     
@@ -467,9 +478,10 @@ class VacationDeleteView(UserIsManagerMixin, DeleteView):
                             
                             
 @method_decorator(login_required, name='dispatch')
-class AbsentUpdateView(UserIsManagerMixin, UpdateView):
+class AbsentUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display absent form to edit absence object."""
     template_name = 'schedulingcalendar/absenceUpdate.html'
+    success_message = 'Unavailability successfully updated'
     form_class = AbsentForm
     
     
@@ -504,9 +516,10 @@ class AbsentUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class AbsentCreateView(UserIsManagerMixin, CreateView):
+class AbsentCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display absence form to create absence object."""
     template_name = 'schedulingcalendar/absenceCreate.html'
+    success_message = 'Unavailability successfully created'
     form_class = AbsentForm
               
               
@@ -535,9 +548,10 @@ class AbsentCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class AbsentDeleteView(UserIsManagerMixin, DeleteView):
+class AbsentDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete absence object."""
     template_name = 'schedulingcalendar/absenceDelete.html'
+    success_message = 'Unavailability successfullydeleted'
     model = Absence
     
     
@@ -556,9 +570,10 @@ class AbsentDeleteView(UserIsManagerMixin, DeleteView):
                             
         
 @method_decorator(login_required, name='dispatch')
-class RepeatUnavailableUpdateView(UserIsManagerMixin, UpdateView):
+class RepeatUnavailableUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display repeat unavailable form to edit unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
+    success_message = 'Repeat unavailability successfully updated'
     form_class = RepeatUnavailabilityForm
     
     
@@ -593,9 +608,10 @@ class RepeatUnavailableUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class RepeatUnavailableCreateView(UserIsManagerMixin, CreateView):
+class RepeatUnavailableCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
+    success_message = 'Repeat unavailability successfully create'
     form_class = RepeatUnavailabilityForm
               
               
@@ -623,9 +639,10 @@ class RepeatUnavailableCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class RepeatUnavailableDeleteView(UserIsManagerMixin, DeleteView):
+class RepeatUnavailableDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete unavailable repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableDelete.html'
+    success_message = 'Repeat unavailability successfully delete'
     model = RepeatUnavailability
     
     
@@ -644,9 +661,10 @@ class RepeatUnavailableDeleteView(UserIsManagerMixin, DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DesiredTimeUpdateView(UserIsManagerMixin, UpdateView):
+class DesiredTimeUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display desired time form to edit object."""
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
+    success_message = 'Desired time successfully updated'
     form_class = DesiredTimeForm
     
     
@@ -681,9 +699,10 @@ class DesiredTimeUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class DesiredTimeCreateView(UserIsManagerMixin, CreateView):
+class DesiredTimeCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display desired time form to create object."""
     template_name = 'schedulingcalendar/desiredTimeCreate.html'
+    success_message = 'Desired time successfully created'
     form_class = DesiredTimeForm
               
               
@@ -711,9 +730,10 @@ class DesiredTimeCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class DesiredTimeDeleteView(UserIsManagerMixin, DeleteView):
+class DesiredTimeDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete desired time object."""
     template_name = 'schedulingcalendar/desiredTimeDelete.html'
+    success_message = 'Desired time successfully deleted'
     model = DesiredTime
     
     
@@ -732,9 +752,10 @@ class DesiredTimeDeleteView(UserIsManagerMixin, DeleteView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DepartmentMembershipUpdateView(UserIsManagerMixin, UpdateView):
+class DepartmentMembershipUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display department membership form to edit existing object."""
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
+    success_message = 'Department membership successfully updated'
     form_class = DepartmentMembershipForm
     
     def get_form_kwargs(self):
@@ -775,9 +796,10 @@ class DepartmentMembershipUpdateView(UserIsManagerMixin, UpdateView):
     
    
 @method_decorator(login_required, name='dispatch')
-class DepartmentMembershipCreateView(UserIsManagerMixin, CreateView):
+class DepartmentMembershipCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display department membership form to create object."""
     template_name = 'schedulingcalendar/departmentMembershipCreate.html'
+    success_message = 'Department membership successfully created'
     form_class = DepartmentMembershipForm
     
     def get_form_kwargs(self):
@@ -811,9 +833,10 @@ class DepartmentMembershipCreateView(UserIsManagerMixin, CreateView):
                             
            
 @method_decorator(login_required, name='dispatch') 
-class DepartmentMembershipDeleteView(UserIsManagerMixin, DeleteView):
+class DepartmentMembershipDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete department membership object."""
     template_name = 'schedulingcalendar/departmentMembershipDelete.html'
+    success_message = 'Department membership successfully deleted'
     model = DepartmentMembership
     
     
@@ -855,9 +878,10 @@ class DepartmentListView(UserIsManagerMixin, ListView):
         
         
 @method_decorator(login_required, name='dispatch')
-class DepartmentUpdateView(UserIsManagerMixin, UpdateView):
+class DepartmentUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/departmentUpdate.html'
+    success_message = 'Department successfully updated'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     fields = ['name']
     
@@ -878,9 +902,10 @@ class DepartmentUpdateView(UserIsManagerMixin, UpdateView):
         
    
 @method_decorator(login_required, name='dispatch')
-class DepartmentCreateView(UserIsManagerMixin, CreateView):
+class DepartmentCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display department form to create object."""
     template_name = 'schedulingcalendar/departmentCreate.html'
+    success_message = 'Department successfully created'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
     fields = ['name']
@@ -892,15 +917,16 @@ class DepartmentCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class DepartmentDeleteView(UserIsManagerMixin, DeleteView):
+class DepartmentDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete department object."""
     template_name = 'schedulingcalendar/departmentDelete.html'
+    success_message = 'Department successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
     
     
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueListView(UserIsManagerMixin, ListView):
+class MonthlyRevenueListView(UserIsManagerMixin, SuccessMessageMixin, ListView):
     """Display an alphabetical list of all departments for a managing user."""
     model = MonthlyRevenue
     template_name = 'schedulingcalendar/monthlyRevenueList.html'
@@ -912,9 +938,10 @@ class MonthlyRevenueListView(UserIsManagerMixin, ListView):
         
         
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueUpdateView(UserIsManagerMixin, UpdateView):
+class MonthlyRevenueUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display department form to edit existing department object."""
     template_name = 'schedulingcalendar/monthlyRevenueUpdate.html'
+    success_message = 'Monthly revenue successfully updated'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     form_class = MonthlyRevenueForm
     
@@ -935,9 +962,10 @@ class MonthlyRevenueUpdateView(UserIsManagerMixin, UpdateView):
         
    
 @method_decorator(login_required, name='dispatch')
-class MonthlyRevenueCreateView(UserIsManagerMixin, CreateView):
+class MonthlyRevenueCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display department form to create object."""
     template_name = 'schedulingcalendar/monthlyRevenueCreate.html'
+    success_message = 'Monthly revenue successfully created'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     form_class = MonthlyRevenueForm
               
@@ -948,17 +976,19 @@ class MonthlyRevenueCreateView(UserIsManagerMixin, CreateView):
         
         
 @method_decorator(login_required, name='dispatch') 
-class MonthlyRevenueDeleteView(UserIsManagerMixin, DeleteView):
+class MonthlyRevenueDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     """Display a delete form to delete department object."""
     template_name = 'schedulingcalendar/monthlyRevenueDelete.html'
+    success_message = 'Monthly revenue successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     model = MonthlyRevenue
         
         
 @method_decorator(login_required, name='dispatch')
-class BusinessDataUpdateView(UserIsManagerMixin, UpdateView):
+class BusinessDataUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display business data form to edit business settings."""
     template_name = 'schedulingcalendar/businessSettings.html'
+    success_message = 'Business settings successfully updated'
     success_url = reverse_lazy('schedulingcalendar:business_update')
     form_class = BusinessDataForm
     
@@ -977,9 +1007,10 @@ class BusinessDataUpdateView(UserIsManagerMixin, UpdateView):
         
         
 @method_decorator(login_required, name='dispatch')
-class CalendarDisplayUpdateView(UserIsManagerMixin, UpdateView):
+class CalendarDisplayUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     """Display calendar display settings form."""
     template_name = 'schedulingcalendar/calendarDisplaySettings.html'
+    success_message = 'Calendar display settings successfully updated'
     success_url = reverse_lazy('schedulingcalendar:calendar_display_settings')
     form_class = CalendarDisplaySettingsForm
     

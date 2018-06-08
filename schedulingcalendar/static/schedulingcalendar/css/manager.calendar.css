@@ -31,6 +31,8 @@ a:active {
 .bold { font-weight: 700; }
 .blank-event.tro-event { opacity: 0.5; }
 
+a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
+
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 

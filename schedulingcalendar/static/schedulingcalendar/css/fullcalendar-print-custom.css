@@ -4,13 +4,7 @@
 }
 
 @media print {
-   html, body { overflow: visible !important; }
-  
-  [class*="col-md"], [class*="col-sm"], [class*="col-xs"] {
-    { display: block !important; }
-  }
-  .row { display: block !important; }
-  #calendar { max-width: 670px; }
+  body { min-width: initial !important; }
   .col-md { padding: 0 !important; }
   .no-print, .no-print * { display: none; }
   .blank-event:not(.tro-event):not(.note) { display: none; }
@@ -19,7 +13,6 @@
   .live-cal-margin { margin: 0px !important; }
   .fc-day  { padding-bottom: 0px !important; }
   .fc-event-container * { margin: 0px 0px 0px 0px; padding: 0px; }
-  a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
   .fc-toolbar { margin: -5px !important; padding: -5px !important; }
   .fc tbody .fc-row .fc-content-skeleton tbody tr:last-child td { /* only works in newer browsers */
     padding-bottom: 0.1em !important;

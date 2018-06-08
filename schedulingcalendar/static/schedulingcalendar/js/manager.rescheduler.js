@@ -31,8 +31,11 @@ $(document).ready(function() {
   var $addScheduleDep = $("#new-schedule-dep");
   var $conflictAssignBtn = $("#conflict-assign-btn");
   var $calendarLoaderForm = $("#load-calendar-form");
+  var $printHelpBtn = $("#print-help");
+  $printHelpBtn.click(showPrintHelpModal);
   var $cramRowsBtn = $("#cram-rows");
   $cramRowsBtn.click(cramRows);
+  
   
   $fullCal.fullCalendar({
     fixedWeekCount: false,
@@ -514,6 +517,13 @@ $(document).ready(function() {
       str += " " + note;
     }
     return str;
+  }
+  
+  
+  function showPrintHelpModal(event) {
+    $printHelpModal = $("#printHelpModal");
+    $printHelpModal.css("margin-top", Math.max(0, ($(window).height() - $printHelpModal.height()) / 2));
+    $printHelpModal.modal('show');
   }
     
   
