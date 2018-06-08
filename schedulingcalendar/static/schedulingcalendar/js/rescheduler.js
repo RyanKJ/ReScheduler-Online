@@ -119,7 +119,7 @@ $(document).ready(function() {
   window.onscroll = function() { stickyToolbarAndCal(); };
   
   // Set up initial height and resize function to resize the calendar
-  var initialHeight = window.innerHeight * .85
+  var initialHeight = window.innerHeight * .85;
   window.onresize = resizeCalendar;
   
   

@@ -611,7 +611,7 @@ class RepeatUnavailableUpdateView(UserIsManagerMixin, SuccessMessageMixin, Updat
 class RepeatUnavailableCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView):
     """Display repeat unavailable form to create unav repeat object."""
     template_name = 'schedulingcalendar/repeatUnavailableCreate.html'
-    success_message = 'Repeat unavailability successfully create'
+    success_message = 'Repeat unavailability successfully created'
     form_class = RepeatUnavailabilityForm
               
               

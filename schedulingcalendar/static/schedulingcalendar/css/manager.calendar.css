@@ -84,9 +84,26 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
 }
 
 .return-to-schedule-editor {
-  margin-top: 9px;
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 7px 4px 7px;
+  border: 2px solid white;
+  border-radius: 1px;
+  max-width: 500px;
+  overflow: hidden;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
 }
 
+.return-to-schedule-editor:hover {
+    background: #00BFFF;
+}
+
+.return-to-schedule-editor a {
+    color: white;
+}
 
 .select-cal-loader a {
     padding: 8px 8px;
