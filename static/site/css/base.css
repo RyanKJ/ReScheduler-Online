@@ -7,7 +7,7 @@ body {
   font-family: "Oswald",Helvetica,Arial,Verdana,sans-serif;
 }
 
-a:link, a:visited, a:hover, a:active { 
+a:link, a:visited, a:hover, a:active {
   text-decoration: none;
   color: #4286f4;
 }
@@ -96,6 +96,7 @@ main {
 	z-index: 1;
 	left: 3px;
 	background: #fff;
+  background: linear-gradient(to bottom right, #fff, #ededed);
 }
 
 .checkbox-custom input[type=checkbox]:checked + label {
@@ -127,15 +128,16 @@ input[type=checkbox] {
 
 @media screen and (max-width: 767px) {
   .checkbox-custom { width: 36px; height: 36px; }
-  .checkbox-custom label { 
+  .checkbox-custom label {
     left: 3px;
     width: 30px;
   	height: 30px;
     border-radius: 8%;
+    background: linear-gradient(to bottom right, #fff, #ededed);
   }
-  .checkbox-custom input[type=checkbox]:checked + label { 
-    left: 3px; 
-    background: linear-gradient(to bottom right, #00b3ff, #0095FF); 
+  .checkbox-custom input[type=checkbox]:checked + label {
+    left: 3px;
+    background: linear-gradient(to bottom right, #00b3ff, #0095FF);
   }
   .checkbox-custom-text { top: 6px; }
   .checkbox-custom:before { width: 0px; }
