@@ -4,16 +4,16 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import loader
-from ..models import (Department, DepartmentMembership, Employee, 
-                      BusinessData, LiveCalendar, DayNoteHeader, DayNoteBody)       
-from ..forms import (CalendarForm, LiveCalendarForm, LiveCalendarManagerForm, 
-                     ViewLiveCalendarForm, SetStateLiveCalForm, AddScheduleForm, 
+from ..models import (Department, DepartmentMembership, Employee,
+                      BusinessData, LiveCalendar, DayNoteHeader, DayNoteBody)
+from ..forms import (CalendarForm, LiveCalendarForm, LiveCalendarManagerForm,
+                     ViewLiveCalendarForm, SetStateLiveCalForm, AddScheduleForm,
                      DayNoteHeaderForm, DayNoteBodyForm, ScheduleNoteForm,
                      SignUpForm)
 from datetime import datetime, date
-    
-    
-    
+
+
+
 def front_or_cal_page(request):
     """Redirect to calendar if logged in, otherwise redirect to front page."""
     if request.user.is_authenticated():
@@ -23,7 +23,7 @@ def front_or_cal_page(request):
             return redirect("/live_calendar/") # Employee calendar
     else:
         return redirect("/front/")
-        
+
 
 def front_page(request):
     """Display the front page for the website."""
@@ -31,23 +31,23 @@ def front_page(request):
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
-    
+
+
 def about_page(request):
     """Display the about page for the website."""
     template = loader.get_template('schedulingcalendar/about.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
-    
+
+
 def contact_page(request):
     """Display the contact page for the website."""
     template = loader.get_template('schedulingcalendar/contact.html')
     context = {}
 
     return HttpResponse(template.render(context, request))
-    
+
 
 def manager_check(user):
     """Checks if user is a manager user or not."""
@@ -59,14 +59,14 @@ def manager_check(user):
 def calendar_page(request):
     """Display the schedule editing page for a managing user."""
     logged_in_user = request.user
-    
+
     # Check that user has at least 1 department before loading calendar
     departments = Department.objects.filter(user=logged_in_user).order_by('name')
     if not departments:
         return redirect('/departments/')
-    
+
     template = loader.get_template('schedulingcalendar/calendar.html')
-    
+
     calendar_form = CalendarForm(logged_in_user)
     add_schedule_form = AddScheduleForm()
     view_live_form = ViewLiveCalendarForm()
@@ -80,17 +80,18 @@ def calendar_page(request):
         date = business_data.last_cal_date_loaded
     else:
         date = datetime.now()
-        
+
     if business_data.last_cal_department_loaded:
         department = business_data.last_cal_department_loaded
     else:
         department = departments.first()
-        
+
     set_live_cal_form = SetStateLiveCalForm(logged_in_user, department)
-        
-    
-    context = {'calendar_form': calendar_form, 
+
+
+    context = {'calendar_form': calendar_form,
                'add_sch_form': add_schedule_form,
+               'time_interval': business_data.time_picker_interval,
                'view_live_form': view_live_form,
                'set_live_cal_form': set_live_cal_form,
                'day_note_header_form': day_note_header_form,
@@ -101,8 +102,8 @@ def calendar_page(request):
                'departments': departments}
 
     return HttpResponse(template.render(context, request))
-    
-    
+
+
 @login_required
 def employee_calendar_page(request):
     """Display the live calendar page for an employee user."""
@@ -112,7 +113,7 @@ def employee_calendar_page(request):
                                 .get(employee_user=logged_in_user))
     employee_only = employee.see_only_my_schedules
     manager_user = employee.user
-    
+
     live_calendar_form = LiveCalendarForm(manager_user, employee)
     template = loader.get_template('schedulingcalendar/employeeCalendar.html')
     context = {'live_calendar_form': live_calendar_form, 'employee_only': employee_only}

@@ -28,7 +28,7 @@
     {% include "schedulingcalendar/_employeelessDepartmentModal.html" %}
     {% include "schedulingcalendar/_copyConflictModal.html" %}
     {% include "schedulingcalendar/_editConflictModal.html" %}
-    
+
     <div id="toolbar-sticky" class="row no-print calendar-toolbar">
       <div class="col-lg-7 col-md-12">
         <!-- Form for getting calendar -->
@@ -39,59 +39,59 @@
               data-department="{{ department }}"
               method="get">
           {% csrf_token %}
-              
+
           <!-- Department Selector -->
           {{ calendar_form.department.errors }}
-          {{ calendar_form.department.label_tag }} 
+          {{ calendar_form.department.label_tag }}
           <div class="select-calendar select-calendar-department">
             {{ calendar_form.department }}
           </div>
           {% if calendar_form.department.help_text %}
             <p class="help">{{ calendar_form.department.help_text|safe }}</p>
           {% endif %}
-             
+
           <!-- Month Selector -->
           {{ calendar_form.month.errors }}
-          {{ calendar_form.month.label_tag }} 
+          {{ calendar_form.month.label_tag }}
           <div class="select-calendar select-calendar-month">
             {{ calendar_form.month }}
           </div>
           {% if calendar_form.month.help_text %}
             <p class="help">{{ calendar_form.month.help_text|safe }}</p>
           {% endif %}
-          
+
           <!-- Year Selector -->
           {{ calendar_form.year.errors }}
-          {{ calendar_form.year.label_tag }} 
+          {{ calendar_form.year.label_tag }}
           <div class="select-calendar select-calendar-year">
             {{ calendar_form.year }}
           </div>
           {% if calendar_form.year.help_text %}
             <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
           {% endif %}
-              
+
           <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
         </form>
       </div>
-        
+
       <div class="col-lg-5 col-md-12">
         <!-- Buttons for live version of calendar that employees see -->
         <div id="push-live" class="calendar-push-btn">
           Publish
         </div>
-            
+
         <div id="set-view-rights" class="calendar-push-btn unactive-live">
           View Rights
         </div>
-        
+
 
         <form id="view-live-form"
               action="{% url 'schedulingcalendar:view_live_schedules' %}"
               method="get">
           {% csrf_token %}
-              
+
           {% for field in view_live_form %}
-            {{ field.errors }} 
+            {{ field.errors }}
             {{ field }}
             {% if field.help_text %}
             <p class="help">{{ field.help_text|safe }}</p>
@@ -99,10 +99,10 @@
           {% endfor %}
           <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
         </form>
-        
+
         <div class="toolbar-divider">
         </div>
-        
+
         <!-- Misc Buttons -->
         <div id="copy-week" class="calendar-push-btn">
           Copy Week
@@ -122,9 +122,9 @@
         <section class="draft-calendar" id="stick-cal">
           <div id="calendar-costs" class="no-print">
             <div class="btn-group">
-              <button type="button" class="btn btn-secondary cost-button" 
-                      data-toggle="collapse" 
-                      href="#cost-dropdown" role="button" 
+              <button type="button" class="btn btn-secondary cost-button"
+                      data-toggle="collapse"
+                      href="#cost-dropdown" role="button"
                       aria-expanded="false" aria-controls="cost-dropdown">
                 Day & Week Costs &raquo;
               </button>
@@ -186,31 +186,31 @@
           <div id="calendar"></div>
         </section>
       </div>
-    
+
       <div class="col-lg-2 col-md-4 col-sm-4">
         <!-- Schedule Editor -->
         <aside class="schedule-editor no-print">
-          <section class="schedule-adder">
+          <section class="schedule-adder" data-time-interval={{ time_interval }}>
             <h1>Schedule Editor</h1>
             <form id="schedule-add-form"
                   name= "addingScheduleForm"
                   action="{% url 'schedulingcalendar:add_schedule' %}"
-                  onsubmit="return(validateAddScheduleForm())" 
-                  method="post" 
+                  onsubmit="return(validateAddScheduleForm())"
+                  method="post"
                   align="left">
               {% csrf_token %}
               {{ add_sch_form.non_field_errors }}
-              
+
               {{ add_sch_form.add_date.errors }}
               {{ add_sch_form.add_date }}
-              
+
               {{ add_sch_form.department.errors }}
               {{ add_sch_form.department }}
-              
+
               {{ add_sch_form.start_time.errors }}
               {{ add_sch_form.start_time.label_tag }}
               {{ add_sch_form.start_time }}
-              
+
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">
                   {{ add_sch_form.hide_start.errors }}
@@ -219,11 +219,11 @@
                 </div>
                 <span class="checkbox-custom-text">Hide Start Time</span>
               </div>
-              
+
               {{ add_sch_form.end_time.errors }}
               {{ add_sch_form.end_time.label_tag }}
               {{ add_sch_form.end_time }}
-              
+
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">
                   {{ add_sch_form.hide_end.errors }}
@@ -232,11 +232,11 @@
                 </div>
                 <span class="checkbox-custom-text">Hide End Time</span>
               </div>
-              
+
               <input type="submit" value="Add Schedule">
             </form>
           </section>
-                
+
           <section id="schedule-info">
             <div class="edit-remove-btn-bg">
               <h3 id="edit-btn">Edit Schedule</h3>
@@ -245,14 +245,14 @@
                 <h3 id="remove-btn-confirm">Are You Sure?</h3>
               </div>
             </div>
-            
+
             <div id="eligable-list-header">
               <span title="Color Legend" id="legend-selector">?</span>
               <span id="eligable-list-title">Employees</span>
             </div>
             <ul id="eligable-list"></ul>
           </section>
-          
+
           <section id="cost-info">
             <h3 id="cost-header">Monthly Costs</h3>
             <ul id="cost-list"></ul>
@@ -264,10 +264,9 @@
 {% endblock content %}
 
 {% block javascript %}
-  {{ block.super }}     
+  {{ block.super }}
   <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/rescheduler.js' %}" ></script>
-{% endblock javascript %}    
-
+{% endblock javascript %}

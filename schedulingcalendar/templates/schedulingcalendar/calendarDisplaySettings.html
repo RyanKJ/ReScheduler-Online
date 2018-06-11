@@ -14,6 +14,16 @@
       <div>
         <div class="card-block">
           <h4 class="card-title text-center">Calendar Display Settings:</h4>
+          <!-- Time interval for schedule adder time pickers -->
+          <div class="form-group mb-4">
+            {{ form.time_picker_interval.errors }}
+            <br><p class="card-text mb-0">Set the interval in minutes for the time
+            selectors for adding schedules:</p>
+            {{ form.time_picker_interval|add_class:'form-control' }}
+            {% if form.time_picker_interval.help_text %}
+              <p class="help">{{ form.time_picker_interval.help_text|safe }}</p>
+            {% endif %}
+          </div>
           <!-- Display minutes form input -->
           <div class="form-group">
             <div class="checkbox-custom-container">
@@ -41,7 +51,7 @@
                   <p class="help">{{ form.display_nonzero_minutes.help_text|safe }}</p>
                 {% endif %}
               </div>
-              <span class="checkbox-custom-text">Display Only Non-Zero Minutes 
+              <span class="checkbox-custom-text">Display Only Non-Zero Minutes
                 <span class="small">(8:00 Becomes 8, 8:30 stays the same)</span>
               </span>
             </div>
@@ -75,7 +85,7 @@
             </div>
           </div>
           <!-- Display character of last name only form input -->
-          <p class="card-text">Note: Setting display only first character of last name
+          <p class="card-text mb-0">Note: Setting display only first character of last name
                                will overide the display full last name setting.</p>
           <div class="form-group">
             <div class="checkbox-custom-container">
@@ -91,10 +101,10 @@
             </div>
           </div>
           <!-- Override eligible sort and sort by employee name -->
-          <br><p class="card-text">Note: This will sort eligibles by last name 
-                                     and first name, instead of an employee's 
+          <br><p class="card-text mb-0">Note: This will sort eligibles by last name
+                                     and first name, instead of an employee's
                                      eligibility score. For more information
-                                     on an employee's eligibility score, go to 
+                                     on an employee's eligibility score, go to
                                      <a href="#">help.</a></p>
           <div class="form-group">
             <div class="checkbox-custom-container">
@@ -110,7 +120,7 @@
             </div>
           </div>
           <!-- Give each assigned employee a unique row in calendar -->
-          <p class="card-text">Note: Each assigned employee will have their
+          <p class="card-text mb-0">Note: Each assigned employee will have their
                                      own row on the calendar. So when they are
                                      assigned to a schedule, their schedule/name
                                      will always appear on that row.
@@ -132,8 +142,8 @@
           <div class="form-group">
             {{ form.desired_hours_overshoot_alert.errors }}
             {{ form.desired_hours_overshoot_alert.label_tag }}
-            <br><p class="card-text">This setting determines the margin by which you are alerted
-                                       about an employee working more hours than they want. For example, 
+            <br><p class="card-text mb-0">This setting determines the margin by which you are alerted
+                                       about an employee working more hours than they want. For example,
                                        if an employee wants to work 30 hours per week, and the margin is
                                        5, then the eligible list will be colored to inform you if
                                        the employee is working any more than 35 hours per week.</p>
@@ -146,12 +156,12 @@
         <br>
       </div>
     </div>
-    
+
     <input type="submit" class="btn btn-primary" value="Save Changes">
   </form>
-{% endblock form_content %} 
+{% endblock form_content %}
 
 {% block javascript %}
-  {{ block.super }}  
+  {{ block.super }}
   <script src="{% static 'schedulingcalendar/js/businessdata.js' %}" ></script>
-{% endblock javascript %} 
+{% endblock javascript %}
