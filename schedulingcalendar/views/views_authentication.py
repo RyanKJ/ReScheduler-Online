@@ -74,7 +74,7 @@ def activate(request, uidb64, token):
 
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
-        user.managerprofile.email_confirmed = True
+        user.userprofile.email_confirmed = True
         user.save()
 
         # Add user to manager group for permissions

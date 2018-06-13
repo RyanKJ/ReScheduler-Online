@@ -159,7 +159,8 @@ $(document).ready(function() {
     var depName = $("#id_department option[value='"+info['department']+"']").text();
     var cal_title = depName + ": " + newCalDate.format("MMMM, YYYY") + " Version " + info["version"]
     $(".fc-center").find("h2").text(cal_title);
-
+    $("title").text(cal_title);
+    
     // Delete any previously loaded events before displaying new events
     $fullCal.fullCalendar("removeEvents");
 

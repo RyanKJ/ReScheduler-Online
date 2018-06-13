@@ -8,20 +8,20 @@ from datetime import datetime, date, time
 
 
 
-class ManagerProfile(models.Model):
-    """Meta-data and addition info for manager users"""
+class UserProfile(models.Model):
+    """Meta-data and addition info for users"""
     user = models.OneToOneField(User, db_index=True, on_delete=models.CASCADE)
     email_confirmed = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender=User)
 def update_user_profile(sender, instance, created, **kwargs):
-    """Update or create user profile associated with manager user."""
+    """Update or create user profile associated with user."""
     if created:
-        manager_profile = ManagerProfile.objects.create(user=instance)
-        manager_profile.save()
+        user_profile = UserProfile.objects.create(user=instance)
+        user_profile.save()
     else:
-        instance.managerprofile.save()
+        instance.userprofile.save()
 
 
 class Employee(models.Model):
