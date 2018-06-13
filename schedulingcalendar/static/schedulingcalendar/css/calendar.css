@@ -38,7 +38,7 @@ a:active {
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 
-.sticky { 
+.sticky {
   position: fixed;
   top: 0;
   width: 100%;
@@ -48,7 +48,7 @@ a:active {
   padding-top: 55px;
 }
 
-.sticky-cal { 
+.sticky-cal {
   position: fixed;
   top: 60px;
   width: 81.75%;
@@ -112,7 +112,7 @@ a:active {
     background-image: none;
     cursor: pointer;
     -webkit-appearance: none;
-    
+
     -webkit-transition: all .3s ease;
     -moz-transition: all .3s ease;
     -o-transition: all .3s ease;
@@ -136,7 +136,7 @@ a:active {
   margin-bottom: 10px;
   vertical-align: middle;
   background: transparent;
-  
+
   background-image: -webkit-linear-gradient(top, transparent, transparent);
   background-image: -moz-linear-gradient(top, transparent, transparent);
   background-image: -ms-linear-gradient(top, transparent, transparent);
@@ -151,7 +151,7 @@ a:active {
   border-radius: 1px;
   text-decoration: none;
   background: #0073d3;
-  
+
   -webkit-transition: all .3s ease;
   -moz-transition: all .3s ease;
   -o-transition: all .3s ease;
@@ -164,7 +164,7 @@ a:active {
   text-decoration: none;
 }
 
-.calendar-push-btn { 
+.calendar-push-btn {
   margin-top: 10px;
   margin-left: 7px;
   margin-bottom: 4px;
@@ -179,7 +179,7 @@ a:active {
   border: solid #ffffff 2px;
   border-radius: 1px;
   cursor: pointer;
-  
+
   -webkit-transition: all .3s ease;
   -moz-transition: all .3s ease;
   -o-transition: all .3s ease;
@@ -282,7 +282,7 @@ a:active {
 
 table.cost-table { text-align: center; }
 .cost-table th { padding-left: 5px; padding-right: 5px; }
-td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; } 
+td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; }
 
 .highlight-dep-row { background: #e5ff6b; }
 
@@ -297,6 +297,7 @@ td.cost-dep-name, th.cost-dep-name { text-align: left; padding-left: 0px; }
   overflow-y: auto;
   border: solid #dddddd 1px;
   border-radius: 2px;
+  padding: 3px;
 }
 
 .half-inline { display: inline-block; width: 49%; }
@@ -461,10 +462,10 @@ ul#eligable-list {
   max-width: 80%;
 }
 
-.hour-wrapper { 
-  position: relative; 
-  display: inline-block; 
-  float: right; 
+.hour-wrapper {
+  position: relative;
+  display: inline-block;
+  float: right;
   margin-right: 5px;
 }
 
@@ -657,7 +658,7 @@ li:last-child.cost-list {
     border-bottom: 2px solid #ffd480;
     border-top-style: none;
     border-right-style: none;
-    border-left-style: none;   
+    border-left-style: none;
     color: #fff;
     font-size: 120%;
 }
@@ -696,7 +697,7 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
 }
 
 @media screen and (max-width: 1199px) {
-.sticky-cal { 
+.sticky-cal {
     top: 100px;
     width: 65%;
   }
@@ -713,6 +714,5 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
   .day-cost-div { border-bottom: solid #dddddd 1px; border-right: 0px; padding-bottom: 5px; }
   .week-cost-div { margin-left: 5px; }
   .cost-dropdown { width: 350px; }
-  
+
 }
-  

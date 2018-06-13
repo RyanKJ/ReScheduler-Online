@@ -8,8 +8,8 @@
 
   <div class="collapse navbar-collapse justify-content-end" id="scheduleHoursNavbar">
     <ul class="navbar-nav">
-      {% if user.is_authenticated %}
-        {% if user|has_group:"Managers" %}
+      {% if request.user.is_authenticated %}
+        {% if request.user|has_group:"Managers" %}
         <li class="nav-item custom-nav-item">
           <div class="btn-group">
             <a class="nav-link active btn btn-primary custom-nav-btn" href="{% url 'schedulingcalendar:calendar_page' %}">Calendar<span class="sr-only">(current)</span></a>
@@ -19,7 +19,7 @@
             <div class="dropdown-menu">
               <a class="dropdown-item" href="#">Export To CSV</a>
               <a class="dropdown-item" href="{% url 'schedulingcalendar:calendar_display_settings' %}">Display Settings</a>
-            </div>         
+            </div>
           </div>
         </li>
         <li class="nav-item custom-nav-item employee-btn-group">
@@ -32,8 +32,8 @@
               <a class="dropdown-item" href="{% url 'schedulingcalendar:department_list' %}">Departments</a>
               <a class="dropdown-item" href="{% url 'schedulingcalendar:monthly_revenue_list' %}">Monthly Revenue</a>
               <a class="dropdown-item" href="{% url 'schedulingcalendar:business_update' %}">Business Settings</a>
-            </div>        
-          </div>   
+            </div>
+          </div>
         </li>
         <li class="nav-item custom-nav-item active">
           <a class="nav-link" href="#">Help</a>
@@ -60,13 +60,13 @@
       {% endif %}
       <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="{% url 'schedulingcalendar:about_page' %}">About</a>
-      </li>   
+      </li>
       <li class="nav-item custom-nav-item active">
         <a class="nav-link" href="{% url 'schedulingcalendar:contact_page' %}">Contact</a>
-      </li> 
-      {% if user.is_authenticated %}
+      </li>
+      {% if request.user.is_authenticated %}
         <li class="nav-item custom-nav-item active">
-          {% if user|has_group:"Managers" %}
+          {% if request.user|has_group:"Managers" %}
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" type="button" id="accountDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 My Account
@@ -79,7 +79,7 @@
           {% else %}
             <a class="nav-link" href="{% url 'logout' %}?next={% url 'login' %}">Logout</a>
           {% endif %}
-        </li> 
+        </li>
       {% endif %}
     </ul>
   </div>
