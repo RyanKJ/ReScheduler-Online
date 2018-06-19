@@ -735,10 +735,15 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
   }
 }
 
+@media screen and (max-width: 992px) {
+.sticky-cal {
+    width: 65%;
+  }
+}
+
 @media screen and (max-width: 764px) {
 .sticky-cal {
     top: 100px;
-    width: 65%;
   }
 }
 
