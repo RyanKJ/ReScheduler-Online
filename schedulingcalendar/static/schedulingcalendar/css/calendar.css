@@ -38,6 +38,12 @@ a:active {
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 
+.get-calendar-navbar { 
+  display: inline-block; 
+  padding: 0px !important; 
+  border: 0px !important;
+}
+
 .sticky {
   position: fixed;
   top: 0;
@@ -65,6 +71,8 @@ a:active {
   z-index: 100;
 }
 
+.calendar-toolbar-right, .calendar-toolbar-right * { display: inline-block !important; float: right; }
+
 .calendar-toolbar label {
   color: white;
   font-weight: bold;
@@ -73,6 +81,31 @@ a:active {
   margin-bottom: 10px;
   vertical-align: middle;
 }
+
+.get-calendar-icon { 
+  color: white; 
+  background: #0073d3;
+  border: 2px solid white;
+  border-radius: 1px;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 6px 6px 7px 6px;
+  
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  transition: all .3s ease;
+}
+
+.get-calendar-toggler {
+  padding: 6px 0px 6px 0px;
+}
+
+.get-calendar-toggler:hover {
+    background: #00BFFF !important;
+}
+
 
 .select-calendar {
   position: relative;
@@ -696,7 +729,13 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
   #edit-btn { font-size: 1em; }
 }
 
-@media screen and (max-width: 1199px) {
+@media (max-width: 1290px) {
+  .get-calendar-navbar { 
+    margin-top: 10px;
+  }
+}
+
+@media screen and (max-width: 764px) {
 .sticky-cal {
     top: 100px;
     width: 65%;
@@ -708,11 +747,16 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
 }
 
 @media screen and (max-width: 767px) {
-  .sticky, .sticky-cal { position: static; }
-  .sticky-cal { width: 100%;}
   .day-cost-div, .week-cost-div { display: block; }
   .day-cost-div { border-bottom: solid #dddddd 1px; border-right: 0px; padding-bottom: 5px; }
   .week-cost-div { margin-left: 5px; }
   .cost-dropdown { width: 350px; }
-
 }
+
+@media screen and (max-width: 575px) {
+  .sticky, .sticky-cal { position: static; }
+  .sticky-cal { width: 100%; }
+}
+
+
+

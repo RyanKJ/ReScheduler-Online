@@ -30,88 +30,97 @@
     {% include "schedulingcalendar/_editConflictModal.html" %}
 
     <div id="toolbar-sticky" class="row no-print calendar-toolbar">
-      <div class="col-lg-7 col-md-12">
+      <div class="col-lg-12 col-md-12">
         <!-- Form for getting calendar -->
-        <form id="load-calendar-form"
-              action="{% url 'schedulingcalendar:get_schedules' %}"
-              onsubmit="return(validateGetCalendarForm())"
-              data-date="{{ date|date:"Y-m-d" }}"
-              data-department="{{ department }}"
-              method="get">
-          {% csrf_token %}
+        <nav class="navbar navbar-expand-custom navbar-dark get-calendar-navbar">
+          <button class="navbar-toggler get-calendar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerGetCalendar" aria-controls="navbarTogglerGetCalendar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="get-calendar-icon">Calendar Toolbar &raquo;</span>
+          </button>
+        
+        
+          <div class="collapse navbar-collapse" id="navbarTogglerGetCalendar">
+            <form id="load-calendar-form"
+                  action="{% url 'schedulingcalendar:get_schedules' %}"
+                  onsubmit="return(validateGetCalendarForm())"
+                  data-date="{{ date|date:"Y-m-d" }}"
+                  data-department="{{ department }}"
+                  method="get">
+              {% csrf_token %}
 
-          <!-- Department Selector -->
-          {{ calendar_form.department.errors }}
-          {{ calendar_form.department.label_tag }}
-          <div class="select-calendar select-calendar-department">
-            {{ calendar_form.department }}
+              <!-- Department Selector -->
+              {{ calendar_form.department.errors }}
+              {{ calendar_form.department.label_tag }}
+              <div class="select-calendar select-calendar-department">
+                {{ calendar_form.department }}
+              </div>
+              {% if calendar_form.department.help_text %}
+                <p class="help">{{ calendar_form.department.help_text|safe }}</p>
+              {% endif %}
+
+              <!-- Month Selector -->
+              {{ calendar_form.month.errors }}
+              {{ calendar_form.month.label_tag }}
+              <div class="select-calendar select-calendar-month">
+                {{ calendar_form.month }}
+              </div>
+              {% if calendar_form.month.help_text %}
+                <p class="help">{{ calendar_form.month.help_text|safe }}</p>
+              {% endif %}
+
+              <!-- Year Selector -->
+              {{ calendar_form.year.errors }}
+              {{ calendar_form.year.label_tag }}
+              <div class="select-calendar select-calendar-year">
+                {{ calendar_form.year }}
+              </div>
+              {% if calendar_form.year.help_text %}
+                <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
+              {% endif %}
+
+              <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+            </form>
           </div>
-          {% if calendar_form.department.help_text %}
-            <p class="help">{{ calendar_form.department.help_text|safe }}</p>
-          {% endif %}
+        </nav>
 
-          <!-- Month Selector -->
-          {{ calendar_form.month.errors }}
-          {{ calendar_form.month.label_tag }}
-          <div class="select-calendar select-calendar-month">
-            {{ calendar_form.month }}
-          </div>
-          {% if calendar_form.month.help_text %}
-            <p class="help">{{ calendar_form.month.help_text|safe }}</p>
-          {% endif %}
-
-          <!-- Year Selector -->
-          {{ calendar_form.year.errors }}
-          {{ calendar_form.year.label_tag }}
-          <div class="select-calendar select-calendar-year">
-            {{ calendar_form.year }}
-          </div>
-          {% if calendar_form.year.help_text %}
-            <p class="help">{{ calendar_form.epartment.help_text|safe }}</p>
-          {% endif %}
-
-          <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-        </form>
-      </div>
-
-      <div class="col-lg-5 col-md-12">
         <!-- Buttons for live version of calendar that employees see -->
-        <div id="push-live" class="calendar-push-btn">
-          Publish
-        </div>
+        <div class="calendar-toolbar-right">
+          <div id="push-live" class="calendar-push-btn">
+            Publish
+          </div>
 
-        <div id="set-view-rights" class="calendar-push-btn unactive-live">
-          View Rights
-        </div>
+          <div id="set-view-rights" class="calendar-push-btn unactive-live">
+            View Rights
+          </div>
 
 
-        <form id="view-live-form"
-              action="{% url 'schedulingcalendar:view_live_schedules' %}"
-              method="get">
-          {% csrf_token %}
+          <form id="view-live-form"
+                action="{% url 'schedulingcalendar:view_live_schedules' %}"
+                method="get">
+            {% csrf_token %}
 
-          {% for field in view_live_form %}
-            {{ field.errors }}
-            {{ field }}
-            {% if field.help_text %}
-            <p class="help">{{ field.help_text|safe }}</p>
-            {% endif %}
-          {% endfor %}
-          <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
-        </form>
+            {% for field in view_live_form %}
+              {{ field.errors }}
+              {{ field }}
+              {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+              {% endif %}
+            {% endfor %}
+            <input type="submit" class="calendar-push-btn unactive-live" id="view-live" value="View Live">
+          </form>
 
-        <div class="toolbar-divider">
-        </div>
+          <div class="toolbar-divider">
+          </div>
 
-        <!-- Misc Buttons -->
-        <div id="copy-week" class="calendar-push-btn">
-          Copy Week
-        </div>
-        <div id="copy-day" class="calendar-push-btn">
-          Copy Day
-        </div>
-        <div id="day-note" class="calendar-push-btn">
-          Notes
+          <!-- Misc Buttons -->
+          <div id="copy-week" class="calendar-push-btn">
+            Copy Week
+          </div>
+          <div id="copy-day" class="calendar-push-btn">
+            Copy Day
+          </div>
+          <div id="day-note" class="calendar-push-btn">
+            Notes
+          </div>
         </div>
       </div>
     </div>
@@ -123,6 +132,7 @@
           <div id="calendar-costs" class="no-print">
             <div class="btn-group">
               <button type="button" class="btn btn-secondary cost-button"
+                      id="cost-button"
                       data-toggle="collapse"
                       href="#cost-dropdown" role="button"
                       aria-expanded="false" aria-controls="cost-dropdown">

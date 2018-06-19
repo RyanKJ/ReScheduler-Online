@@ -27,3 +27,31 @@ button.navbar-toggler { color: white; }
 .btn-primary:hover, .btn-info:hover { background: #00BFFF; border-color: #00BFFF; }
 .btn-outline-primary { border-color: #0073d3; color: #0073d3; }
 .btn-outline-primary:hover { background: #0073d3; }
+
+.navbar-toggler {
+  border: none;
+  outline: none;
+}
+
+
+/* https://stackoverflow.com/questions/19827605/change-bootstrap-navbar-collapse-breakpoint-without-using-less */
+@media (min-width: 1290px){
+    .navbar-expand-custom {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+    .navbar-expand-custom .navbar-nav {
+        flex-direction: row;
+    }
+    .navbar-expand-custom .navbar-nav .nav-link {
+        padding-right: .5rem;
+        padding-left: .5rem;
+    }
+    .navbar-expand-custom .navbar-collapse {
+        display: flex!important;
+    }
+    .navbar-expand-custom .navbar-toggler {
+        display: none;
+    }
+}

@@ -52,6 +52,7 @@ $(document).ready(function() {
   var $removeBtnConfirmContainer = $("#remove-btn-confirm-container");
   var $editScheduleBtn = $("#edit-btn");
   var $editConflictBtn = $("#edit-undo-conflict-btn");
+  var $costBtn = $("#cost-button");
   var $costList =  $("#cost-list");
   var $addScheduleDate = $("#add-date");
   var $addScheduleDep = $("#new-schedule-dep");
@@ -2280,6 +2281,13 @@ $(document).ready(function() {
     var $stickyElement = $(".sticky");
     var newCalHeight = window.innerHeight * .85;
     $fullCal.fullCalendar('option', 'height', newCalHeight);
+    
+    var windowWidth = window.innerWidth;
+    if (windowWidth < 950) {
+      $costBtn.html('Costs &raquo;');
+    } else {
+      $costBtn.html('Day & Week Costs &raquo;');
+    }
   }
 
 
