@@ -736,15 +736,30 @@ input[type=checkbox].conflict-checkbox { visibility: visible; }
 }
 
 @media screen and (max-width: 992px) {
-.sticky-cal {
-    width: 65%;
+  .sticky-cal { width: 65%; }
+  .week-cost-div, .day-cost-div { display: block; }
+  #cost-dropdown { width: 320px; }
+  .day-cost-div { 
+    border-bottom: solid #dddddd 1px;
+    border-right: 0px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
   }
+  .week-cost-div { margin-top: 5px; margin-left: 5px; }
 }
 
-@media screen and (max-width: 764px) {
-.sticky-cal {
-    top: 100px;
-  }
+@media screen and (max-width: 784px) {
+  .select-calendar, .calendar-loader-btn, .get-calendar-icon, .calendar-toolbar label, .calendar-push-btn { font-size: 14px; }
+  .toolbar-divider { height: 32px; }
+  .get-calendar-navbar { margin-top: 8px; }
+  .fc-center h2 { font-size: 1.4em; }
+  .fc-toolbar.fc-header-toolbar { margin-bottom: 0px; }
+  #calendar-costs { top: 0px; }
+}
+
+@media screen and (max-width: 726px) {
+  .sticky-cal { top: 100px; }
 }
 
 @media screen and (max-width: 992px) {

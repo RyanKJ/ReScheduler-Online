@@ -2283,7 +2283,7 @@ $(document).ready(function() {
     $fullCal.fullCalendar('option', 'height', newCalHeight);
     
     var windowWidth = window.innerWidth;
-    if (windowWidth < 950) {
+    if (windowWidth < 992) {
       $costBtn.html('Costs &raquo;');
     } else {
       $costBtn.html('Day & Week Costs &raquo;');
