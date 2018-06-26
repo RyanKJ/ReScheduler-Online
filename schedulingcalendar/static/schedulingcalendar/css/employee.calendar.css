@@ -397,9 +397,6 @@ li:last-child.cost-list {
 
 @media screen and (max-width: 930px) {
   .calendar-loader-btn { margin-top: 4px; }
-}
-
-@media screen and (max-width: 767px) {
   .date-selectors { display:table; margin:0 auto; }
   .mobile-span { display: block; text-align: right; margin: 12px 0px 12px 0px; }
   .mobile-span-center { display: block; text-align: center; margin: 2px 0px 10px 0px; }
