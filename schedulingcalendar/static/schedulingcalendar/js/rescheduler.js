@@ -372,6 +372,7 @@ $(document).ready(function() {
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
     $("#calendar-costs").css("visibility", "visible");
+    $("aside.schedule-editor").css("visibility", "visible");
 
     // Set departments for use in various functions
     departments = info["departments"];

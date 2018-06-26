@@ -22,6 +22,8 @@ a:active {
 /* Calendar Styling
 --------------------------------------------------------------------------------------------------*/
 
+aside.schedule-editor { visibility: hidden; }
+
 #calendar {
   margin: 0 auto;
   visibility: hidden;
