@@ -155,6 +155,14 @@ class LiveCalendar(models.Model):
     def __str__(self):
         date_str = self.date.strftime("%B %d")
         return "Department: " + self.department.name + " " + date_str
+        
+        
+class LiveCalendarVersionTimestamp(models.Model):
+    """Timestamp of a LiveCalendar's version upon publishing."""
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+    calendar = models.ForeignKey(LiveCalendar, db_index=True)
+    version = models.IntegerField('Version', db_index=True, default=1)
+    timestamp = models.DateTimeField('Timestamp',default=timezone.now)
 
 
 class LiveSchedule(models.Model):

@@ -1,0 +1,5 @@
+.datepicker-dropdown.dropdown-menu { background: #f1f1f1; }
+th.prev:hover, th.next:hover, span.month:hover:not(.focused) { background: #9bdaff !important; }
+th.prev, th.next { background: #bfbfbf; }
+span.month.focused { background: #0073d3 !important; }
+
