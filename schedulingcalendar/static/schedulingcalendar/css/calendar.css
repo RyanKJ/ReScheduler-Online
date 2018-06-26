@@ -68,7 +68,7 @@ a:active {
   background: linear-gradient(to bottom, #0079D7, #0a83eb);
   padding-bottom: 0px;
   margin-bottom: 5px;
-  z-index: 100;
+  z-index: 90;
 }
 
 .calendar-toolbar-right, .calendar-toolbar-right * { display: inline-block !important; float: right; }

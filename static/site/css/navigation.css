@@ -20,18 +20,25 @@ nav .nav-front-link:hover { color: white; }
   color: white !important;
 }
 
-.custom-nav-item:hover { background: #00BFFF !important; }
-
 .custom-nav-btn { background: #006ece !important; border: solid #0062cc 1px !important; }
 
 .custom-toggle-split { background: #006ece !important; border: solid #0062cc 1px !important; }
 
-.custom-nav-btn:hover, .custom-toggle-split:hover { background: #00BFFF !important;; border-color: #00BFFF !important;; }
+.custom-nav-btn:hover, .custom-toggle-split:hover { background: #00BFFF !important; border-color: #00BFFF !important; }
 
-.employee-btn-group { margin-left: 8px; margin-right: 10px; }
+.custom-nav-item:hover { background: #00BFFF !important; }
+
+.custom-nav-btn-dropdown { background: #0079d7 !important; margin-top: 2px; }
+
+.custom-nav-btn-dropdown:focus { outline: none !important; }
 
 /* Mobile styling
 --------------------------------------------------------------------------------------------------*/
+
+@media (max-width: 992px) { 
+  .custom-nav-dropdown { margin-top 4px; margin-bottom: 4px; }
+  .custom-nav-btn-dropdown { padding-left: 0px; padding-right: 2px; }
+}
 
 
 @media screen and (max-width: 767px) {

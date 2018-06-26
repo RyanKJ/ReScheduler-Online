@@ -19,52 +19,47 @@
   <div class="container-fluid">
     <div class="row no-print">
       <div class="col-md pl-0 pr-0">
-        <aside class="calendar-page-toolbar">
+        <aside class="calendar-toolbar-background">
           <div class="row">
             <!-- Link back to schedule editing page -->
-            <div class="col-lg-3 col-md-12">
-              <section class="calendar-loader">
-                <div class="return-to-schedule-editor">
+            <div class="col-lg-12 col-md-12">
+              <section class="calendar-toolbar">
+                <div class="btn return-to-schedule-editor">
                   <a href="{% url 'schedulingcalendar:calendar_page' %}">Go Back To Schedule Editor</a>
                 </div>
-              </section>
-            </div>
-            <!-- Version select -->
-            <div class="col-lg-6 col-md-12">
-              <div class="text-center">
-                <section class="calendar-loader">
-                  <div class="version-loader">
-                    <form id="load-calendar-form"
-                          action="{% url 'schedulingcalendar:get_live_schedules' %}"
-                          onsubmit="return(validateGetCalendarForm())"
-                          data-date="{{ date|date:"Y-m-d" }}"
-                          data-department="{{ department }}"
-                          data-department-name="{{ department_name }}"
-                          data-live-cal-version="{{ version }}"
-                          method="get">
-                      {% csrf_token %}
-                      {{ live_calendar_form.department }}
-                      {{ live_calendar_form.month }}
-                      {{ live_calendar_form.year }}
-                      
-                      {{ live_calendar_form.version.errors }}
-                      {{ live_calendar_form.version.label_tag }}
-                      <div class="select-cal-loader">
-                        {{ live_calendar_form.version }}
-                      </div>
-                      {% if live_calendar_form.version.help_text %}
-                        <p class="help">{{ live_calendar_form.version.help_text|safe }}</p>
-                      {% endif %}
-                      <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
-                    </form>
+              
+                <!-- Version select -->
+                <form id="load-calendar-form"
+                      class="text-center"
+                      action="{% url 'schedulingcalendar:get_live_schedules' %}"
+                      onsubmit="return(validateGetCalendarForm())"
+                      data-date="{{ date|date:"Y-m-d" }}"
+                      data-department="{{ department }}"
+                      data-department-name="{{ department_name }}"
+                      data-live-cal-version="{{ version }}"
+                      method="get">
+                  {% csrf_token %}
+                  {{ live_calendar_form.department }}
+                  {{ live_calendar_form.month }}
+                  {{ live_calendar_form.year }}
+                          
+                  {{ live_calendar_form.version.errors }}
+                  {{ live_calendar_form.version.label_tag }}
+                  <div class="select-cal-loader">
+                    {{ live_calendar_form.version }}
                   </div>
-                </section>
-              </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-12">
-              <div id="cram-rows" class="calendar-push-btn">Cram Rows Off</div>
-              <div id="print-help" class="calendar-push-btn">Printing Help</div>
+                  {% if live_calendar_form.version.help_text %}
+                    <p class="help">{{ live_calendar_form.version.help_text|safe }}</p>
+                  {% endif %}
+                  <input type="submit" class="calendar-loader-btn" id="get-calendar-button" value="Get Calendar">
+                </form>
+                
+                <!-- Print buttons -->
+                <div>
+                  <div id="cram-rows" class="btn calendar-push-btn float-right">Cram Rows Off</div>
+                  <div id="print-help" class="btn calendar-push-btn float-right">Printing Help</div>
+                </div>
+              </section>
             </div>
           </div>
         </aside>

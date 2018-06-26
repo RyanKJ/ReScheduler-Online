@@ -36,38 +36,32 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 
-.calendar-page-toolbar {
-  position: relative;
+.calendar-toolbar-background {
   background-color: #0079D7;
-  margin-bottom: 15px;
 }
 
-.calendar-page-toolbar h2 {
+.calendar-toolbar-background h2 {
   color: white;
   display: inline;
   padding-bottom: 15px;
 }
 
-.calendar-loader {
-    display: inline-block;
+.calendar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     position: relative;
     top: 7px;
     vertical-align: middle;
 }
 
-.calendar-loader label,
-.calendar-loader input[type="button"],
-.calendar-loader input[type="submit"],
-.calendar-loader submit,
-.calendar-loader form,
-.calendar-loader div {
-    vertical-align: middle;
-}
-
-.calendar-loader label {
+.calendar-toolbar label {
   color: white;
   font-size: 16px;
+  font-weight: bold;
   margin-left: 7px;
+  position: relative;
+  bottom: 10px;
 }
 
 .select-cal-loader {
@@ -81,16 +75,15 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
   color: white;
   font-size: 16px;
   font-weight: bold;
+  padding-bottom: 2px;
 }
 
 .return-to-schedule-editor {
-  display: inline-block;
   margin-left: 8px;
   padding: 4px 7px 4px 7px;
   border: 2px solid white;
   border-radius: 1px;
   max-width: 500px;
-  overflow: hidden;
   background: transparent;
   color: white;
   font-size: 16px;
@@ -106,7 +99,7 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
 }
 
 .select-cal-loader a {
-    padding: 8px 8px;
+    padding: 8px;
     width: 130%;
     border: none;
     box-shadow: none;
@@ -156,11 +149,9 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
     outline: none;
 }
 
-.version-loader {
-    display: inline-block;
-}
-
 .calendar-loader-btn {
+  position: relative;
+  bottom: 12px;
   margin-left: 15px;
   background: transparent;
   background-image: -webkit-linear-gradient(top, transparent, transparent);
@@ -190,9 +181,9 @@ a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
 }
 
 .calendar-push-btn { 
+  position: relative;
+  bottom: 7px;
   margin: 7px 7px 4px 7px;
-  float: right;
-  display: inline-block;
   padding-right: 37px;
   background: transparent;
   background-image: -webkit-linear-gradient(top, transparent, transparent);
@@ -434,4 +425,9 @@ li:last-child.cost-list {
 
 .live-cal-margin {
   margin: 0px 10px 10px 10px;
+}
+
+@media screen and (max-width: 615px) {
+  .calendar-loader-btn { bottom: 4px; margin-bottom 3px; }
+  form label { margin-bottom: 0px; }
 }
