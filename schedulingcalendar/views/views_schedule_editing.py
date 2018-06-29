@@ -550,12 +550,12 @@ def push_changes_live(request):
                            'employee_view': employee_view}
 
             # Send texts and emails with new/changed schedules
-            """if notify_by_sms or notify_by_email:
+            if notify_by_sms or notify_by_email:
                 business_data = BusinessData.objects.get(user=logged_in_user)
                 send_employee_notifications(logged_in_user, department, date, business_data,
                                             live_calendar, view_rights, notify_all,
                                             notify_by_sms, notify_by_email)
-            """
+            
 
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)
