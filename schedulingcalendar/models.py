@@ -162,7 +162,11 @@ class LiveCalendarVersionTimestamp(models.Model):
     user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
     calendar = models.ForeignKey(LiveCalendar, db_index=True)
     version = models.IntegerField('Version', db_index=True, default=1)
-    timestamp = models.DateTimeField('Timestamp',default=timezone.now)
+    timestamp = models.DateTimeField('Timestamp', default=timezone.now)
+    
+    
+    def __str__(self):
+        return "Live Cal Timestamp: " + str(self.version) + " " + self.timestamp.isoformat()
 
 
 class LiveSchedule(models.Model):

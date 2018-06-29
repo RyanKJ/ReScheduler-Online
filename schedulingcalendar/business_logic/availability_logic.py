@@ -11,7 +11,8 @@ from .time_logic import (check_for_overtime, calculate_weekly_hours_with_sch,
 from ..models import (Schedule, Department, DepartmentMembership, MonthlyRevenue,
                      Employee, Vacation, RepeatUnavailability, BusinessData,
                      Absence, DesiredTime, LiveSchedule, LiveCalendar,
-                     LiveCalendarDepartmentViewRights, LiveCalendarEmployeeViewRights)
+                     LiveCalendarDepartmentViewRights, LiveCalendarEmployeeViewRights,
+                     LiveCalendarVersionTimestamp)
 
                      
 
@@ -366,3 +367,11 @@ def create_live_schedules(user, live_calendar):
         live_schedules.append(live_schedule)
         
     LiveSchedule.objects.bulk_create(live_schedules)
+    
+    
+def create_live_cal_timestamp(user, live_calendar):
+    """Create timestamp corresponding to live calendar's published version."""
+    live_cal_timestamp = LiveCalendarVersionTimestamp(user=user, calendar=live_calendar,
+                                                      version=live_calendar.version,
+                                                      timestamp=timezone.now())
+    live_cal_timestamp.save()

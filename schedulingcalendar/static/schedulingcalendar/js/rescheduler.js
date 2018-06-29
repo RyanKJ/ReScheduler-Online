@@ -269,7 +269,9 @@ $(document).ready(function() {
    */
   function loadSchedules(json_data) {
     // Clear out eligable list incase previous calendar was loaded
+    $scheduleInfo.css("display", "none");
     $eligableList.empty();
+    $addScheduleDate.val("");
     employeesAssigned = [];
     _removeDayNoteHeaders();
     copyDaySchedulePksList = [];

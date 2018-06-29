@@ -11,7 +11,7 @@ from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
-                     LiveCalendarEmployeeViewRights)
+                     LiveCalendarEmployeeViewRights, LiveCalendarVersionTimestamp)
 from ..business_logic import (get_eligibles, all_calendar_hours_and_costs, 
                               get_avg_monthly_revenue, get_tro_dates, 
                               get_start_end_of_calendar) 
@@ -178,8 +178,7 @@ def get_live_schedules(request):
     """Get live schedules for given date and department as a manager."""
     logged_in_user = request.user
     if request.method == 'GET':
-        manager_user = logged_in_user
-        form = LiveCalendarManagerForm(manager_user, 1, request.GET)
+        form = LiveCalendarManagerForm(logged_in_user, 1, request.GET)
         if form.is_valid():
             department_id = form.cleaned_data['department']
             year = form.cleaned_data['year']
@@ -188,34 +187,42 @@ def get_live_schedules(request):
             lower_bound_dt, upper_bound_dt = get_start_end_of_calendar(year, month)
             
             try:
-                live_calendar = LiveCalendar.objects.get(user=manager_user, 
+                live_calendar = LiveCalendar.objects.get(user=logged_in_user, 
                                                          date=cal_date, 
                                                          department=department_id)
 
                 version = form.cleaned_data['version']
+                try:
+                    timestamp = LiveCalendarVersionTimestamp.objects.get(user=logged_in_user, 
+                                                                         calendar=live_calendar, 
+                                                                         version=version)
+                    timestamp_str = timestamp.timestamp.isoformat()
+                except:
+                    timestamp_str = ""
+                    
                 live_schedules = (LiveSchedule.objects.select_related('employee')
-                                                      .filter(user=manager_user,
+                                                      .filter(user=logged_in_user,
                                                               calendar=live_calendar,
                                                               version=version))
                                                           
                 # Get employees
-                dep_memberships = (DepartmentMembership.objects.filter(user=manager_user, department=department_id))
+                dep_memberships = (DepartmentMembership.objects.filter(user=logged_in_user, department=department_id))
                 employee_ids = []
                 for dep_mem in dep_memberships:
                     employee_ids.append(dep_mem.employee.id)
-                employees = (Employee.objects.filter(user=manager_user, id__in=employee_ids)
+                employees = (Employee.objects.filter(user=logged_in_user, id__in=employee_ids)
                                              .order_by('first_name', 'last_name'))
                                              
                 # Get time requested off instances
-                tro_dates = get_tro_dates(manager_user, department_id, lower_bound_dt, upper_bound_dt)
+                tro_dates = get_tro_dates(logged_in_user, department_id, lower_bound_dt, upper_bound_dt)
                 tro_dict = get_tro_dates_to_dict(tro_dates)
                         
                 # Get day notes to display for dates within range of month
-                day_note_header = DayNoteHeader.objects.filter(user=manager_user,
+                day_note_header = DayNoteHeader.objects.filter(user=logged_in_user,
                                                                date__lte=upper_bound_dt,
                                                                date__gte=lower_bound_dt,
                                                                department=department_id)
-                day_note_body = DayNoteBody.objects.filter(user=manager_user,
+                day_note_body = DayNoteBody.objects.filter(user=logged_in_user,
                                                            date__lte=upper_bound_dt,
                                                            date__gte=lower_bound_dt,
                                                            department=department_id)  
@@ -240,7 +247,7 @@ def get_live_schedules(request):
                     day_note_body_as_dicts.append(day_body_dict)
                 
                 # Get business data for display settings on calendar
-                business_data = (BusinessData.objects.get(user=manager_user))
+                business_data = (BusinessData.objects.get(user=logged_in_user))
                 business_dict = model_to_dict(business_data)
                   
                 # Combine all appropriate data into dict for serialization
@@ -252,6 +259,7 @@ def get_live_schedules(request):
                                  'day_note_body': day_note_body_as_dicts,
                                  'tro_dates': tro_dict,
                                  'version': version,
+                                 'timestamp': timestamp_str,
                                  'display_settings': business_dict,
                                  'lower_bound_dt': lower_bound_dt.isoformat(),
                                  'upper_bound_dt': upper_bound_dt.isoformat()}

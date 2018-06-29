@@ -14,8 +14,8 @@ from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      DayNoteHeader, DayNoteBody)
 from ..business_logic import (get_eligibles, all_calendar_hours_and_costs,
                               add_employee_cost_change, remove_schedule_cost_change,
-                              create_live_schedules, time_dur_in_hours,
-                              edit_schedule_cost_change, calculate_cost_delta,
+                              create_live_schedules, create_live_cal_timestamp,
+                              time_dur_in_hours, edit_schedule_cost_change, calculate_cost_delta,
                               get_start_end_of_weekday, get_availability, get_dates_in_week,
                               set_view_rights, send_employee_notifications,
                               view_right_send_employee_notifications)
@@ -534,11 +534,13 @@ def push_changes_live(request):
             if created:
                 live_calendar.all_employee_view = all_employee_view
                 live_calendar.save()
+                create_live_cal_timestamp(logged_in_user, live_calendar)
                 create_live_schedules(logged_in_user, live_calendar)
             else:
                 live_calendar.all_employee_view = all_employee_view
                 live_calendar.version += 1
                 live_calendar.save()
+                create_live_cal_timestamp(logged_in_user, live_calendar)
                 create_live_schedules(logged_in_user, live_calendar)
 
             # Set specific view rights
@@ -548,12 +550,12 @@ def push_changes_live(request):
                            'employee_view': employee_view}
 
             # Send texts and emails with new/changed schedules
-            if notify_by_sms or notify_by_email:
+            """if notify_by_sms or notify_by_email:
                 business_data = BusinessData.objects.get(user=logged_in_user)
                 send_employee_notifications(logged_in_user, department, date, business_data,
                                             live_calendar, view_rights, notify_all,
                                             notify_by_sms, notify_by_email)
-
+            """
 
             json_info = json.dumps({'message': 'Successfully pushed calendar live!', 'view_rights': view_rights})
             return JsonResponse(json_info, safe=False)

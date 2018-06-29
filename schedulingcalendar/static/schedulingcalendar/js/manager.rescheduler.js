@@ -193,6 +193,9 @@ $(document).ready(function() {
 
     // Make other month days displayed not gray'd out
     $(".fc-other-month").removeClass("fc-other-month");
+    
+    // Render timestamp of live schedule publish
+    renderPublishedTimestamp(info['timestamp']);
 
     // Ensure calendar is visible once fully loaded
     $fullCal.css("visibility", "visible");
@@ -553,6 +556,18 @@ $(document).ready(function() {
       var $dayHeader = $(this).parent();
       $dayHeader.html(html);
     });
+  }
+  
+  
+  /** Render timestamp on published schedules. */
+  function renderPublishedTimestamp(timestamp) {
+    var html = "<div class='timestamp'>Published: ";
+    var timestampDt = moment(timestamp);
+    var timestampHtml = timestampDt.format("dddd, MMMM Do YYYY, h:mm a</div>");
+    html += timestampHtml;
+    
+    $leftHeaderOfCalendar = $(".fc-left");
+    $leftHeaderOfCalendar.html(html);
   }
 });
 

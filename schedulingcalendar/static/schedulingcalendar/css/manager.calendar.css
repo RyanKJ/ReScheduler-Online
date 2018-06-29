@@ -33,6 +33,12 @@ a:active {
 
 a.fc-event.cram-rows { margin: -2px 0px -1px 0px; }
 
+.timestamp {
+  position: absolute;
+  top: 45px;
+  font-weight: bold;
+}
+
 /* Calendar Toolbar Styling
 --------------------------------------------------------------------------------------------------*/
 
