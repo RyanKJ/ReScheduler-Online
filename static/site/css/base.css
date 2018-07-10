@@ -39,6 +39,8 @@ main {
   z-index:100;
 }
 
+.errorlist { color: red; }
+
 .login {
   margin-top: 80px;
 }

@@ -7,8 +7,8 @@
 }
 
 .custom-card-general {
-  max-width: 50rem;
   margin: auto;
+  width: 50%;
 }
 
 /* Used to hide and display date and time pickers to create a datetime picker */
@@ -35,3 +35,7 @@
 }
 
 a.go-back-link { color: white; }
+
+@media screen and (max-width: 767px) {
+  .custom-card-general { width: 100%; }
+}
