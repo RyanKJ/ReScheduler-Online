@@ -4,6 +4,7 @@
 {% block stylesheets %}
   {{ block.super }}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.css"/>
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.css' %}" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.date.css' %}" />
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/default.time.css' %}" />
@@ -36,4 +37,5 @@
   <script src="{% static 'schedulingcalendar/js/picker.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.date.js' %}" ></script>
   <script src="{% static 'schedulingcalendar/js/picker.time.js' %}" ></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.js"></script>
 {% endblock javascript %}    

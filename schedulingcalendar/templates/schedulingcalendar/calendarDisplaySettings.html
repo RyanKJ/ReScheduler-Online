@@ -42,8 +42,6 @@
               </div>
             </div>
             <!-- Display non-zero minutes form input -->
-            <p class="card-text">Note: Setting display only non-zero minutes
-                                 will overide the display minutes setting.</p>
             <div class="form-group">
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">
@@ -55,7 +53,7 @@
                   {% endif %}
                 </div>
                 <span class="checkbox-custom-text">Display Only Non-Zero Minutes
-                  <span class="small">(8:00 Becomes 8, 8:30 stays the same)</span>
+                  <span class="small">(8:00 Becomes 8, 8:30 stays the same. Overrides display minutes setting)</span>
                 </span>
               </div>
             </div>
@@ -78,6 +76,8 @@
           <!-- Last name display options section -->
           <div class="card-section">
             <h5 class="card-section-header">Last Name Formatting Options</h5>
+            <p class="card-text mb-0">Note: The more specific setting will 
+            overide the more general setting.</p>
             <!-- Display last names form input -->
             <div class="form-group">
               <div class="checkbox-custom-container">
@@ -93,8 +93,6 @@
               </div>
             </div>
             <!-- Display character of last name only form input -->
-            <p class="card-text mb-0">Note: Setting display only first character of last name
-                                      will overide the display full last name setting.</p>
             <div class="form-group">
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">
@@ -109,8 +107,6 @@
               </div>
             </div>
             <!-- Display character of last name only (when first name not unique) form input -->
-            <p class="card-text mb-0">Note: Setting display only first character of last name
-                                      will overide the display full last name setting.</p>
             <div class="form-group">
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">
@@ -130,7 +126,7 @@
           <div class="card-section">
             <h5 class="card-section-header">Eligibility List Sort</h5>
             <!-- Override eligible sort and sort by employee name -->
-            <p class="card-text mb-0">Note: This will sort eligibles (List of employees 
+            <p class="card-text mb-1">This will sort eligibles (List of employees 
                                       that can be assigned to a schedule) by last name
                                       and first name, instead of an employee's
                                       eligibility score. For more information
@@ -155,11 +151,11 @@
           <div class="card-section">
             <h5 class="card-section-header">Unique Row Per Employee</h5>
             <!-- Give each assigned employee a unique row in calendar -->
-            <p class="card-text mb-0">Note: Each assigned employee will have their
-                                       own row on the calendar. So when they are
-                                       assigned to a schedule, their schedule/name
-                                       will always appear on that row.
-                                       <a href="#">help.</a></p>
+            <p class="card-text mb-1">Each assigned employee will have their
+                                      own row on the calendar. So when they are
+                                      assigned to a schedule, their schedule/name
+                                      will always appear on that row.
+                                      <a href="#">help.</a></p>
             <div class="form-group">
               <div class="checkbox-custom-container">
                 <div class="checkbox-custom">

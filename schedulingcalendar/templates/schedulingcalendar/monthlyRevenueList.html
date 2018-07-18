@@ -1,17 +1,34 @@
 {% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load static %}
 
 {% block form_content %}
   <h4 class="card-title text-center">Monthly Revenue List</h4>
-  <a class="btn btn-primary text-white mb-2" href="{% url 'schedulingcalendar:monthly_revenue_create' %}">New Monthly Revenue</a>
-  <ul class="list-group">
-    {% for monthly_rev in monthly_revenue_list %}
-      <li class="list-group-item">
-        <ul class="list-inline" data-monthly-rev-id="{{ monthly_rev.id }}">
-          <li class="list-inline-item">{{ monthly_rev.month_year|date:"Y, F" }}: ${{ monthly_rev.monthly_total}}</li>
-          <li class="list-inline-item"><a href="{% url 'schedulingcalendar:monthly_revenue_update' monthly_rev.id %}">Edit</a></li>
-          <li class="list-inline-item"><a href="{% url 'schedulingcalendar:monthly_revenue_delete' monthly_rev.id %}">Delete</a></li>
-        </ul>
-      </li>
-    {% endfor %}
-  </ul>
+  <h6>{{ warning_msg }}</h6>
+  <a class="btn btn-primary text-white mb-3" href="{% url 'schedulingcalendar:monthly_revenue_create' %}">New Monthly Revenue</a>
+  <table id="monthly-revenue-table" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+      <tr>
+        <th style="width:80%">Revenue</th>
+        <th style="width:20%">Delete</th>
+      </tr>
+    </thead>
+    
+    <tbody>
+      {% for monthly_rev in monthly_revenue_list %}
+        <tr>
+          <td>
+            <a href="{% url 'schedulingcalendar:monthly_revenue_update' monthly_rev.id %}">
+              {{ monthly_rev.month_year|date:"Y, F" }}: ${{ monthly_rev.monthly_total}}
+            </a>
+          </td>
+          <td align="center"><a href="{% url 'schedulingcalendar:monthly_revenue_delete' monthly_rev.id %}">Delete</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock form_content %}
+
+{% block javascript %}
+  {{ block.super }} 
+  <script src="{% static 'schedulingcalendar/js/monthly-revenue-list.js' %}" ></script>
+{% endblock javascript %}    

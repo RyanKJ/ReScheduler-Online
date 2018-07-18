@@ -13,7 +13,8 @@
     <div class="card-group w-100">
       <div>
         <div class="card-block">
-          <h4 class="card-title text-center">Business Settings:</h4>
+          <h4 class="card-title text-center">Business Settings</h4>
+          <div class="card-section">
           <!-- Company name -->
           {{ form.company_name.errors }}
           {{ form.company_name.label_tag }}
@@ -58,6 +59,7 @@
             {% if form.workweek_time_start.help_text %}
               <p class="help">{{ form.workweek_time_start.help_text|safe }}</p>
             {% endif %}
+          </div>
           </div>
         </div>
       </div>
