@@ -20,6 +20,7 @@ $(document).ready(function() {
   var dayNoteBodies = {};
   var scheduleNotes = {};
   var employeeNameDict = {};
+  var employeesWithSameFirstName = [];
   var employeeSortedIdList = []; // Ids sorted by first name, then last
   var employeesAssigned = [];
   var employeeUserPk = null;
@@ -167,6 +168,7 @@ $(document).ready(function() {
     // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     var employees = info["employees"];
+    employeesWithSameFirstName = info["employees_with_same_first_name"];
     _createEmployeeSortedIdList(employees);
     employeeNameDict = _employeePkToName(employees);
     var dayHeaderNotes = info["day_note_header"];
@@ -323,7 +325,7 @@ $(document).ready(function() {
       isEmployeeAssigned = true;
     }
     var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
-                          firstName, lastName, note);
+                          firstName, lastName, note, schEmployePk);
 
     var fullCalEvent = {
       id: schedulePk,
@@ -511,12 +513,12 @@ $(document).ready(function() {
   }
 
 
-  /**
+/**
    * Concatenate strings for start time, end time, and employee name (if the
    * the schedule has an employee assigned). start and end are javascript
    * moment objects.
    */
-  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName, note) {
+  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName, note, employeePk) {
     // Construct time string based off of display settings
     var displayMinutes = displaySettings["display_minutes"];
     var displayNonzeroMinutes = displaySettings["display_nonzero_minutes"];
@@ -553,14 +555,19 @@ $(document).ready(function() {
     // Construct employee name string based off of display settings
     var displayLastNames = displaySettings["display_last_names"];
     var displayLastNameFirstChar = displaySettings["display_first_char_last_name"];
+    var displayLastNameFirstCharNonUnique = displaySettings["display_first_char_last_name_non_unique_first_name"];
+    
 
     var employeeStr = "";
     if (firstName) {
       employeeStr = ": " + firstName;
-      if (displayLastNameFirstChar && lastName) {
+      if (displayLastNameFirstCharNonUnique && employeePk != null && lastName) {
+        if (employeesWithSameFirstName.includes(employeePk)) {
+          employeeStr += " " + lastName.charAt(0);
+        }
+      } else if (displayLastNameFirstChar && lastName) {
         employeeStr += " " + lastName.charAt(0);
-      }
-      if (displayLastNames && lastName && !displayLastNameFirstChar) {
+      } else if (displayLastNames && lastName && !displayLastNameFirstChar) {
         employeeStr += " " + lastName;
       }
     }

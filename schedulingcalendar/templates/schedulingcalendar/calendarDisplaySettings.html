@@ -13,147 +13,186 @@
     <div class="card-group w-100">
       <div>
         <div class="card-block">
-          <h4 class="card-title text-center">Calendar Display Settings:</h4>
-          <!-- Time interval for schedule adder time pickers -->
-          <div class="form-group mb-4">
-            {{ form.time_picker_interval.errors }}
-            <br><p class="card-text mb-0">Set the interval in minutes for the time
-            selectors for adding schedules:</p>
-            {{ form.time_picker_interval|add_class:'form-control' }}
-            {% if form.time_picker_interval.help_text %}
-              <p class="help">{{ form.time_picker_interval.help_text|safe }}</p>
-            {% endif %}
-          </div>
-          <!-- Display minutes form input -->
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.display_minutes.errors }}
-                {{ form.display_minutes }}
-                {{ form.display_minutes.label_tag }}
-                {% if form.display_minutes.help_text %}
-                  <p class="help">{{ form.display_minutes.help_text|safe }}</p>
-                {% endif %}
+          <h4 class="card-title text-center">Calendar Display Settings</h4>
+          <!-- Time display options section -->
+          <div class="card-section">
+            <h5 class="card-section-header">Time Display Options</h5>
+            <!-- Time interval for schedule adder time pickers -->
+            <div class="form-group mb-4">
+              {{ form.time_picker_interval.errors }}
+              <p class="card-text mb-0">Set the interval in minutes for the time
+              selectors for adding schedules:</p>
+              {{ form.time_picker_interval|add_class:'form-control' }}
+              {% if form.time_picker_interval.help_text %}
+                <p class="help">{{ form.time_picker_interval.help_text|safe }}</p>
+              {% endif %}
+            </div>
+            <!-- Display minutes form input -->
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_minutes.errors }}
+                  {{ form.display_minutes }}
+                  {{ form.display_minutes.label_tag }}
+                  {% if form.display_minutes.help_text %}
+                    <p class="help">{{ form.display_minutes.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display Minutes</span>
               </div>
-              <span class="checkbox-custom-text">Display Minutes</span>
+            </div>
+            <!-- Display non-zero minutes form input -->
+            <p class="card-text">Note: Setting display only non-zero minutes
+                                 will overide the display minutes setting.</p>
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_nonzero_minutes.errors }}
+                  {{ form.display_nonzero_minutes }}
+                  {{ form.display_nonzero_minutes.label_tag }}
+                  {% if form.display_nonzero_minutes.help_text %}
+                    <p class="help">{{ form.display_nonzero_minutes.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display Only Non-Zero Minutes
+                  <span class="small">(8:00 Becomes 8, 8:30 stays the same)</span>
+                </span>
+              </div>
+            </div>
+            <!-- Display AM/PM form input -->
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_am_pm.errors }}
+                  {{ form.display_am_pm }}
+                  {{ form.display_am_pm.label_tag }}
+                  {% if form.display_am_pm.help_text %}
+                    <p class="help">{{ form.display_am_pm.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display AM/PM</span>
+              </div>
             </div>
           </div>
-          <!-- Display non-zero minutes form input -->
-          <p class="card-text">Note: Setting display only non-zero minutes
-                               will overide the display minutes setting.</p>
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.display_nonzero_minutes.errors }}
-                {{ form.display_nonzero_minutes }}
-                {{ form.display_nonzero_minutes.label_tag }}
-                {% if form.display_nonzero_minutes.help_text %}
-                  <p class="help">{{ form.display_nonzero_minutes.help_text|safe }}</p>
-                {% endif %}
+          
+          <!-- Last name display options section -->
+          <div class="card-section">
+            <h5 class="card-section-header">Last Name Formatting Options</h5>
+            <!-- Display last names form input -->
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_last_names.errors }}
+                  {{ form.display_last_names }}
+                  {{ form.display_last_names.label_tag }}
+                  {% if form.display_last_names.help_text %}
+                    <p class="help">{{ form.display_last_names.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display Full Last Name</span>
               </div>
-              <span class="checkbox-custom-text">Display Only Non-Zero Minutes
-                <span class="small">(8:00 Becomes 8, 8:30 stays the same)</span>
-              </span>
+            </div>
+            <!-- Display character of last name only form input -->
+            <p class="card-text mb-0">Note: Setting display only first character of last name
+                                      will overide the display full last name setting.</p>
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_first_char_last_name.errors }}
+                  {{ form.display_first_char_last_name }}
+                  {{ form.display_first_char_last_name.label_tag }}
+                  {% if form.display_first_char_last_name.help_text %}
+                    <p class="help">{{ form.display_first_char_last_name.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display Only First Character Of Last Name</span>
+              </div>
+            </div>
+            <!-- Display character of last name only (when first name not unique) form input -->
+            <p class="card-text mb-0">Note: Setting display only first character of last name
+                                      will overide the display full last name setting.</p>
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.display_first_char_last_name_non_unique_first_name.errors }}
+                  {{ form.display_first_char_last_name_non_unique_first_name }}
+                  {{ form.display_first_char_last_name_non_unique_first_name.label_tag }}
+                  {% if form.display_first_char_last_name_non_unique_first_name.help_text %}
+                    <p class="help">{{ form.display_first_char_last_name_non_unique_first_name.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Display Only First Character Of Last Name If Non-Unique First Name</span>
+              </div>
             </div>
           </div>
-          <!-- Display AM/PM form input -->
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.display_am_pm.errors }}
-                {{ form.display_am_pm }}
-                {{ form.display_am_pm.label_tag }}
-                {% if form.display_am_pm.help_text %}
-                  <p class="help">{{ form.display_am_pm.help_text|safe }}</p>
-                {% endif %}
+            
+          <!-- Eligibility alphabetical sort -->
+          <div class="card-section">
+            <h5 class="card-section-header">Eligibility List Sort</h5>
+            <!-- Override eligible sort and sort by employee name -->
+            <p class="card-text mb-0">Note: This will sort eligibles (List of employees 
+                                      that can be assigned to a schedule) by last name
+                                      and first name, instead of an employee's
+                                      eligibility score. For more information
+                                      on an employee's eligibility score, go to
+                                      <a href="#">help.</a></p>
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.sort_by_names.errors }}
+                  {{ form.sort_by_names }}
+                  {{ form.sort_by_names.label_tag }}
+                  {% if form.sort_by_names.help_text %}
+                    <p class="help">{{ form.sort_by_names.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Sort Eligibles By Last & First Name</span>
               </div>
-              <span class="checkbox-custom-text">Display AM/PM</span>
             </div>
           </div>
-          <!-- Display last names form input -->
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.display_last_names.errors }}
-                {{ form.display_last_names }}
-                {{ form.display_last_names.label_tag }}
-                {% if form.display_last_names.help_text %}
-                  <p class="help">{{ form.display_last_names.help_text|safe }}</p>
-                {% endif %}
+          
+          <!-- Unique row display options section -->
+          <div class="card-section">
+            <h5 class="card-section-header">Unique Row Per Employee</h5>
+            <!-- Give each assigned employee a unique row in calendar -->
+            <p class="card-text mb-0">Note: Each assigned employee will have their
+                                       own row on the calendar. So when they are
+                                       assigned to a schedule, their schedule/name
+                                       will always appear on that row.
+                                       <a href="#">help.</a></p>
+            <div class="form-group">
+              <div class="checkbox-custom-container">
+                <div class="checkbox-custom">
+                  {{ form.unique_row_per_employee.errors }}
+                  {{ form.unique_row_per_employee }}
+                  {{ form.unique_row_per_employee.label_tag }}
+                  {% if form.unique_row_per_employee.help_text %}
+                    <p class="help">{{ form.unique_row_per_employee.help_text|safe }}</p>
+                  {% endif %}
+                </div>
+                <span class="checkbox-custom-text">Unique Row Per Employee</span>
               </div>
-              <span class="checkbox-custom-text">Display Full Last Name</span>
             </div>
           </div>
-          <!-- Display character of last name only form input -->
-          <p class="card-text mb-0">Note: Setting display only first character of last name
-                               will overide the display full last name setting.</p>
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.display_first_char_last_name.errors }}
-                {{ form.display_first_char_last_name }}
-                {{ form.display_first_char_last_name.label_tag }}
-                {% if form.display_first_char_last_name.help_text %}
-                  <p class="help">{{ form.display_first_char_last_name.help_text|safe }}</p>
-                {% endif %}
-              </div>
-              <span class="checkbox-custom-text">Display Only First Character Of Last Name</span>
+          
+          <!-- Desired hours overshoot options section -->
+          <div class="card-section">
+            <h5 class="card-section-header">Desired Overshoot Alert</h5>
+            <!-- Desired Hours Overshoot Alert -->
+            <div class="form-group">
+              {{ form.desired_hours_overshoot_alert.errors }}
+              <p class="card-text mb-0">This setting determines the margin by which you are alerted
+                                        about an employee working more hours than they want. For example,
+                                        if an employee wants to work 30 hours per week, and the margin is
+                                        5, then the eligible list will be colored to inform you if
+                                        the employee is working any more than 35 hours per week.</p>
+              {{ form.desired_hours_overshoot_alert|add_class:'form-control' }}
+              {% if form.desired_hours_overshoot_alert.help_text %}
+                <p class="help">{{ form.desired_hours_overshoot_alert.help_text|safe }}</p>
+              {% endif %}
             </div>
-          </div>
-          <!-- Override eligible sort and sort by employee name -->
-          <br><p class="card-text mb-0">Note: This will sort eligibles by last name
-                                     and first name, instead of an employee's
-                                     eligibility score. For more information
-                                     on an employee's eligibility score, go to
-                                     <a href="#">help.</a></p>
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.sort_by_names.errors }}
-                {{ form.sort_by_names }}
-                {{ form.sort_by_names.label_tag }}
-                {% if form.sort_by_names.help_text %}
-                  <p class="help">{{ form.sort_by_names.help_text|safe }}</p>
-                {% endif %}
-              </div>
-              <span class="checkbox-custom-text">Sort Eligibles By Last & First Name</span>
-            </div>
-          </div>
-          <!-- Give each assigned employee a unique row in calendar -->
-          <p class="card-text mb-0">Note: Each assigned employee will have their
-                                     own row on the calendar. So when they are
-                                     assigned to a schedule, their schedule/name
-                                     will always appear on that row.
-                                     <a href="#">help.</a></p>
-          <div class="form-group">
-            <div class="checkbox-custom-container">
-              <div class="checkbox-custom">
-                {{ form.unique_row_per_employee.errors }}
-                {{ form.unique_row_per_employee }}
-                {{ form.unique_row_per_employee.label_tag }}
-                {% if form.unique_row_per_employee.help_text %}
-                  <p class="help">{{ form.unique_row_per_employee.help_text|safe }}</p>
-                {% endif %}
-              </div>
-              <span class="checkbox-custom-text">Unique Row Per Employee</span>
-            </div>
-          </div>
-          <!-- Desired Hours Overshoot Alert -->
-          <div class="form-group">
-            {{ form.desired_hours_overshoot_alert.errors }}
-            {{ form.desired_hours_overshoot_alert.label_tag }}
-            <br><p class="card-text mb-0">This setting determines the margin by which you are alerted
-                                       about an employee working more hours than they want. For example,
-                                       if an employee wants to work 30 hours per week, and the margin is
-                                       5, then the eligible list will be colored to inform you if
-                                       the employee is working any more than 35 hours per week.</p>
-            {{ form.desired_hours_overshoot_alert|add_class:'form-control' }}
-            {% if form.desired_hours_overshoot_alert.help_text %}
-              <p class="help">{{ form.desired_hours_overshoot_alert.help_text|safe }}</p>
-            {% endif %}
           </div>
         </div>
-        <br>
       </div>
     </div>
 

@@ -382,6 +382,8 @@ class CalendarDisplaySettingsForm(forms.ModelForm):
                                             widget=forms.CheckboxInput())
     display_first_char_last_name = forms.BooleanField(label="", required=False,
                                                       widget=forms.CheckboxInput())
+    display_first_char_last_name_non_unique_first_name = forms.BooleanField(label="", required=False,
+                                                      widget=forms.CheckboxInput())                                                                                
     sort_by_names = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
     unique_row_per_employee = forms.BooleanField(label="", required=False,
@@ -393,8 +395,11 @@ class CalendarDisplaySettingsForm(forms.ModelForm):
         model = BusinessData
         fields = ['display_am_pm', 'display_minutes',
                   'display_nonzero_minutes', 'display_last_names',
-                  'display_first_char_last_name', 'desired_hours_overshoot_alert',
-                  'sort_by_names', 'unique_row_per_employee', 'time_picker_interval']
+                  'display_first_char_last_name', 
+                  'display_first_char_last_name_non_unique_first_name', 
+                  'desired_hours_overshoot_alert',
+                  'sort_by_names', 'unique_row_per_employee', 
+                  'time_picker_interval']
 
 
 class BusinessDataForm(forms.ModelForm):

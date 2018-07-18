@@ -11,6 +11,27 @@
   width: 50%;
 }
 
+.card-section {
+  background: #f4f4f4;
+  padding: 4px;
+  margin: 8px 0px 8px 0px;
+  border-radius: 3px;
+  border: 2px solid #e0e0e0;
+}
+
+.card-section label { 
+  font-weight: bold;
+}
+
+.card-section .checkbox-custom-text { 
+  font-weight: 600;
+}
+
+.card-section-header {
+  text-align: center;
+  font-weight: 600;
+}
+
 /* Used to hide and display date and time pickers to create a datetime picker */
 #hidden-datetime {
     position: absolute;

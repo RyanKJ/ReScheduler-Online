@@ -380,6 +380,7 @@ class BusinessData(models.Model):
     display_nonzero_minutes = models.BooleanField(default=False)
     display_last_names = models.BooleanField(default=False)
     display_first_char_last_name = models.BooleanField(default=False)
+    display_first_char_last_name_non_unique_first_name = models.BooleanField(default=False)
     time_picker_interval = models.IntegerField('time interval', default=30)
     desired_hours_overshoot_alert = models.IntegerField('Desired Hours Overshoot Alert', default=5)
     sort_by_names = models.BooleanField(default=False)

@@ -24,6 +24,7 @@ $(document).ready(function() {
   var employeeSortedIdList = []; // Ids sorted by first name, then last
   var employeesAssigned = [];
   var employeeNameDict = {};
+  var employeesWithSameFirstName = [];
   var departments = {};
   var troDates = {};
   var hoursAndCosts = {};
@@ -276,6 +277,7 @@ $(document).ready(function() {
     _removeDayNoteHeaders();
     copyDaySchedulePksList = [];
     copyWeekSchedulePksList = [];
+    employeesWithSameFirstName = [];
 
     var info = JSON.parse(json_data);
     console.log("LoadSchedule info is:", info);
@@ -317,6 +319,7 @@ $(document).ready(function() {
     // Get schedules, employees, and notes for loading into calendar
     var schedules = info["schedules"];
     employees = info["employees"];
+    employeesWithSameFirstName = info["employees_with_same_first_name"];
     _createEmployeeSortedIdList(employees);
     employeeNameDict = _employeePkToName(employees);
     renderEmployeeViewRightsList(employees);
@@ -496,7 +499,7 @@ $(document).ready(function() {
       isEmployeeAssigned = true;
     }
     var str = getEventStr(startDateTime, endDateTime, hideStart, hideEnd,
-                          firstName, lastName, note);
+                          firstName, lastName, note, schEmployePk);
 
     var fullCalEvent = {
       id: schedulePk,
@@ -834,7 +837,7 @@ $(document).ready(function() {
    * the schedule has an employee assigned). start and end are javascript
    * moment objects.
    */
-  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName, note) {
+  function getEventStr(start, end, hideStart, hideEnd, firstName, lastName, note, employeePk) {
     // Construct time string based off of display settings
     var displayMinutes = displaySettings["display_minutes"];
     var displayNonzeroMinutes = displaySettings["display_nonzero_minutes"];
@@ -871,14 +874,19 @@ $(document).ready(function() {
     // Construct employee name string based off of display settings
     var displayLastNames = displaySettings["display_last_names"];
     var displayLastNameFirstChar = displaySettings["display_first_char_last_name"];
+    var displayLastNameFirstCharNonUnique = displaySettings["display_first_char_last_name_non_unique_first_name"];
+    
 
     var employeeStr = "";
     if (firstName) {
       employeeStr = ": " + firstName;
-      if (displayLastNameFirstChar && lastName) {
+      if (displayLastNameFirstCharNonUnique && employeePk != null && lastName) {
+        if (employeesWithSameFirstName.includes(employeePk)) {
+          employeeStr += " " + lastName.charAt(0);
+        }
+      } else if (displayLastNameFirstChar && lastName) {
         employeeStr += " " + lastName.charAt(0);
-      }
-      if (displayLastNames && lastName && !displayLastNameFirstChar) {
+      } else if (displayLastNames && lastName && !displayLastNameFirstChar) {
         employeeStr += " " + lastName;
       }
     }
@@ -1125,7 +1133,7 @@ $(document).ready(function() {
     str += startStr = startDate.format(" on MMMM Do, YYYY: ");
 
     time_and_employee = getEventStr(schedule.start_datetime, schedule.end_datetime,
-                                    false, false, null, null);
+                                    false, false, null, null, null);
     str += time_and_employee;
     return str
   }
@@ -1268,7 +1276,7 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName,
-                          note);
+                          note, schEmployeePk);
     // Add employee to name dictionary if not already in dict
     if (!employeeNameDict.hasOwnProperty(schEmployeePk)) {
       employeeNameDict[schEmployeePk] = {"firstName": firstName,
@@ -1585,7 +1593,7 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName,
-                          note);
+                          note, employeePk);
 
     // Remove prev schedule from hidden events if in list
     schIndex = findWithAttr(schedulesWithHiddenTimes, "id", schedulePk);
@@ -1788,7 +1796,7 @@ $(document).ready(function() {
     var str = getEventStr(startDateTime, endDateTime,
                           hideStart, hideEnd,
                           firstName, lastName,
-                          note);
+                          note, employeePk);
     // Update title string to reflect changes to schedule & rehighlight
     $event = $fullCal.fullCalendar("clientEvents", schedulePk);
     $event[0].title = str;

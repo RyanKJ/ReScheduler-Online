@@ -14,7 +14,7 @@ from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      LiveCalendarEmployeeViewRights, LiveCalendarVersionTimestamp)
 from ..business_logic import (get_eligibles, all_calendar_hours_and_costs, 
                               get_avg_monthly_revenue, get_tro_dates, 
-                              get_start_end_of_calendar) 
+                              get_start_end_of_calendar, get_employees_with_same_first_name) 
 from ..forms import (CalendarForm, LiveCalendarForm, LiveCalendarManagerForm)
 from ..serializers import (date_handler, get_json_err_response, eligable_list_to_dict,
                           get_tro_dates_to_dict, _availability_to_dict)
@@ -102,7 +102,10 @@ def get_schedules(request):
                                                        date__lte=upper_bound_dt,
                                                        date__gte=lower_bound_dt,
                                                        department=department_id)    
-
+                                                       
+            # Get employee ids of employees who have non-unique first names
+            employees_with_same_first_name = get_employees_with_same_first_name(employees)
+                                                       
             # Get time requested off instances
             tro_dates = get_tro_dates(logged_in_user, department_id, lower_bound_dt, upper_bound_dt)
             tro_dict = get_tro_dates_to_dict(tro_dates)
@@ -150,6 +153,7 @@ def get_schedules(request):
                              'departments': departments_as_dicts,
                              'schedules': schedules_as_dicts,
                              'employees': employees_as_dicts,
+                             'employees_with_same_first_name': employees_with_same_first_name,
                              'day_note_header': day_note_header_as_dicts,
                              'day_note_body': day_note_body_as_dicts,
                              'tro_dates': tro_dict,
@@ -206,12 +210,18 @@ def get_live_schedules(request):
                                                               version=version))
                                                           
                 # Get employees
+                employees = Employee.objects.filter(user=logged_in_user).order_by('first_name', 'last_name')
                 dep_memberships = (DepartmentMembership.objects.filter(user=logged_in_user, department=department_id))
+                employees_in_dep = []
                 employee_ids = []
                 for dep_mem in dep_memberships:
                     employee_ids.append(dep_mem.employee.id)
-                employees = (Employee.objects.filter(user=logged_in_user, id__in=employee_ids)
-                                             .order_by('first_name', 'last_name'))
+                for e in employees:
+                    if e.id in employee_ids:
+                        employees_in_dep.append(e) 
+                            
+                # Get employee ids of employees who have non-unique first names
+                employees_with_same_first_name = get_employees_with_same_first_name(employees)                        
                                              
                 # Get time requested off instances
                 tro_dates = get_tro_dates(logged_in_user, department_id, lower_bound_dt, upper_bound_dt)
@@ -236,7 +246,7 @@ def get_live_schedules(request):
                 for s in live_schedules:
                     schedule_dict = model_to_dict(s)
                     schedules_as_dicts.append(schedule_dict)
-                for e in employees:
+                for e in employees_in_dep:
                     employee_dict = model_to_dict(e)
                     employees_as_dicts.append(employee_dict)
                 for day_hdr in day_note_header:
@@ -255,6 +265,7 @@ def get_live_schedules(request):
                                  'department': department_id,
                                  'schedules': schedules_as_dicts,
                                  'employees': employees_as_dicts,
+                                 'employees_with_same_first_name': employees_with_same_first_name,
                                  'day_note_header': day_note_header_as_dicts,
                                  'day_note_body': day_note_body_as_dicts,
                                  'tro_dates': tro_dict,
@@ -323,9 +334,7 @@ def employee_get_live_schedules(request):
                             break
                 
                     if not has_view_right:
-                        raise ValueError('Live Calendar exists, but employee cannot see.')
-                    
-                    
+                        raise ValueError('Live Calendar exists, but employee cannot see.') 
                                                          
                 # Check if employee wishes to see only their schedules
                 employee_only = form.cleaned_data['employee_only']
@@ -347,13 +356,19 @@ def employee_get_live_schedules(request):
                                                           version=version))
                                                           
                 # Get employees
+                employees = Employee.objects.filter(user=manager_user).order_by('first_name', 'last_name')
                 dep_memberships = (DepartmentMembership.objects.filter(user=manager_user, department=department_id))
+                employees_in_dep = []
                 employee_ids = []
                 for dep_mem in dep_memberships:
                     employee_ids.append(dep_mem.employee.id)
-                employees = (Employee.objects.filter(user=manager_user, id__in=employee_ids)
-                                             .order_by('first_name', 'last_name'))
-                                             
+                for e in employees:
+                    if e.id in employee_ids:
+                        employees_in_dep.append(e)      
+                                                           
+                # Get employee ids of employees who have non-unique first names
+                employees_with_same_first_name = get_employees_with_same_first_name(employees)
+                         
                 # Get time requested off instances
                 tro_dates = get_tro_dates(manager_user, department_id, lower_bound_dt, upper_bound_dt)
                 tro_dict = get_tro_dates_to_dict(tro_dates)
@@ -377,7 +392,7 @@ def employee_get_live_schedules(request):
                 for s in live_schedules:
                     schedule_dict = model_to_dict(s)
                     schedules_as_dicts.append(schedule_dict)
-                for e in employees:
+                for e in employees_in_dep:
                     employee_dict = model_to_dict(e)
                     del employee_dict['wage']
                     del employee_dict['monthly_medical']
@@ -405,6 +420,7 @@ def employee_get_live_schedules(request):
                                  'department': department_id,
                                  'schedules': schedules_as_dicts,
                                  'employees': employees_as_dicts,
+                                 'employees_with_same_first_name': employees_with_same_first_name,
                                  'day_note_header': day_note_header_as_dicts,
                                  'day_note_body': day_note_body_as_dicts,
                                  'tro_dates': tro_dict,
