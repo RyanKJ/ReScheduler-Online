@@ -1,3 +1,5 @@
 $(document).ready(function() {
-    $('#monthly-revenue-table').DataTable();
+    $('#monthly-revenue-table').DataTable({
+      "lengthMenu": [ [25, 50, -1], [25, 50, "All"] ]
+    });
 } );
