@@ -47,6 +47,7 @@ def employee_availability(request):
         employee = (Employee.objects.select_related('user')
                                     .get(employee_user=logged_in_user))
         manager_user = employee.user
+        business_data = BusinessData.objects.get(user=manager_user)
         
         template = loader.get_template('schedulingcalendar/employeeAvailability.html')
         context = {}
@@ -85,6 +86,8 @@ def employee_availability(request):
                                                                          
         context['desired_time_list'] = (DesiredTime.objects.filter(employee=employee,
                                                                    user=manager_user))   
+                                                                   
+        context['availability_create_right'] = business_data.right_to_submit_availability
             
         return HttpResponse(template.render(context, request))
         

@@ -237,8 +237,29 @@ class Vacation(models.Model):
         start_str = self.end_datetime.strftime("%Y/%m/%d")
         end_str = self.end_datetime.strftime("%Y/%m/%d")
 
-        return "Vacation for employee: " + self.employee + " from " + start_str + " - " + end_str
+        return ("Vacation for employee: " + self.employee.first_name  + " " + 
+                self.employee.last_name + " from " + start_str + " - " + end_str)
+        
+        
+class VacationApplication(models.Model):
+    """Representation of a vacation application created by an employee."""
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
+    start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
+
+    note = models.CharField('Note', default="", blank=True, max_length=280)
+    
+    employee = models.ForeignKey(Employee, db_index=True)
+    approved = models.NullBooleanField(default=None, blank=True)
+
+    def __str__(self):
+        start_str = self.end_datetime.strftime("%Y/%m/%d")
+        end_str = self.end_datetime.strftime("%Y/%m/%d")
+
+        return ("Vacation application for employee: " + self.employee.first_name 
+                + " " + self.employee.last_name + " from " + start_str + " - " + end_str)
+        
 
 class Absence(models.Model):
     """Representation of an absent block of time for employee."""
@@ -396,6 +417,8 @@ class BusinessData(models.Model):
     last_cal_date_loaded = models.DateField('last_cal_date', default=date.today, null=True)
     last_cal_department_loaded = models.ForeignKey(Department, default=None, on_delete=models.SET_NULL, null=True)
 
+    # Availability creation by employee rights
+    right_to_submit_availability = models.BooleanField(default=False)
 
     def __str__(self):
         date_str = self.date.strftime("%Y/%m/%d")

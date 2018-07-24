@@ -4,7 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import (Employee, Department, DepartmentMembership,
                      Vacation, Absence, RepeatUnavailability, DesiredTime,
-                     MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody)
+                     MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody,
+                     VacationApplication)
 from custom_formfields import TzAwareTimeField, MultipleIntField
 
 
@@ -27,7 +28,7 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2', )
+        fields = ('username', 'email', 'password1', 'password2')
 
 
 class CalendarForm(forms.Form):
@@ -320,6 +321,18 @@ class VacationForm(forms.ModelForm):
     class Meta:
         model = Vacation
         fields = ['start_datetime', 'end_datetime']
+        
+               
+class EmployeeVacationForm(forms.ModelForm):
+    """Form for creating vacation application via employee."""
+    start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                         input_formats=DATETIME_FORMATS)
+    end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                       input_formats=DATETIME_FORMATS)
+
+    class Meta:
+        model = VacationApplication
+        fields = ['start_datetime', 'end_datetime']
 
 
 class AbsentForm(forms.ModelForm):
@@ -410,11 +423,14 @@ class BusinessDataForm(forms.ModelForm):
     workweek_time_start =  forms.TimeField(label='Workweek Start Time',
                                            input_formats=TIME_FORMATS,
                                            widget=forms.TimeInput(format='%I:%M %p'))
+    right_to_submit_availability = forms.BooleanField(label="", required=False,
+                                                      widget=forms.CheckboxInput())
+                                           
 
     class Meta:
         model = BusinessData
         fields = ['overtime', 'overtime_multiplier', 'workweek_weekday_start',
-                  'workweek_time_start', 'company_name']
+                  'workweek_time_start', 'company_name', 'right_to_submit_availability']
 
 
 class MonthlyRevenueForm(forms.ModelForm):

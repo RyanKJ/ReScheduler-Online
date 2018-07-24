@@ -20,6 +20,23 @@
           {{ form.company_name.label_tag }}
           {{ form.company_name|add_class:'form-control' }}
           <br>
+          <!-- Right for employee to create availability applications -->
+          <div class="form-group">
+            <p class="card-text mb-0">Set active to allow employees to submit
+            availability applications like vacation times and repeating unavailability.
+            Applications must be approved by a manager.</p>
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.right_to_submit_availability.errors }}
+                {{ form.right_to_submit_availability }}
+                {{ form.right_to_submit_availability.label_tag }}
+                {% if form.right_to_submit_availability.help_text %}
+                  <p class="help">{{ form.right_to_submit_availability.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">Allow Employees To Submit Availability Applications</span>
+            </div>
+          </div>
           <!-- Overtime form input -->
           <div class="form-group">
             {{ form.overtime.errors }}
@@ -42,7 +59,7 @@
           <div class="form-group">
             {{ form.workweek_weekday_start.errors }}
             {{ form.workweek_weekday_start.label_tag }}
-            <p class="card-text">Employers may decide when the start of the
+            <p class="card-text mb-0">Employers may decide when the start of the
                                workweek will occur for scheduling purposes.
                                This decision impacts how overtime will be 
                                calculated.</p>

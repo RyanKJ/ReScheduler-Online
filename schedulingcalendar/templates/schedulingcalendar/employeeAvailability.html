@@ -28,6 +28,7 @@
         <div class="tab-content">
           <!-- Vacation Tab -->
           <div class="tab-pane fade show active" id="vacation-tab" role="tabpanel" aria-labelledby="vacation-tab">
+            <a href="{% url 'schedulingcalendar:employee_vacation_create' %}">Create Vacation Application</a>
             <!-- Vacation Sub-Tabs -->
             <ul class="nav nav-tabs" role="tablist">
               <li class="nav-item"><a class="nav-link active" href="#curr-future-vacation-tab" data-toggle="tab" role="tab" aria-controls="curr-future-vacation-tab" aria-selected="true">Future</a></li>
@@ -133,6 +134,26 @@
   </div>
   </div>
   </div>
+  
+  
+  {% if availability_create_right %}
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Pending Availability Applications:</h5>
+        <ul class="list-group">
+              {% for repeat_unav in repeating_unavailable_list %}
+                <li class="list-group-item">
+                  <ul class="list-inline" data-vacation-id="{{ vacation.id }}">
+                    <li class="list-inline-item float-left">{{ repeat_unav.weekday|int_to_weekday }}: {{ repeat_unav.start_time|datetime_to_time }} - {{ repeat_unav.end_time|datetime_to_time }}</li>
+                  </ul>
+                </li>
+              {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+  
+  
   </div>
 
 {% endblock content %}

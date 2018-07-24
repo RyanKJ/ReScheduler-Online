@@ -48,6 +48,7 @@ urlpatterns = [
     url(r'^employees/(?P<employee_pk>[0-9]+)/vacation/(?P<vacation_pk>[0-9]+)$', VacationUpdateView.as_view(), name='vacation_update'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/vacation_delete/(?P<pk>[0-9]+)$', VacationDeleteView.as_view(), name='vacation_delete'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/vacation_create$', VacationCreateView.as_view(), name='vacation_create'),
+    url(r'^employees/employee_vacation_create$', EmployeeVacationCreateView.as_view(), name='employee_vacation_create'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/absent/(?P<absent_pk>[0-9]+)$', AbsentUpdateView.as_view(), name='absent_update'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/absent_delete/(?P<pk>[0-9]+)$', AbsentDeleteView.as_view(), name='absent_delete'),
     url(r'^employees/(?P<employee_pk>[0-9]+)/absent_create$', AbsentCreateView.as_view(), name='absent_create'),
