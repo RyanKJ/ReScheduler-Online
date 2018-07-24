@@ -11,8 +11,6 @@ class AjaxFormResponseMixin(object):
         
 
     def form_valid(self, form):
-
-        # save
         self.object = form.save()
 
         # initialize an empty context

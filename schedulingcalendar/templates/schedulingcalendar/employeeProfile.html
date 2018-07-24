@@ -11,48 +11,49 @@
       
 
   <div class="card border-0">
-    <div class="card-body">
-      <h4>Calendar Display Settings</h4>
-      <form id="update-employee-settings-form"
-        name= "UpdateEmployeeSettingsForm"
-        action="{% url 'schedulingcalendar:employee_profile_settings' %}"
-        method="post">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="form-group">
-          <div class="checkbox-custom-container">
-            <div class="checkbox-custom">
-              {{ form.override_list_view.errors }}
-              {{ form.override_list_view }}
-              {{ form.override_list_view.label_tag }}
-              {% if form.override_list_view.help_text %}
-                <p class="help">{{ form.override_list_view.help_text|safe }}</p>
-              {% endif %}
+    <div class="card-body ">
+      <h4 class="text-center">Calendar Display Settings</h4>
+      <div class="card-section">
+        <form id="update-employee-settings-form"
+          name= "UpdateEmployeeSettingsForm"
+          action="{% url 'schedulingcalendar:employee_profile_settings' %}"
+          method="post">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="form-group">
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.override_list_view.errors }}
+                {{ form.override_list_view }}
+                {{ form.override_list_view.label_tag }}
+                {% if form.override_list_view.help_text %}
+                  <p class="help">{{ form.override_list_view.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">Always Display Month Calendar</span>
             </div>
-            <span class="checkbox-custom-text">Always Display Month Calendar</span>
-          </div>
-          <p class="card-text">If this setting is off, a list of schedules displays 
-          automatically for small devices instead of a calendar. If it is on, the 
-          schedules will always display as a normal calendar even on a small 
-          screen.</p>
-          <br>
-          
-          <div class="checkbox-custom-container">
-            <div class="checkbox-custom">
-              {{ form.see_all_departments.errors }}
-              {{ form.see_all_departments }}
-              {{ form.see_all_departments.label_tag }}
-              {% if form.see_all_departments.help_text %}
-                <p class="help">{{ form.see_all_departments.help_text|safe }}</p>
-              {% endif %}
+            <p class="card-text">If this setting is off, a list of schedules displays 
+            automatically for small devices instead of a calendar. If it is on, the 
+            schedules will always display as a normal calendar even on a small 
+            screen.</p>
+            <br>
+            
+            <div class="checkbox-custom-container">
+              <div class="checkbox-custom">
+                {{ form.see_all_departments.errors }}
+                {{ form.see_all_departments }}
+                {{ form.see_all_departments.label_tag }}
+                {% if form.see_all_departments.help_text %}
+                  <p class="help">{{ form.see_all_departments.help_text|safe }}</p>
+                {% endif %}
+              </div>
+              <span class="checkbox-custom-text">See All Departments</span>
             </div>
-            <span class="checkbox-custom-text">See All Departments</span>
           </div>
+          <p class="card-text">If this setting is off, you will only see the 
+          schedules for departments that you belong to. If it is on, you can see
+          all current schedules for all departments.</p>
         </div>
-        <p class="card-text">If this setting is off, you will only see the 
-        schedules for departments that you belong to. If it is on, you can see
-        all current schedules for all departments.</p>
-          
         <div class="text-center">
         <input type="submit" class="btn btn-primary" value="Save Display Settings">
         </div>

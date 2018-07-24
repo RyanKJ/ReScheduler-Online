@@ -19,7 +19,7 @@ from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      Absence, BusinessData, LiveSchedule, LiveCalendar, 
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition, 
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
-                     LiveCalendarEmployeeViewRights)    
+                     LiveCalendarEmployeeViewRights, VacationApplication)    
 from ..forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm, 
                     VacationForm, AbsentForm, RepeatUnavailabilityForm, 
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm, 
@@ -88,6 +88,11 @@ def employee_availability(request):
                                                                    user=manager_user))   
                                                                    
         context['availability_create_right'] = business_data.right_to_submit_availability
+        
+        if business_data.right_to_submit_availability:
+            context['vacation_application_list'] = (VacationApplication.objects.filter(employee=employee,
+                                                                                   user=manager_user)
+                                                                               .order_by('start_datetime', 'end_datetime'))
             
         return HttpResponse(template.render(context, request))
         
