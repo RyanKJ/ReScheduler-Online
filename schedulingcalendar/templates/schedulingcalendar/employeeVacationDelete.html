@@ -1,0 +1,21 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+
+{% block sub_navbar %}
+  <div class="back-navbar">
+     <a class="go-back-link"
+       href="{% url 'schedulingcalendar:employee_availability' %}">Return To My Availibility</a>
+  </div>
+{% endblock sub_navbar %}
+
+{% block form_content %}
+  <div class="text-center">
+    <h4 class="card-title text-center">Are You Sure You Want To Delete This Vacation Application?</h4>
+    <form id="delete-vacation-form"
+          name= "DeleteVacationForm"
+          action="{% url 'schedulingcalendar:employee_vacation_application_delete' vacationapplication.id %}"
+          method="post">
+      {% csrf_token %}
+      <input type="submit" class="btn btn-danger" value="Delete Vacation">
+    </form>
+  </div>
+{% endblock form_content %}

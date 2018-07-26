@@ -7,13 +7,13 @@
       <a class="go-back-link"
          href="{% url 'schedulingcalendar:employee_availability' %}">Return To My Availibility</a>
   </div>
-{% endblock sub_navbar %}  
-    
+{% endblock sub_navbar %}
+
 {% block form_content %}
     <h4 class="card-title text-center">Vacation Application</h4>
     <form id="create-vacation-form"
           name= "CreateVacationForm"
-          action="{% url 'schedulingcalendar:employee_vacation_create' %}"
+          action="{% url 'schedulingcalendar:employee_vacation_application_create' %}"
           method="post">
       {% csrf_token %}
       {% for field in form %}
@@ -36,9 +36,9 @@
       <div id="outlet"></div>
       <input type="submit" class="btn btn-primary" value="Submit Vacation Application">
     </form>
-{% endblock form_content %}   
+{% endblock form_content %}
 
 {% block javascript %}
-  {{ block.super }}  
+  {{ block.super }}
   <script src="{% static 'schedulingcalendar/js/vacation.datepicker.js' %}" ></script>
-{% endblock javascript %}   
+{% endblock javascript %}

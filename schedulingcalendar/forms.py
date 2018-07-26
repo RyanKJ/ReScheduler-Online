@@ -321,18 +321,19 @@ class VacationForm(forms.ModelForm):
     class Meta:
         model = Vacation
         fields = ['start_datetime', 'end_datetime']
-        
-               
+
+
 class EmployeeVacationForm(forms.ModelForm):
     """Form for creating vacation application via employee."""
     start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                          input_formats=DATETIME_FORMATS)
     end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                        input_formats=DATETIME_FORMATS)
+    note = forms.CharField(label='Note', required=False, max_length=280)
 
     class Meta:
         model = VacationApplication
-        fields = ['start_datetime', 'end_datetime']
+        fields = ['start_datetime', 'end_datetime', 'note']
 
 
 class AbsentForm(forms.ModelForm):
@@ -396,7 +397,7 @@ class CalendarDisplaySettingsForm(forms.ModelForm):
     display_first_char_last_name = forms.BooleanField(label="", required=False,
                                                       widget=forms.CheckboxInput())
     display_first_char_last_name_non_unique_first_name = forms.BooleanField(label="", required=False,
-                                                      widget=forms.CheckboxInput())                                                                                
+                                                      widget=forms.CheckboxInput())
     sort_by_names = forms.BooleanField(label="", required=False,
                                        widget=forms.CheckboxInput())
     unique_row_per_employee = forms.BooleanField(label="", required=False,
@@ -408,10 +409,10 @@ class CalendarDisplaySettingsForm(forms.ModelForm):
         model = BusinessData
         fields = ['display_am_pm', 'display_minutes',
                   'display_nonzero_minutes', 'display_last_names',
-                  'display_first_char_last_name', 
-                  'display_first_char_last_name_non_unique_first_name', 
+                  'display_first_char_last_name',
+                  'display_first_char_last_name_non_unique_first_name',
                   'desired_hours_overshoot_alert',
-                  'sort_by_names', 'unique_row_per_employee', 
+                  'sort_by_names', 'unique_row_per_employee',
                   'time_picker_interval']
 
 
@@ -425,7 +426,7 @@ class BusinessDataForm(forms.ModelForm):
                                            widget=forms.TimeInput(format='%I:%M %p'))
     right_to_submit_availability = forms.BooleanField(label="", required=False,
                                                       widget=forms.CheckboxInput())
-                                           
+
 
     class Meta:
         model = BusinessData

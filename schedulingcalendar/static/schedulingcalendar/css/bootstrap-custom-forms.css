@@ -19,11 +19,11 @@
   border: 1px solid #e0e0e0;
 }
 
-.card-section label { 
+.card-section label {
   font-weight: bold;
 }
 
-.card-section .checkbox-custom-text { 
+.card-section .checkbox-custom-text {
   font-weight: 600;
 }
 
@@ -42,7 +42,7 @@
     overflow: hidden;
 }
 
-.menu li { 
+.menu li {
     float: right;
     margin-left: 20px;
 }
@@ -60,3 +60,7 @@ a.go-back-link { color: white; }
 @media screen and (max-width: 767px) {
   .custom-card-general { width: 100%; }
 }
+
+.pending { color: #4286f4 }
+.approved { color: #27d141 }
+.not-approved { color: #d12626 }
