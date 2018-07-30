@@ -11,10 +11,12 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
                                        SetPasswordForm)
-from ..models import (Employee, VacationApplication, BusinessData,
-                      DepartmentMembership, Vacation, Absence,
-                      RepeatUnavailability, DesiredTime)
-from ..forms import (EmployeeVacationForm, EmployeeDisplaySettingsForm)
+from ..models import (Employee, BusinessData, DepartmentMembership, Vacation,
+                      Absence, RepeatUnavailability, DesiredTime, VacationApplication,
+                      AbsenceApplication, RepeatUnavailabilityApplication)
+from ..forms import (EmployeeVacationForm, EmployeeDisplaySettingsForm,
+                     EmployeeAbsentForm, EmployeeRepeatUnavailabilityForm,
+                     DesiredTimeForm)
 from ..custom_mixins import EmployeeCanSubmitAvailabilityApplicationMixin
 from datetime import datetime
 
@@ -71,9 +73,13 @@ def employee_availability(request):
         context['availability_create_right'] = business_data.right_to_submit_availability
 
         if business_data.right_to_submit_availability:
-            context['vacation_application_list'] = (VacationApplication.objects.filter(employee=employee,
-                                                                                   user=manager_user)
+            context['vacation_application_list'] = (VacationApplication.objects.filter(employee=employee, user=manager_user)
                                                                                .order_by('start_datetime', 'end_datetime'))
+            context['absence_application_list'] = (AbsenceApplication.objects.filter(employee=employee, user=manager_user)
+                                                                             .order_by('start_datetime', 'end_datetime'))  
+            context['repeat_unavailability_application_list'] = (RepeatUnavailabilityApplication.objects.filter(employee=employee, user=manager_user)
+                                                                                                        .order_by('weekday', 'start_time', 'end_time'))
+                                                                               
 
         return HttpResponse(template.render(context, request))
 
@@ -105,7 +111,7 @@ class EmployeeUpdateProfileSettings(SuccessMessageMixin, UpdateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class EmployeeVacationCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, CreateView):
+class EmployeeVacationApplicationCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, CreateView):
     """Display vacation form to create vacation application object."""
     template_name = 'schedulingcalendar/employeeVacationCreate.html'
     success_message = 'Vacation application was successfully created.'
@@ -118,7 +124,7 @@ class EmployeeVacationCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, 
                                     .get(employee_user=self.request.user))
         form.instance.employee = employee
         form.instance.user = employee.user
-        return super(EmployeeVacationCreateView, self).form_valid(form)
+        return super(EmployeeVacationApplicationCreateView, self).form_valid(form)
 
 
     def get_success_url(self):
@@ -148,7 +154,146 @@ class EmployeeVacationApplicationDeleteView(EmployeeCanSubmitAvailabilityApplica
     def get_success_url(self):
         """Return to employee's availability page after editing associated employee info."""
         return reverse_lazy('schedulingcalendar:employee_availability')
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeAbsenceApplicationCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, CreateView):
+    """Display absence form to create vacation application object."""
+    template_name = 'schedulingcalendar/employeeAbsenceCreate.html'
+    success_message = 'Unavailability application was successfully created.'
+    form_class = EmployeeAbsentForm
 
+
+    def form_valid(self, form):
+        """Add employee and manager user to form for absence creation."""
+        employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=self.request.user))
+        form.instance.employee = employee
+        form.instance.user = employee.user
+        return super(EmployeeAbsenceApplicationCreateView, self).form_valid(form)
+
+
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeAbsenceApplicationDeleteView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, DeleteView):
+    """Display a delete form to delete vacation object."""
+    template_name = 'schedulingcalendar/employeeAbsenceDelete.html'
+    success_message = 'Absence successfully deleted'
+    model = AbsenceApplication
+
+
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if employee_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Absence application not found</h1>')
+
+
+    def get_success_url(self):
+        """Return to employee's availability page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeRepeatUnavailabilityApplicationCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, CreateView):
+    """Displayrepeat unavailability form to create vacation application object."""
+    template_name = 'schedulingcalendar/employeeRepeatUnavailableCreate.html'
+    success_message = 'Repeat unavailability application was successfully created.'
+    form_class = EmployeeRepeatUnavailabilityForm
+
+
+    def form_valid(self, form):
+        """Add employee and manager user to form for repeating unavailability creation."""
+        employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=self.request.user))
+        form.instance.employee = employee
+        form.instance.user = employee.user
+        return super(EmployeeRepeatUnavailabilityApplicationCreateView, self).form_valid(form)
+
+
+    def get_success_url(self):
+        """Return to employee's page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeRepeatUnavailabilityApplicationDeleteView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, DeleteView):
+    """Display a delete form to delete vacation object."""
+    template_name = 'schedulingcalendar/employeeRepeatUnavailableDelete.html'
+    success_message = 'Repeating unavailability successfully deleted'
+    model = RepeatUnavailabilityApplication
+
+
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if employee_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Repeat Unavailability application not found</h1>')
+
+
+    def get_success_url(self):
+        """Return to employee's availability page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+        
+        
+@method_decorator(login_required, name='dispatch')
+class EmployeeDesiredTimeCreateView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, CreateView):
+    """Display desired time form to create object."""
+    template_name = 'schedulingcalendar/employeeDesiredTimeCreate.html'
+    success_message = 'Desired time successfully created'
+    form_class = DesiredTimeForm
+
+
+    def form_valid(self, form):
+        """Add employee and manager user to form for desired time creation."""
+        employee = (Employee.objects.select_related('user')
+                                    .get(employee_user=self.request.user))
+        form.instance.employee = employee
+        form.instance.user = employee.user
+        return super(EmployeeDesiredTimeCreateView, self).form_valid(form)
+
+
+
+    def get_success_url(self):
+        """Return to employee's availability page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+
+
+@method_decorator(login_required, name='dispatch')
+class EmployeeDesiredTimeDeleteView(EmployeeCanSubmitAvailabilityApplicationMixin, SuccessMessageMixin, DeleteView):
+    """Display a delete form to delete desired time object."""
+    template_name = 'schedulingcalendar/employeeDesiredTimeDelete.html'
+    success_message = 'Desired time successfully deleted'
+    model = DesiredTime
+
+
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if employee_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Desired time not found</h1>')
+
+
+    def get_success_url(self):
+        """Return to employee's availability page after editing associated employee info."""
+        return reverse_lazy('schedulingcalendar:employee_availability')
+        
 
 def employee_is_obj_owner_test(user, obj):
     """Checks that the request user is the owner of the object they are requesting."""

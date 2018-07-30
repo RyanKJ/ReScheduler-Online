@@ -1,0 +1,44 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block sub_navbar %}
+  <div class="back-navbar">
+      <a class="go-back-link"
+         href="{% url 'schedulingcalendar:employee_availability' %}">Return To My Availibility</a>
+  </div>
+{% endblock sub_navbar %}  
+    
+{% block form_content %}
+    <h4 class="card-title text-center">Create Unavailability For {{ employee.first_name }} {{ employee.last_name }}</h4>
+    <form id="create-absence-form"
+          name= "CreateAbsenceForm"
+          action="{% url 'schedulingcalendar:employee_absence_application_create' %}"
+          method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          {{ field.errors }}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field|add_class:'form-control' }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <!-- Custom datetime pickadate elements -->
+      <div id="hidden-datetime">
+        <input type="text" id="hidden-start-date"/>
+        <input type="text" id="hidden-start-time"/>
+        <input type="text" id="hidden-end-date"/>
+        <input type="text" id="hidden-end-time"/>
+      </div>
+      <div id="outlet"></div>
+      <input type="submit" class="btn btn-primary" value="Create Unavailability Application">
+    </form>
+{% endblock form_content %}   
+
+{% block javascript %}
+  {{ block.super }}  
+  <script src="{% static 'schedulingcalendar/js/vacation.datepicker.js' %}" ></script>
+{% endblock javascript %}   

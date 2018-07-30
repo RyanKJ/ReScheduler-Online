@@ -65,6 +65,7 @@
 
               <!-- Absence Tab -->
               <div class="tab-pane fade" id="unavailability-tab" role="tabpanel" aria-labelledby="unavailability-tab">
+                <a class="btn" href="{% url 'schedulingcalendar:employee_absence_application_create' %}">Create Unavailability Application</a>
                 <!-- Absence Sub-Tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                   <li class="nav-item"><a class="nav-link active" href="#curr-future-absence-tab" data-toggle="tab" role="tab" aria-controls="curr-future-absence-tab" aria-selected="true">Future</a></li>
@@ -102,6 +103,7 @@
 
               <!-- Repeat Unavailability Tab -->
               <div class="tab-pane fade" id="repeat-unavailability-tab" role="tabpanel" aria-labelledby="repeat-unavailability-tab">
+                <a class="btn" href="{% url 'schedulingcalendar:employee_repeat_unavailability_application_create' %}">Create Repeating Unavailability Application</a>
                 <ul class="list-group">
                   {% for repeat_unav in repeating_unavailable_list %}
                     <li class="list-group-item">
@@ -115,12 +117,14 @@
 
               <!-- Desired Time Tab -->
               <div class="tab-pane fade" id="desired-times-tab" role="tabpanel" aria-labelledby="desired-times-tab">
+                <a class="btn" href="{% url 'schedulingcalendar:employee_desired_time_create' %}">Create Desired Time</a>
                 <ul class="list-group">
                   {% for desired_time in desired_time_list %}
                     <li class="list-group-item">
                       <ul class="list-inline" data-desired-time-id="{{ desired_time.id }}">
                         <li class="list-inline-item float-left">{{ desired_time.weekday|int_to_weekday }}: {{ desired_time.start_time|datetime_to_time }} - {{ desired_time.end_time|datetime_to_time }}</li>
                       </ul>
+                      <a class="float-right" href="{% url 'schedulingcalendar:employee_desired_time_delete' desired_time.id %}">Delete</a>
                     </li>
                   {% endfor %}
                 </ul>
@@ -137,31 +141,81 @@
         <div class="col-md-12">
           <div class="card border-0">
             <div class="card-body">
-
-              <!-- Vacation applications -->
-              <h5>Availability Applications</h5>
+            
+              <h4>Availability Applications</h4>
               <ul class="list-group">
-                {% for vacation_app in vacation_application_list %}
-                  <li class="list-group-item">
-                    <ul class="list-inline" data-vacation-id="{{ vacation_app.id }}">
-                      <li class="list-inline-item float-left">
-                        <span class="font-weight-bold">Vacation Application</span>: {{ vacation_app.start_datetime }} - {{ vacation_app.end_datetime }}
-                        <span class="font-weight-bold">Status:
-                          {% if vacation_app.approved is None %}<span class="pending">Pending{% endif %}</span>
-                          {% if vacation_app.approved is True %}<span class="approved">Approved{% endif %}</span>
-                          {% if vacation_app.approved is False %}<span class="not-approved">Not Approved{% endif %}</span>
-                        </span>
-                      </li>
-                      {% if vacation_app.approved is None %}
-                        <a class="float-right" href="{% url 'schedulingcalendar:employee_vacation_application_delete' vacation_app.id %}">Delete</a>
-                      {% endif %}
+                {% if vacation_application_list or absence_application_list or repeat_unavailability_application_list %}
+                  <!-- Vacation applications -->
+                  {% for vacation_app in vacation_application_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ vacation_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Vacation Application</span>: {{ vacation_app.start_datetime }} - {{ vacation_app.end_datetime }}
+                          <span class="font-weight-bold">Status:
+                            {% if vacation_app.approved is None %}<span class="pending">Pending{% endif %}</span>
+                            {% if vacation_app.approved is True %}<span class="approved">Approved{% endif %}</span>
+                            {% if vacation_app.approved is False %}<span class="not-approved">Not Approved{% endif %}</span>
+                          </span>
+                        </li>
+                        {% if vacation_app.approved is None %}
+                          <a class="float-right" href="{% url 'schedulingcalendar:employee_vacation_application_delete' vacation_app.id %}">Delete</a>
+                        {% endif %}
 
-                      {% if vacation_app.note %}
-                        <div class"d-block">Note: {{ vacation_app.note }}</div>
-                      {% endif %}
-                    </ul>
-                  </li>
-                {% endfor %}
+                        {% if vacation_app.note %}
+                          <div class"d-block">Note: {{ vacation_app.note }}</div>
+                        {% endif %}
+                      </ul>
+                    </li>
+                  {% endfor %}
+                  
+                  <!--Absence applications -->
+                  {% for absence_app in absence_application_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ absence_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Unavailability Application</span>: {{ absence_app.start_datetime }} - {{ absence_app.end_datetime }}
+                          <span class="font-weight-bold">Status:
+                            {% if absence_app.approved is None %}<span class="pending">Pending{% endif %}</span>
+                            {% if absence_app.approved is True %}<span class="approved">Approved{% endif %}</span>
+                            {% if absence_app.approved is False %}<span class="not-approved">Not Approved{% endif %}</span>
+                          </span>
+                        </li>
+                        {% if absence_app.approved is None %}
+                          <a class="float-right" href="{% url 'schedulingcalendar:employee_absence_application_delete' absence_app.id %}">Delete</a>
+                        {% endif %}
+
+                        {% if absence_app.note %}
+                          <div class"d-block">Note: {{ absence_app.note }}</div>
+                        {% endif %}
+                      </ul>
+                    </li>
+                  {% endfor %}
+                  
+                  <!--Repeating Unavailability applications -->
+                  {% for repeat_unav_app in repeat_unavailability_application_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-repeating_unav-id="{{ repeat_unav_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Repeating Unavailability Application</span>: {{ repeat_unav_app.weekday|int_to_weekday }}: {{ repeat_unav_app.start_time|datetime_to_time }} - {{ repeat_unav_app.end_time|datetime_to_time }}
+                          <span class="font-weight-bold">Status:
+                            {% if repeat_unav_app.approved is None %}<span class="pending">Pending{% endif %}</span>
+                            {% if repeat_unav_app.approved is True %}<span class="approved">Approved{% endif %}</span>
+                            {% if repeat_unav_app.approved is False %}<span class="not-approved">Not Approved{% endif %}</span>
+                          </span>
+                        </li>
+                        {% if repeat_unav_app.approved is None %}
+                          <a class="float-right" href="{% url 'schedulingcalendar:employee_repeat_unavailability_application_delete' repeat_unav_app.id %}">Delete</a>
+                        {% endif %}
+
+                        {% if repeat_unav_app.note %}
+                          <div class"d-block">Note: {{ repeat_unav_app.note }}</div>
+                        {% endif %}
+                      </ul>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  No Pending Availability Applications
+                {% endif %}
               </ul>
 
             </div>

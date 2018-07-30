@@ -248,9 +248,9 @@ class VacationApplication(models.Model):
     start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
     end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
 
-    note = models.CharField('Note', default="", blank=True, max_length=280)
-    
     employee = models.ForeignKey(Employee, db_index=True)
+    
+    note = models.CharField('Note', default="", blank=True, max_length=280)
     approved = models.NullBooleanField(default=None, blank=True)
 
     def __str__(self):
@@ -275,12 +275,31 @@ class Absence(models.Model):
         start_str = self.end_datetime.strftime("%Y/%m/%d")
         end_str = self.end_datetime.strftime("%Y/%m/%d")
 
-        return "Unavailability for employee: " + self.employee + " from " + start_str + " - " + end_str
+        return "Unavailability for employee: " + self.employee.last_name + " from " + start_str + " - " + end_str
+        
+        
+class AbsenceApplication(models.Model):
+    """Representation of an absent application created by an employee."""
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+
+    start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
+    end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
+
+    employee = models.ForeignKey(Employee, db_index=True)
+
+    note = models.CharField('Note', default="", blank=True, max_length=280)
+    approved = models.NullBooleanField(default=None, blank=True)
+
+    def __str__(self):
+        start_str = self.end_datetime.strftime("%Y/%m/%d")
+        end_str = self.end_datetime.strftime("%Y/%m/%d")
+
+        return "Unavailability for employee: " + self.employee.name + " from " + start_str + " - " + end_str
 
 
 class RepeatUnavailability(models.Model):
     """Representation of repeating unavailability for employee absentee."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
 
     start_time = models.DateTimeField('start time', db_index=True, default=timezone.now)
     end_time = models.DateTimeField('end time', db_index=True, default=timezone.now)
@@ -291,10 +310,34 @@ class RepeatUnavailability(models.Model):
 
 
     def __str__(self):
-        return "Employee %s on weekday: %s, from %s until %s" % (self.employee,
+        return "Employee %s on weekday: %s, from %s until %s" % (self.employee.last_name,
                                                                  self.weekday,
                                                                  self.start_time.time(),
                                                                  self.end_time.time())
+                                                                 
+                                                                 
+class RepeatUnavailabilityApplication(models.Model):
+    """Representation of repeating unavailability application created by employee."""
+    user = models.ForeignKey(User, db_index=True, on_delete=models.CASCADE)
+
+    start_time = models.DateTimeField('start time', db_index=True, default=timezone.now)
+    end_time = models.DateTimeField('end time', db_index=True, default=timezone.now)
+    # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
+    weekday = models.IntegerField('weekday')
+
+    employee = models.ForeignKey(Employee, db_index=True)
+    
+    
+    note = models.CharField('Note', default="", blank=True, max_length=280)
+    approved = models.NullBooleanField(default=None, blank=True)
+
+
+    def __str__(self):
+        return "Employee %s on weekday: %s, from %s until %s" % (self.employee.last_name,
+                                                                 self.weekday,
+                                                                 self.start_time.time(),
+                                                                 self.end_time.time())
+                                                                 
 
 class DesiredTime(models.Model):
     """Representation of repeating desired work time for employee."""
@@ -309,11 +352,11 @@ class DesiredTime(models.Model):
 
 
     def __str__(self):
-        return "Employee %s on weekday: %s, from %s until %s" % (self.employee,
+        return "Employee %s on weekday: %s, from %s until %s" % (self.employee.last_name,
                                                                  self.weekday,
                                                                  self.start_time.time(),
                                                                  self.end_time.time())
-
+                                                                 
 
 class MonthlyRevenue(models.Model):
     """Representation of total revenue for a business for given month & year."""

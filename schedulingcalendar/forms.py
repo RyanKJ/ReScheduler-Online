@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from .models import (Employee, Department, DepartmentMembership,
                      Vacation, Absence, RepeatUnavailability, DesiredTime,
                      MonthlyRevenue, BusinessData, DayNoteHeader, DayNoteBody,
-                     VacationApplication)
+                     VacationApplication, AbsenceApplication, RepeatUnavailabilityApplication)
 from custom_formfields import TzAwareTimeField, MultipleIntField
 
 
@@ -337,7 +337,7 @@ class EmployeeVacationForm(forms.ModelForm):
 
 
 class AbsentForm(forms.ModelForm):
-    """Form for creating and editing vacations."""
+    """Form for creating and editing unavailabilities."""
     start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
                                          input_formats=DATETIME_FORMATS)
     end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
@@ -346,6 +346,20 @@ class AbsentForm(forms.ModelForm):
     class Meta:
         model = Absence
         fields = ['start_datetime', 'end_datetime']
+        
+        
+class EmployeeAbsentForm(forms.ModelForm):
+    """Form for creating and editing unavailability applications via employee."""
+    start_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                         input_formats=DATETIME_FORMATS)
+    end_datetime = forms.DateTimeField(widget=forms.DateTimeInput(format=DATETIME_FORMAT),
+                                       input_formats=DATETIME_FORMATS)
+    note = forms.CharField(label='Note', required=False, max_length=280)
+    
+
+    class Meta:
+        model = AbsenceApplication
+        fields = ['start_datetime', 'end_datetime', 'note']
 
 
 class RepeatUnavailabilityForm(forms.ModelForm):
@@ -364,6 +378,24 @@ class RepeatUnavailabilityForm(forms.ModelForm):
     class Meta:
         model = RepeatUnavailability
         fields = ['start_time', 'end_time', 'weekday']
+        
+        
+class EmployeeRepeatUnavailabilityForm(forms.ModelForm):
+    """Form for creating and editing repeating unavailability applications via employee."""
+    weekday = forms.IntegerField(label='Weekday',
+                                 widget=forms.Select(choices=WEEKDAY_CHOICES),
+                                 min_value=0, max_value=6)
+    start_time = TzAwareTimeField(label='Start Time',
+                                  input_formats=TIME_FORMATS,
+                                  widget=forms.TimeInput(format='%I:%M %p'))
+    end_time = TzAwareTimeField(label='End Time',
+                                input_formats=TIME_FORMATS,
+                                widget=forms.TimeInput(format='%I:%M %p'))
+    note = forms.CharField(label='Note', required=False, max_length=280)
+
+    class Meta:
+        model = RepeatUnavailabilityApplication
+        fields = ['start_time', 'end_time', 'weekday', 'note']
 
 
 class DesiredTimeForm(forms.ModelForm):
