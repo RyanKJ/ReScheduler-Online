@@ -1,0 +1,29 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load schedule_calendar_extras %}
+{% load widget_tweaks %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'schedulingcalendar/css/pending-approval.css' %}" />
+{% endblock stylesheets %}
+
+{% block content %}
+  {{ block.super }}  
+  <div class="container">
+    {% include "schedulingcalendar/_disapproveModal.html" %}
+  
+    <div class="row">
+      <div class="col-md-12">
+        <div class="text-center">
+          <h3>Pending Approvals</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascript %}
+  {{ block.super }}     
+  <script src="{% static 'schedulingcalendar/js/pending-approvals.js' %}" ></script>
+{% endblock javascript %}    

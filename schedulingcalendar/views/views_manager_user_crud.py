@@ -1,6 +1,6 @@
 from django.core import serializers
 from django.shortcuts import render, redirect
-from django.http import (HttpResponseRedirect, HttpResponse)
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.template import loader
 from django.contrib import messages
@@ -19,7 +19,8 @@ from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      Absence, BusinessData, LiveSchedule, LiveCalendar,
                      DayNoteHeader, DayNoteBody, ScheduleSwapPetition,
                      ScheduleSwapApplication, LiveCalendarDepartmentViewRights,
-                     LiveCalendarEmployeeViewRights, VacationApplication)
+                     LiveCalendarEmployeeViewRights, VacationApplication,
+                     AbsenceApplication, RepeatUnavailabilityApplication)
 from ..forms import (CalendarForm, AddScheduleForm, ProtoScheduleForm,
                     VacationForm, AbsentForm, RepeatUnavailabilityForm,
                     DesiredTimeForm, MonthlyRevenueForm, BusinessDataForm,
@@ -174,28 +175,6 @@ def change_employee_pw_as_manager(request, **kwargs):
 
     context = {'employee': employee, 'form': form}
     return render(request, 'schedulingcalendar/employeeUserPwUpdate.html', context)
-
-
-@login_required
-def change_employee_pw_as_employee(request, SuccessMessageMixin, **kwargs):
-    """Change password of employee user account as employee user."""
-    if request.method == 'POST':
-        employee = (Employee.objects.select_related('employee_user')
-                                    .get(pk=self.kwargs['employee_pk'],
-                                         user=self.request.user))
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('accounts:change_password')
-        else:
-            messages.error(request, 'Please correct the error below.')
-    else:
-        form = PasswordChangeForm(request.user)
-    return render(request, 'accounts/change_password.html', {
-        'form': form
-    })
 
 
 @method_decorator(login_required, name='dispatch')
@@ -948,3 +927,30 @@ class CalendarDisplayUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateV
     def get_object(self, queryset=None):
         obj = BusinessData.objects.get(user=self.request.user)
         return obj
+        
+        
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def check_pending_approvals(request):
+    """Check if manager has pending approvals from employees."""
+    logged_in_user = request.user
+    if request.method == 'GET':
+        pending_applications = False
+        vacation_apps = VacationApplication.objects.filter(user=logged_in_user, approved=None)
+        if vacation_apps.exists():
+            pending_applications = True
+        else:
+            absence_apps = AbsenceApplication.objects.filter(user=logged_in_user, approved=None)
+            if absence_apps.exists():
+                pending_applications = True
+            else:
+                repeat_unav_apps = RepeatUnavailabilityApplication.objects.filter(user=logged_in_user, approved=None)
+                if repeat_unav_apps.exists():
+                    pending_applications = True
+        
+        json_info = json.dumps({'pending_applications': pending_applications})
+        return JsonResponse(json_info, safe=False)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+

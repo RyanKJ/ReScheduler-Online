@@ -21,6 +21,29 @@ from ..custom_mixins import EmployeeCanSubmitAvailabilityApplicationMixin
 from datetime import datetime
 
 
+
+@login_required
+def change_employee_pw_as_employee(request, SuccessMessageMixin, **kwargs):
+    """Change password of employee user account as employee user."""
+    if request.method == 'POST':
+        employee = (Employee.objects.select_related('employee_user')
+                                    .get(pk=self.kwargs['employee_pk'],
+                                         user=self.request.user))
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('accounts:change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'accounts/change_password.html', {
+        'form': form
+    })
+    
+
 @login_required
 def employee_availability(request):
     """Display employee availabilities."""

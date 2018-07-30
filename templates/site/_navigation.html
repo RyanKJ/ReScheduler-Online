@@ -7,7 +7,7 @@
   </button>
 
   <div class="collapse navbar-collapse justify-content-end" id="scheduleHoursNavbar">
-    <ul class="navbar-nav">
+    <ul id="header-nav" class="navbar-nav">
       {% if request.user.is_authenticated %}
         {% if request.user|has_group:"Managers" %}
         <li class="nav-item custom-nav-dropdown mr-2">

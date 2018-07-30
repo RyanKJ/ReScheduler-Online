@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template import loader
 from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      BusinessData, LiveSchedule, LiveCalendar,
                      ScheduleSwapPetition, ScheduleSwapApplication)
@@ -16,6 +17,17 @@ from .views_basic_pages import manager_check
 from datetime import datetime, date, time
 import json
 
+
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")  
+def pending_approvals_page(request):
+    """Display the pending approvals page for a managing user."""
+    logged_in_user = request.user
+    
+    template = loader.get_template('schedulingcalendar/pendingApprovals.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
 
 
 @login_required
@@ -49,19 +61,6 @@ def create_schedule_swap_petition(request):
     else:
         msg = 'HTTP request needs to be POST. Got: ' + request.method
         return get_json_err_response(msg)
-
-
-@login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")
-def pending_approvals_page(request):
-    """Display the manager's pending approval page"""
-    template = loader.get_template('schedulingcalendar/managerPendingApprovals.html')
-    logged_in_user = request.user
-
-    schedule_swaps = ScheduleSwapPetition.objects.filter(user=logged_in_user, approved__isnull=True)
-
-    context = {'sch_swap_list': schedule_swaps}
-    return HttpResponse(template.render(context, request))
 
 
 @login_required

@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^account_delete_sent/$', account_delete_sent, name='account_delete_sent'),
     url(r'^delete_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', delete_confirm, name='delete_confirm'),
     url(r'^account_delete_feedback_send/$', account_delete_feedback_send, name='account_delete_feedback_send'),
+    url(r'^check_pending_approvals/$', check_pending_approvals, name='check_pending_approvals'),
     url(r'^calendar/$', calendar_page, name='calendar_page'),
     url(r'^calendar/add_schedule$', add_schedule, name='add_schedule'),
     url(r'^calendar/get_schedules$', get_schedules, name='get_schedules'),

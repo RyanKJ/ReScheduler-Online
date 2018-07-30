@@ -32,6 +32,11 @@ nav .nav-front-link:hover { color: white; }
 
 .custom-nav-btn-dropdown:focus { outline: none !important; }
 
+.pending-btn { background: #b8c157 !important; 
+              border-radius: 2px;
+              margin-right: 8px; }
+.pending-btn:hover { background: #ccd65e !important;  }
+
 /* Mobile styling
 --------------------------------------------------------------------------------------------------*/
 
