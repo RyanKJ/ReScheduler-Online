@@ -79,7 +79,7 @@ def check_pending_approvals(request):
     
     
 @login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")  
+@user_passes_test(manager_check, login_url="/live_calendar/") 
 def approve_vacation_app(request):  
     """Approve vacation application."""
     logged_in_user = request.user
@@ -100,10 +100,12 @@ def approve_vacation_app(request):
             vacation.save()
             
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             start = vacation_app.start_datetime.strftime("%A, %B %d")
             end = vacation_app.end_datetime.strftime("%A, %B %d")
-            msg = "Your vacation application for %s to %s has been approved." % (start, end)
-            #notify_employee_with_msg(vacation_app.employee, msg)
+            msg_title = "Your vacation application at %s has been approved." % (business_data.company_name)
+            msg = "Your vacation application at %s for %s to %s has been approved." % (business_data.company_name, start, end)
+            notify_employee_with_msg(vacation_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -132,10 +134,12 @@ def disapprove_vacation_app(request):
             vacation_app.save()
             
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             start = vacation_app.start_datetime.strftime("%A, %B %d")
             end = vacation_app.end_datetime.strftime("%A, %B %d")
-            msg = "Your vacation application for %s to %s has not been approved." % (start, end)
-            #notify_employee_with_msg(vacation_app.employee, msg)
+            msg_title = "Your vacation application at %s has not been approved." % (business_data.company_name)
+            msg = "Your vacation application at %s for %s to %s has not been approved." % (business_data.company_name, start, end)
+            notify_employee_with_msg(vacation_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -170,10 +174,12 @@ def approve_absence_app(request):
             absence.save()
             
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             start = absence_app.start_datetime.strftime("%A, %B %d")
             end = absence_app.end_datetime.strftime("%A, %B %d")
             msg = "Your absence application for %s to %s has been approved." % (start, end)
-            #notify_employee_with_msg(absence_app.employee, msg)
+            msg = "Your absence application at %s for %s to %s has been approved." % (business_data.company_name, start, end)
+            notify_employee_with_msg(absence_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -202,10 +208,12 @@ def disapprove_absence_app(request):
             absence_app.save()
             
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             start = absence_app.start_datetime.strftime("%A, %B %d")
             end = absence_app.end_datetime.strftime("%A, %B %d")
-            msg = "Your absence application for %s to %s has not been approved." % (start, end)
-            #notify_employee_with_msg(absence_app.employee, msg)
+            msg_title = "Your absence application at %s has not been approved." % (business_data.company_name)
+            msg = "Your absence application at %s for %s to %s has not been approved." % (business_data.company_name, start, end)
+            notify_employee_with_msg(absence_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -241,12 +249,13 @@ def approve_repeat_unav_app(request):
             repeat_unav.save()
             
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             weekday = WEEKDAY[repeat_unav_app.weekday]
             start = repeat_unav_app.start_time.strftime("%I:%M %p")
             end = repeat_unav_app.end_time.strftime("%I:%M %p")
-            msg = "Your repeating unavailability application for %ss between %s and %s has been approved." % (weekday, start, end)
-            print "********* msg is: ", msg
-            #notify_employee_with_msg(repeat_unav_app.employee, msg)
+            msg_title = "Your repeating unavailability application at %s has been approved." % (business_data.company_name)
+            msg = "Your repeating unavailability application at %s for %ss between %s and %s has been approved." % (business_data.company_name, weekday, start, end)
+            notify_employee_with_msg(repeat_unav_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -275,12 +284,13 @@ def disapprove_repeat_unav_app(request):
             repeat_unav_app.save()
 
             # Inform employee via email and text
+            business_data = BusinessData.objects.get(user=logged_in_user)
             weekday = WEEKDAY[repeat_unav_app.weekday]
             start = repeat_unav_app.start_time.strftime("%I:%M %p")
             end = repeat_unav_app.end_time.strftime("%I:%M %p")
-            msg = "Your repeating unavailability application for %ss between %s and %s has not been approved." % (weekday, start, end)
-            print "********* msg is: ", msg
-            #notify_employee_with_msg(repeat_unav_app.employee, msg)
+            msg_title = "Your repeating unavailability application at %s has not been approved." % (business_data.company_name)
+            msg = "Your repeating unavailability application at %s for %ss between %s and %s has not been approved." % (business_data.company_name, weekday, start, end)
+            notify_employee_with_msg(repeat_unav_app.employee, msg_title, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)

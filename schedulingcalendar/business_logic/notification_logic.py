@@ -18,7 +18,7 @@ account_sid = ''
 auth_token = ''
 
 
-def notify_employee_with_msg(employee, msg):
+def notify_employee_with_msg(employee, msg_title, msg):
     """Email and text employee message."""
     client = Client(account_sid, auth_token)
     
@@ -28,7 +28,7 @@ def notify_employee_with_msg(employee, msg):
                                          to="+1" + employee.phone_number)
 
     if employee.email:
-        send_mail(msg, 'info@schedulehours.com', [employee.email])
+        send_mail(msg_title, msg, 'info@schedulehours.com', [employee.email])
     
 
 def set_view_rights(user, live_calendar, department_view, employee_view):
