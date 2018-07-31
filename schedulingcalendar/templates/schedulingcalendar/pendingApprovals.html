@@ -1,4 +1,4 @@
-{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% extends "site/__base.html" %}
 {% load schedule_calendar_extras %}
 {% load widget_tweaks %}
 
@@ -10,13 +10,75 @@
 
 {% block content %}
   {{ block.super }}  
-  <div class="container">
+  <div class="container mt-3">
     {% include "schedulingcalendar/_disapproveModal.html" %}
   
     <div class="row">
       <div class="col-md-12">
         <div class="text-center">
           <h3>Pending Approvals</h3>
+            <ul class="list-group">
+                {% if vacation_apps_list or absence_apps_list or repeat_unav_apps_list %}
+                  <!-- Vacation applications -->
+                  {% for vacation_app in vacation_apps_list %}
+                    <li data-pk="{{vacation_app.id}}" class="vacation-obj list-group-item">
+                      <ul class="list-inline" data-vacation-id="{{ vacation_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Vacation Application for {{ vacation_app.employee.first_name }} {{ vacation_app.employee.last_name }}</span>: {{ vacation_app.start_datetime }} - {{ vacation_app.end_datetime }}
+                          {% if vacation_app.note %}
+                            <div class="d-block">Note: {{ vacation_app.note }}</div>
+                          {% endif %}
+                        </li>
+                        <div class="float-right">
+                          <button data-pk="{{vacation_app.id}}" class="btn-vacation-approve btn btn-primary text-white mr-3">Approve</button>
+                          <button data-pk="{{vacation_app.id}}" class="btn-vacation-disapprove btn btn-danger text-white">Disapprove</button>
+                        </div>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                  
+                  <!--Absence applications -->
+                  {% for absence_app in absence_apps_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-absence-id="{{ absence_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Unavailability Application for {{ absence_app.employee.first_name }} {{ absence_app.employee.last_name }}</span>: {{ absence_app.start_datetime }} - {{ absence_app.end_datetime }}
+                          {% if absence_app.note %}
+                            <div class"d-block">Note: {{ absence_app.note }}</div>
+                          {% endif %}
+                        </li>
+                        <div class="float-right">
+                          <a class="btn btn-primary text-white mr-3" href="{% url 'schedulingcalendar:employee_absence_application_delete' absence_app.id %}">Approve</a>
+                          <a class="btn btn-danger text-white" href="{% url 'schedulingcalendar:employee_absence_application_delete' absence_app.id %}">Disapprove</a>
+                        </div>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                  
+                  <!--Repeating Unavailability applications -->
+                  {% for repeat_unav_app in repeat_unav_apps_list %}
+                    <li class="list-group-item">
+                      <ul class="list-inline" data-repeating_unav-id="{{ repeat_unav_app.id }}">
+                        <li class="list-inline-item float-left">
+                          <span class="font-weight-bold">Repeating Unavailability Application for {{ repeat_unav_app.employee.first_name }} {{ repeat_unav_app.employee.last_name }}</span>: {{ repeat_unav_app.weekday|int_to_weekday }}: {{ repeat_unav_app.start_time|datetime_to_time }} - {{ repeat_unav_app.end_time|datetime_to_time }}
+                          {% if repeat_unav_app.note %}
+                            <div class"d-block">Note: {{ repeat_unav_app.note }}</div>
+                          {% endif %}
+                        </li>
+                        <div class="float-right">
+                          <a class="btn btn-primary text-white mr-3" href="{% url 'schedulingcalendar:employee_repeat_unavailability_application_delete' repeat_unav_app.id %}">Approve</a>
+                          <a class="btn btn-danger text-white" href="{% url 'schedulingcalendar:employee_repeat_unavailability_application_delete' repeat_unav_app.id %}">Disapprove</a>
+                        </div>
+                      </ul>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  No Pending Availability Applications
+                {% endif %}
+              </ul>
+          
+          
+          
         </div>
       </div>
     </div>

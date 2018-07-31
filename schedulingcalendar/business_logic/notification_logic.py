@@ -13,6 +13,24 @@ from ..models import (Schedule, Department, DepartmentMembership, MonthlyRevenue
 from twilio.rest import Client
 
 
+
+account_sid = ''
+auth_token = ''
+
+
+def notify_employee_with_msg(employee, msg):
+    """Email and text employee message."""
+    client = Client(account_sid, auth_token)
+    
+    if employee.phone_number:
+        message = client.messages.create(body=msg,
+                                         from_="+16123244570",
+                                         to="+1" + employee.phone_number)
+
+    if employee.email:
+        send_mail(msg, 'info@schedulehours.com', [employee.email])
+    
+
 def set_view_rights(user, live_calendar, department_view, employee_view):
     """Create/edit view rights for departments/employees for live calendar."""
 
@@ -46,8 +64,6 @@ def send_employee_notifications(user, department, date, business_data,
                                 live_calendar, view_rights, notify_all,
                                 notify_by_sms, notify_by_email):
     """Send texts to employees who have new or edited schedules."""
-    account_sid = ''
-    auth_token = ''
     client = Client(account_sid, auth_token)
 
     # Get employees who have new/edited schedules who have a phone # and right to view
@@ -244,8 +260,6 @@ def view_right_send_employee_notifications(user, department, date, business_data
     employees = view_right_get_employees_to_notify(user, old_view_rights, new_view_rights)
 
     # Notify employees
-    account_sid = ''
-    auth_token = ''
     client = Client(account_sid, auth_token)
     body = "New schedules have been posted for department " + department.name + " in " + date.strftime("%B") + " at "
     body += business_data.company_name + ". Check your schedules at: https://schedulehours.com/live_calendar"
