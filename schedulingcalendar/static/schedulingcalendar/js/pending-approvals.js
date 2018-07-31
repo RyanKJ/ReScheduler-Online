@@ -3,6 +3,11 @@
 $(document).ready(function() {
   $(".btn-vacation-approve").click(approveVacationApplication);
   $(".btn-vacation-disapprove").click(disapproveVacationApplication);
+  $(".btn-absence-approve").click(approveAbsenceApplication);
+  $(".btn-absence-disapprove").click(disapproveAbsenceApplication);
+  $(".btn-repeat-unav-approve").click(approveRepeatUnavApplication);
+  $(".btn-repeat-unav-disapprove").click(disapproveRepeatUnavApplication);
+   
    
   function approveVacationApplication(event) {
     var pk = $(this).data("pk");
@@ -24,6 +29,52 @@ $(document).ready(function() {
     var info = JSON.parse(data);
     var pk = info['pk'];
     $(".vacation-obj[data-pk='" + pk + "']").remove()
+  }
+  
+  
+  function approveAbsenceApplication(event) {
+    var pk = $(this).data("pk");
+    $.post("approve_absence_app",
+           {pk: pk},
+           removeAbsenceApp);
+  }
+  
+  
+  function disapproveAbsenceApplication(event) {
+    var pk = $(this).data("pk");
+    $.post("disapprove_absence_app",
+           {pk: pk},
+           removeAbsenceApp);
+  }
+  
+  
+  function removeAbsenceApp(data) {
+    var info = JSON.parse(data);
+    var pk = info['pk'];
+    $(".absence-obj[data-pk='" + pk + "']").remove()
+  }
+  
+  
+  function approveRepeatUnavApplication(event) {
+    var pk = $(this).data("pk");
+    $.post("approve_repeat_unav_app",
+           {pk: pk},
+           removeRepeatUnavApp);
+  }
+  
+  
+  function disapproveRepeatUnavApplication(event) {
+    var pk = $(this).data("pk");
+    $.post("disapprove_repeat_unav_app",
+           {pk: pk},
+           removeRepeatUnavApp);
+  }
+  
+  
+  function removeRepeatUnavApp(data) {
+    var info = JSON.parse(data);
+    var pk = info['pk'];
+    $(".repeat-unav-obj[data-pk='" + pk + "']").remove()
   }
    
    

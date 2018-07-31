@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import loader
+from django.utils import timezone
 from ..models import (Schedule, Department, DepartmentMembership, Employee,
                      BusinessData, LiveSchedule, LiveCalendar,
                      ScheduleSwapPetition, ScheduleSwapApplication)
@@ -14,11 +15,16 @@ from ..business_logic import (get_eligibles, all_calendar_hours_and_costs,
                              notify_employee_with_msg)            
 from ..forms import ScheduleSwapPetitionForm, ScheduleSwapDecisionForm, PkForm
 from ..models import (VacationApplication, AbsenceApplication, RepeatUnavailabilityApplication,
-                      Vacation, Absence, RepeatUnavailability)
+                      Vacation, Absence, RepeatUnavailability, BusinessData)
 from ..serializers import get_json_err_response
 from .views_basic_pages import manager_check
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import json
+
+
+
+WEEKDAY = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 
+           4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
 
 
 @login_required
@@ -45,6 +51,34 @@ def pending_approvals_page(request):
     
     
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def check_pending_approvals(request):
+    """Check if manager has pending approvals from employees."""
+    logged_in_user = request.user
+    if request.method == 'GET':
+        pending_applications = False
+        business_data = BusinessData.objects.get(user=logged_in_user)
+        if business_data.right_to_submit_availability:
+            vacation_apps = VacationApplication.objects.filter(user=logged_in_user, approved=None)
+            if vacation_apps.exists():
+                pending_applications = True
+            else:
+                absence_apps = AbsenceApplication.objects.filter(user=logged_in_user, approved=None)
+                if absence_apps.exists():
+                    pending_applications = True
+                else:
+                    repeat_unav_apps = RepeatUnavailabilityApplication.objects.filter(user=logged_in_user, approved=None)
+                    if repeat_unav_apps.exists():
+                        pending_applications = True
+        
+        json_info = json.dumps({'pending_applications': pending_applications})
+        return JsonResponse(json_info, safe=False)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+    
+    
+@login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")  
 def approve_vacation_app(request):  
     """Approve vacation application."""
@@ -56,6 +90,7 @@ def approve_vacation_app(request):
             vacation_app = (VacationApplication.objects.select_related('employee')
                                                        .get(user=logged_in_user, pk=pk))
             vacation_app.approved = True
+            vacation_app.datetime_of_approval = timezone.now()
             vacation_app.save()
             
             vacation = Vacation(user=logged_in_user,
@@ -65,8 +100,10 @@ def approve_vacation_app(request):
             vacation.save()
             
             # Inform employee via email and text
-            msg = "Your vacation application for %s to %s has been approved." % (vacation.start_datetime, vacation.end_datetime)
-            notify_employee_with_msg(vacation_app.employee, msg)
+            start = vacation_app.start_datetime.strftime("%A, %B %d")
+            end = vacation_app.end_datetime.strftime("%A, %B %d")
+            msg = "Your vacation application for %s to %s has been approved." % (start, end)
+            #notify_employee_with_msg(vacation_app.employee, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)
@@ -82,7 +119,7 @@ def approve_vacation_app(request):
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")  
 def disapprove_vacation_app(request):  
-    """Approve vacation application."""
+    """Disapprove vacation application."""
     logged_in_user = request.user
     if request.method == 'POST':
         form = PkForm(request.POST)
@@ -91,7 +128,159 @@ def disapprove_vacation_app(request):
             vacation_app = (VacationApplication.objects.select_related('employee')
                                                        .get(user=logged_in_user, pk=pk))
             vacation_app.approved = False
+            vacation_app.datetime_of_approval = timezone.now()
             vacation_app.save()
+            
+            # Inform employee via email and text
+            start = vacation_app.start_datetime.strftime("%A, %B %d")
+            end = vacation_app.end_datetime.strftime("%A, %B %d")
+            msg = "Your vacation application for %s to %s has not been approved." % (start, end)
+            #notify_employee_with_msg(vacation_app.employee, msg)
+            
+            data = {'pk': pk}
+            json_data = json.dumps(data)
+            return JsonResponse(json_data, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+        
+        
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")  
+def approve_absence_app(request):  
+    """Approve absence application."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = PkForm(request.POST)
+        if form.is_valid():
+            pk = form.cleaned_data['pk']
+            absence_app = (AbsenceApplication.objects.select_related('employee')
+                                                     .get(user=logged_in_user, pk=pk))
+            absence_app.approved = True
+            absence_app.datetime_of_approval = timezone.now()
+            absence_app.save()
+            
+            absence = Absence(user=logged_in_user,
+                              start_datetime=absence_app.start_datetime,
+                              end_datetime=absence_app.end_datetime,
+                              employee=absence_app.employee)
+            absence.save()
+            
+            # Inform employee via email and text
+            start = absence_app.start_datetime.strftime("%A, %B %d")
+            end = absence_app.end_datetime.strftime("%A, %B %d")
+            msg = "Your absence application for %s to %s has been approved." % (start, end)
+            #notify_employee_with_msg(absence_app.employee, msg)
+            
+            data = {'pk': pk}
+            json_data = json.dumps(data)
+            return JsonResponse(json_data, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+    
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")  
+def disapprove_absence_app(request):  
+    """Disapprove absence application."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = PkForm(request.POST)
+        if form.is_valid():
+            pk = form.cleaned_data['pk']
+            absence_app = (AbsenceApplication.objects.select_related('employee')
+                                                       .get(user=logged_in_user, pk=pk))
+            absence_app.approved = False
+            absence_app.datetime_of_approval = timezone.now()
+            absence_app.save()
+            
+            # Inform employee via email and text
+            start = absence_app.start_datetime.strftime("%A, %B %d")
+            end = absence_app.end_datetime.strftime("%A, %B %d")
+            msg = "Your absence application for %s to %s has not been approved." % (start, end)
+            #notify_employee_with_msg(absence_app.employee, msg)
+            
+            data = {'pk': pk}
+            json_data = json.dumps(data)
+            return JsonResponse(json_data, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+        
+        
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")  
+def approve_repeat_unav_app(request):  
+    """Approve repeating unavailability application."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = PkForm(request.POST)
+        if form.is_valid():
+            pk = form.cleaned_data['pk']
+            repeat_unav_app = (RepeatUnavailabilityApplication.objects.select_related('employee')
+                                                                      .get(user=logged_in_user, pk=pk))
+            repeat_unav_app.approved = True
+            repeat_unav_app.datetime_of_approval = timezone.now()
+            repeat_unav_app.save()
+            
+            repeat_unav = RepeatUnavailability(user=logged_in_user,
+                                               start_time=repeat_unav_app.start_time,
+                                               end_time=repeat_unav_app.end_time,
+                                               weekday=repeat_unav_app.weekday,
+                                               employee=repeat_unav_app.employee)
+            repeat_unav.save()
+            
+            # Inform employee via email and text
+            weekday = WEEKDAY[repeat_unav_app.weekday]
+            start = repeat_unav_app.start_time.strftime("%I:%M %p")
+            end = repeat_unav_app.end_time.strftime("%I:%M %p")
+            msg = "Your repeating unavailability application for %ss between %s and %s has been approved." % (weekday, start, end)
+            print "********* msg is: ", msg
+            #notify_employee_with_msg(repeat_unav_app.employee, msg)
+            
+            data = {'pk': pk}
+            json_data = json.dumps(data)
+            return JsonResponse(json_data, safe=False)
+        else:
+            msg = 'Invalid form data'
+            return get_json_err_response(msg)
+    else:
+        msg = 'HTTP request needs to be POST. Got: ' + request.method
+        return get_json_err_response(msg)
+  
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")  
+def disapprove_repeat_unav_app(request):  
+    """Disapprove repeating unavailability application."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = PkForm(request.POST)
+        if form.is_valid():
+            pk = form.cleaned_data['pk']
+            repeat_unav_app = (RepeatUnavailabilityApplication.objects.select_related('employee')
+                                                                      .get(user=logged_in_user, pk=pk))
+            repeat_unav_app.approved = False
+            repeat_unav_app.datetime_of_approval = timezone.now()
+            repeat_unav_app.save()
+
+            # Inform employee via email and text
+            weekday = WEEKDAY[repeat_unav_app.weekday]
+            start = repeat_unav_app.start_time.strftime("%I:%M %p")
+            end = repeat_unav_app.end_time.strftime("%I:%M %p")
+            msg = "Your repeating unavailability application for %ss between %s and %s has not been approved." % (weekday, start, end)
+            print "********* msg is: ", msg
+            #notify_employee_with_msg(repeat_unav_app.employee, msg)
             
             data = {'pk': pk}
             json_data = json.dumps(data)

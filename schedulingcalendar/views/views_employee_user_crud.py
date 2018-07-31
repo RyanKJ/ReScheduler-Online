@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.contrib.auth.forms import (UserCreationForm, PasswordChangeForm,
@@ -18,7 +19,7 @@ from ..forms import (EmployeeVacationForm, EmployeeDisplaySettingsForm,
                      EmployeeAbsentForm, EmployeeRepeatUnavailabilityForm,
                      DesiredTimeForm)
 from ..custom_mixins import EmployeeCanSubmitAvailabilityApplicationMixin
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -96,11 +97,12 @@ def employee_availability(request):
         context['availability_create_right'] = business_data.right_to_submit_availability
 
         if business_data.right_to_submit_availability:
-            context['vacation_application_list'] = (VacationApplication.objects.filter(employee=employee, user=manager_user)
+            seven_days_ago = timezone.now() - timedelta(7)
+            context['vacation_application_list'] = (VacationApplication.objects.filter(employee=employee, user=manager_user, datetime_of_approval__gte=seven_days_ago)
                                                                                .order_by('start_datetime', 'end_datetime'))
-            context['absence_application_list'] = (AbsenceApplication.objects.filter(employee=employee, user=manager_user)
+            context['absence_application_list'] = (AbsenceApplication.objects.filter(employee=employee, user=manager_user, datetime_of_approval__gte=seven_days_ago)
                                                                              .order_by('start_datetime', 'end_datetime'))  
-            context['repeat_unavailability_application_list'] = (RepeatUnavailabilityApplication.objects.filter(employee=employee, user=manager_user)
+            context['repeat_unavailability_application_list'] = (RepeatUnavailabilityApplication.objects.filter(employee=employee, user=manager_user, datetime_of_approval__gte=seven_days_ago)
                                                                                                         .order_by('weekday', 'start_time', 'end_time'))
                                                                                
 

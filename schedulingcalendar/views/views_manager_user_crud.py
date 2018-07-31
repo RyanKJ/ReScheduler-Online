@@ -927,30 +927,4 @@ class CalendarDisplayUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateV
     def get_object(self, queryset=None):
         obj = BusinessData.objects.get(user=self.request.user)
         return obj
-        
-        
-@login_required
-@user_passes_test(manager_check, login_url="/live_calendar/")
-def check_pending_approvals(request):
-    """Check if manager has pending approvals from employees."""
-    logged_in_user = request.user
-    if request.method == 'GET':
-        pending_applications = False
-        vacation_apps = VacationApplication.objects.filter(user=logged_in_user, approved=None)
-        if vacation_apps.exists():
-            pending_applications = True
-        else:
-            absence_apps = AbsenceApplication.objects.filter(user=logged_in_user, approved=None)
-            if absence_apps.exists():
-                pending_applications = True
-            else:
-                repeat_unav_apps = RepeatUnavailabilityApplication.objects.filter(user=logged_in_user, approved=None)
-                if repeat_unav_apps.exists():
-                    pending_applications = True
-        
-        json_info = json.dumps({'pending_applications': pending_applications})
-        return JsonResponse(json_info, safe=False)
-    else:
-        msg = 'HTTP request needs to be POST. Got: ' + request.method
-        return get_json_err_response(msg)
 

@@ -10,7 +10,7 @@
 {% endblock sub_navbar %}  
     
 {% block form_content %}
-    <h4 class="card-title text-center">Create Unavailability For {{ employee.first_name }} {{ employee.last_name }}</h4>
+    <h4 class="card-title text-center">Create Unavailability</h4>
     <form id="create-absence-form"
           name= "CreateAbsenceForm"
           action="{% url 'schedulingcalendar:employee_absence_application_create' %}"

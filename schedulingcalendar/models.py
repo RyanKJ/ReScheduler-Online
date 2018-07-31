@@ -247,11 +247,12 @@ class VacationApplication(models.Model):
 
     start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
     end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
-
     employee = models.ForeignKey(Employee, db_index=True)
     
     note = models.CharField('Note', default="", blank=True, max_length=280)
     approved = models.NullBooleanField(default=None, blank=True)
+    datetime_of_approval =  models.DateTimeField('Datetime of approval', db_index=True, blank=True, null=True, default=timezone.now)
+    
 
     def __str__(self):
         start_str = self.end_datetime.strftime("%Y/%m/%d")
@@ -284,12 +285,13 @@ class AbsenceApplication(models.Model):
 
     start_datetime = models.DateTimeField('start datetime', db_index=True, default=timezone.now)
     end_datetime = models.DateTimeField('end datetime', db_index=True, default=timezone.now)
-
     employee = models.ForeignKey(Employee, db_index=True)
 
     note = models.CharField('Note', default="", blank=True, max_length=280)
     approved = models.NullBooleanField(default=None, blank=True)
-
+    datetime_of_approval =  models.DateTimeField('Datetime of approval', db_index=True, blank=True, null=True, default=timezone.now)
+    
+    
     def __str__(self):
         start_str = self.end_datetime.strftime("%Y/%m/%d")
         end_str = self.end_datetime.strftime("%Y/%m/%d")
@@ -324,12 +326,11 @@ class RepeatUnavailabilityApplication(models.Model):
     end_time = models.DateTimeField('end time', db_index=True, default=timezone.now)
     # Weekday starts on Monday, so Monday = 0, Tuesday = 1, etc.
     weekday = models.IntegerField('weekday')
-
     employee = models.ForeignKey(Employee, db_index=True)
-    
     
     note = models.CharField('Note', default="", blank=True, max_length=280)
     approved = models.NullBooleanField(default=None, blank=True)
+    datetime_of_approval =  models.DateTimeField('Datetime of approval', db_index=True, blank=True, null=True, default=timezone.now)
 
 
     def __str__(self):
