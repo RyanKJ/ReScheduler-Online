@@ -1,43 +1,36 @@
-{% extends "site/__base.html" %}
+{% extends "schedulingcalendar/__baseFormCard.html" %}
 {% load schedule_calendar_extras %}
 {% load widget_tweaks %}
 
 {% block stylesheets %}
   {{ block.super }}
   {% load static %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css">
   <link rel="stylesheet" href="{% static 'schedulingcalendar/css/monthly.revenue.datepicker.custom.css' %}" />
 {% endblock stylesheets %}
 
-{% block content %}
-  {{ block.super }}  
-  <div class="container mt-3">
-    {% include "schedulingcalendar/_disapproveModal.html" %}
-    <div class="row">
-      <div class="col-md-12">
-        <div class="text-center">
-          <h3>Export to CSV</h3>
-            <form id="get-csv-form"
-                name= "getCSVForm"
-                action="{% url 'schedulingcalendar:get_schedules_csv' %}"
-                method="get">
-            {% csrf_token %}
-            {% for field in form %}
-              <div class="form-group">
-                {{ field.errors }}
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field|add_class:'form-control' }}
-                {% if field.help_text %}
-                  <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-              </div>
-            {% endfor %}
-            <input type="submit" class="btn btn-primary" value="Get CSV of Schedules">
-          </form>
-        </div>
+{% block form_content %} 
+  <h4 class="card-title text-center">Export to CSV</h4>
+  <form id="get-csv-form"
+        name= "getCSVForm"
+        action="{% url 'schedulingcalendar:get_schedules_csv' %}"
+        method="get">
+    {% csrf_token %}
+    <div class="card-section">
+      {% for field in form %}
+        <div class="form-group">
+          {{ field.errors }}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field|add_class:'form-control' }}
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
       </div>
+    {% endfor %}
     </div>
-  </div>
-{% endblock content %}
+    <input type="submit" class="btn btn-primary" value="Get CSV of Schedules">
+  </form>
+{% endblock form_content %}
 
 {% block javascript %}
   {{ block.super }}     
