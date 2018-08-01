@@ -17,7 +17,7 @@
               <span class="sr-only">Toggle Dropdown</span>
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#">Export To CSV</a>
+              <a class="dropdown-item" href="{% url 'schedulingcalendar:export_to_csv_page' %}">Export To CSV</a>
               <a class="dropdown-item" href="{% url 'schedulingcalendar:calendar_display_settings' %}">Display Settings</a>
             </div>
           </div>

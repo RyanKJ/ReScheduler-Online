@@ -89,6 +89,8 @@ urlpatterns = [
     url(r'^pending_approvals/approve_repeat_unav_app$', approve_repeat_unav_app, name='approve_repeat_unav_app'),
     url(r'^pending_approvals/disapprove_repeat_unav_app$', disapprove_repeat_unav_app, name='disapprove_repeat_unav_app'),
     url(r'^pending_approvals/schedule_swap_disapproval$', schedule_swap_disapproval, name='schedule_swap_disapproval'),
+    url(r'^export_to_csv/$', export_to_csv_page, name='export_to_csv_page'),
+    url(r'^get_schedules_csv/$', export_schedules_to_csv, name='get_schedules_csv'),
     url(r'^my_profile/$', EmployeeUpdateProfileSettings.as_view(), name='employee_profile_settings'),
     url(r'^my_availability/$', employee_availability, name='employee_availability'),
 ]

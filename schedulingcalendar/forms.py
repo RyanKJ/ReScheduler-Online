@@ -480,6 +480,16 @@ class MonthlyRevenueForm(forms.ModelForm):
     class Meta:
         model = MonthlyRevenue
         fields = ['monthly_total', 'month_year']
+        
+        
+class ExportToCSVForm(forms.Form):
+    """Form for exporting a range of schedules into a CSV file."""
+    month_year_start =  forms.DateField(label='Starting Year and Month',
+                                        widget=forms.DateInput(format=DATE_FORMAT),
+                                        input_formats=DATE_FORMATS)
+    month_year_end =  forms.DateField(label='Ending Year and Month',
+                                      widget=forms.DateInput(format=DATE_FORMAT),
+                                      input_formats=DATE_FORMATS)
 
 
 class DayNoteHeaderForm(forms.ModelForm):

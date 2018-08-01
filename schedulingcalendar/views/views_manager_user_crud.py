@@ -38,6 +38,17 @@ import json
 
 
 
+def manager_is_obj_owner_test(user, obj):
+    """Checks that the request user is the owner of the object they are requesting."""
+    return user.id == obj.user.id
+    
+    
+def get_manager_user_of_employee_user(employee_user):
+    """Return manager user of an employee user."""
+    employee = Employee.objects.select_related('user').get(employee_user=employee_user)
+    return employee.user
+    
+
 @method_decorator(login_required, name='dispatch')
 class EmployeeListView(UserIsManagerMixin, ListView):
     """Display an alphabetical list of all employees for a managing user."""
@@ -59,6 +70,20 @@ class EmployeeUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
               'wage', 'desired_hours', 'min_time_for_break',
               'break_time_in_min', 'monthly_medical',
               'social_security']
+              
+              
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Employee not found</h1>')
+        
 
     def get(self, request, **kwargs):
         self.object = Employee.objects.get(pk=self.kwargs['employee_pk'],
@@ -148,6 +173,17 @@ class EmployeeDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     success_message = 'Employee successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:employee_list')
     model = Employee
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Employee not found</h1>')
 
 
 @login_required
@@ -184,6 +220,20 @@ class EmployeeUsernameUpdateView(UserIsManagerMixin, SuccessMessageMixin, Update
     success_message = 'Employee username successfully updated'
     model = User
     fields = ['username']
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        manager_user = get_manager_user_of_employee_user(self.object)
+        if manager_user.id == request.user.id:
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Employee user not found</h1>')
 
 
     def get(self, request, **kwargs):
@@ -227,9 +277,7 @@ class EmployeeUserCreateView(UserIsManagerMixin, SuccessMessageMixin, CreateView
     template_name = 'schedulingcalendar/employeeUserCreate.html'
     success_message = 'Employee login account successfully created'
     form_class = UserCreationForm
-
-    # TODO: Correct way to get a django group
-    # TODO: Assert that employee actually belong to managing user in form_valid
+    
 
     def form_valid(self, form):
         """Save employee user, add to employee profile & employee group."""
@@ -270,6 +318,18 @@ class EmployeeUserDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView
     template_name = 'schedulingcalendar/employeeUserDelete.html'
     success_message = 'Employee login account successfully deleted'
     model = User
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        manager_user = get_manager_user_of_employee_user(self.object)
+        if manager_user.id == request.user.id:
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Employee user not found</h1>')
 
 
     def get_context_data(self, **kwargs):
@@ -293,6 +353,19 @@ class VacationUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     success_message = 'Vacation successfully updated'
     form_class = VacationForm
 
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Vacation not found</h1>')
+    
 
     def get(self, request, **kwargs):
         self.object = Vacation.objects.get(pk=self.kwargs['vacation_pk'],
@@ -362,6 +435,17 @@ class VacationDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     template_name = 'schedulingcalendar/vacationDelete.html'
     success_message = 'Vacation successfully deleted'
     model = Vacation
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Vacation not found</h1>')
 
 
     def get_context_data(self, **kwargs):
@@ -385,6 +469,19 @@ class AbsentUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     success_message = 'Unavailability successfully updated'
     form_class = AbsentForm
 
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Unavailability not found</h1>')
+    
 
     def get(self, request, **kwargs):
         self.object = Absence.objects.get(pk=self.kwargs['absent_pk'],
@@ -455,6 +552,17 @@ class AbsentDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     success_message = 'Unavailability successfullydeleted'
     model = Absence
 
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Unavailability not found</h1>')
+    
 
     def get_context_data(self, **kwargs):
         """Add employee owner of vacations to context."""
@@ -476,6 +584,19 @@ class RepeatUnavailableUpdateView(UserIsManagerMixin, SuccessMessageMixin, Updat
     template_name = 'schedulingcalendar/repeatUnavailableUpdate.html'
     success_message = 'Repeat unavailability successfully updated'
     form_class = RepeatUnavailabilityForm
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Repeat unavailability not found</h1>')
 
 
     def get(self, request, **kwargs):
@@ -546,6 +667,17 @@ class RepeatUnavailableDeleteView(UserIsManagerMixin, SuccessMessageMixin, Delet
     success_message = 'Repeat unavailability successfully delete'
     model = RepeatUnavailability
 
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Repeat unavailability not found</h1>')
+    
 
     def get_context_data(self, **kwargs):
         """Add employee owner of unavailable repeat to context."""
@@ -567,6 +699,19 @@ class DesiredTimeUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView)
     template_name = 'schedulingcalendar/desiredTimeUpdate.html'
     success_message = 'Desired time successfully updated'
     form_class = DesiredTimeForm
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Desired time not found</h1>')
 
 
     def get(self, request, **kwargs):
@@ -636,6 +781,17 @@ class DesiredTimeDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView)
     template_name = 'schedulingcalendar/desiredTimeDelete.html'
     success_message = 'Desired time successfully deleted'
     model = DesiredTime
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Desired time not found</h1>')
 
 
     def get_context_data(self, **kwargs):
@@ -658,6 +814,20 @@ class DepartmentMembershipUpdateView(UserIsManagerMixin, SuccessMessageMixin, Up
     template_name = 'schedulingcalendar/departmentMembershipUpdate.html'
     success_message = 'Department membership successfully updated'
     form_class = DepartmentMembershipForm
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Department membership not found</h1>')
+    
 
     def get_form_kwargs(self):
         """Set user as a value in kwargs dictionary."""
@@ -739,6 +909,17 @@ class DepartmentMembershipDeleteView(UserIsManagerMixin, SuccessMessageMixin, De
     template_name = 'schedulingcalendar/departmentMembershipDelete.html'
     success_message = 'Department membership successfully deleted'
     model = DepartmentMembership
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Department membership not found</h1>')
 
 
     def get_context_data(self, **kwargs):
@@ -785,6 +966,19 @@ class DepartmentUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView):
     success_message = 'Department successfully updated'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     fields = ['name']
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Department not found</h1>')
 
 
     def get(self, request, **kwargs):
@@ -824,6 +1018,17 @@ class DepartmentDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteView):
     success_message = 'Department successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:department_list')
     model = Department
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Department not found</h1>')
 
 
 @method_decorator(login_required, name='dispatch')
@@ -846,6 +1051,19 @@ class MonthlyRevenueUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateVi
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     form_class = MonthlyRevenueForm
 
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Monthly revenue not found</h1>')
+    
 
     def get(self, request, **kwargs):
         self.object = MonthlyRevenue.objects.get(pk=self.kwargs['monthly_rev_pk'],
@@ -883,6 +1101,17 @@ class MonthlyRevenueDeleteView(UserIsManagerMixin, SuccessMessageMixin, DeleteVi
     success_message = 'Monthly revenue successfully deleted'
     success_url = reverse_lazy('schedulingcalendar:monthly_revenue_list')
     model = MonthlyRevenue
+    
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete obj if user is owner of obj."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            success_url = self.get_success_url()
+            self.object.delete()
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseNotFound('<h1>Monthly revenue not found</h1>')
 
 
 @method_decorator(login_required, name='dispatch')
@@ -892,6 +1121,19 @@ class BusinessDataUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateView
     success_message = 'Business settings successfully updated'
     success_url = reverse_lazy('schedulingcalendar:business_update')
     form_class = BusinessDataForm
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Business data not found</h1>')
 
 
     def get(self, request, **kwargs):
@@ -914,6 +1156,19 @@ class CalendarDisplayUpdateView(UserIsManagerMixin, SuccessMessageMixin, UpdateV
     success_message = 'Calendar display settings successfully updated'
     success_url = reverse_lazy('schedulingcalendar:calendar_display_settings')
     form_class = CalendarDisplaySettingsForm
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request."""
+        self.object = self.get_object()
+        if manager_is_obj_owner_test(request.user, self.object):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        else:
+            return HttpResponseNotFound('<h1>Business data not found</h1>')
 
 
     def get(self, request, **kwargs):
