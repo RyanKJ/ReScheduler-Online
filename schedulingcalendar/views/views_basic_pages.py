@@ -47,6 +47,14 @@ def contact_page(request):
     context = {}
 
     return HttpResponse(template.render(context, request))
+    
+    
+def help_page(request):
+    """Display the help page for the website."""
+    template = loader.get_template('schedulingcalendar/help.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
 
 
 def manager_check(user):

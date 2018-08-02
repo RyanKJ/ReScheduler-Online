@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^$', front_or_cal_page, name='front_or_cal_page'),
     url(r'^front/$', front_page, name='front_page'),
     url(r'^about/$', about_page, name='about_page'),
+    url(r'^help/$', help_page, name='help_page'),
     url(r'^contact/$', contact_page, name='contact_page'),
     url(r'^login_success/$', login_success, name='login_success'),
     url(r'^account_settings/$', account_settings, name='account_settings'),

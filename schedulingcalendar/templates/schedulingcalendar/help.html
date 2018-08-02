@@ -1,0 +1,119 @@
+{% extends "site/__base.html" %}
+{% load schedule_calendar_extras %}
+{% load widget_tweaks %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  {% load static %}
+{% endblock stylesheets %}
+
+{% block content %}
+  {{ block.super }}  
+  <div class="container mt-3">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="text-center">
+          <h3>Help</h3>
+          <p class="font-weight-bold">If you cannot find an answer to your question please email us at info@schedulehours.com</p>
+          
+          <div class="row">
+          <div class="col-md-4">
+          
+          
+          <div id="navbar-questions" class="list-group">
+            <a class="list-group-item list-group-item-action" href="#q-12">Creating an account for an employee</a>
+            <a class="list-group-item list-group-item-action" href="#q-13">Editing or removing an employee account</a>
+            <a class="list-group-item list-group-item-action" href="#q-1">How to copy day or week of schedules</a>
+            <a class="list-group-item list-group-item-action" href="#q-14">Changing how schedules are formatted</a>
+            <a class="list-group-item list-group-item-action" href="#q-16">Printing the calendar</a>
+            <a class="list-group-item list-group-item-action" href="#q-4">How does publishing work?</a>
+            <a class="list-group-item list-group-item-action" href="#q-6">What are the view rights?</a>
+            <a class="list-group-item list-group-item-action" href="#q-6">How are employees notified?</a>
+            <a class="list-group-item list-group-item-action" href="#q-7">What is viewing live?</a>
+            <a class="list-group-item list-group-item-action" href="#q-15">Checking older published versions</a>
+            <a class="list-group-item list-group-item-action" href="#q-5">How do monthly costs work?</a>
+            <a class="list-group-item list-group-item-action" href="#q-2">What is the eligibility list?</a>
+            <a class="list-group-item list-group-item-action" href="#q-8">Changing the start of the workweek</a>
+            <a class="list-group-item list-group-item-action" href="#q-9">Changing overtime</a>
+            <a class="list-group-item list-group-item-action" href="#q-10">Changing overtime multiplier</a>
+            <a class="list-group-item list-group-item-action" href="#q-11">Exporting to CSV</a>
+            <a class="list-group-item list-group-item-action" href="#q-12">Creating an account for an employee</a>
+            <a class="list-group-item list-group-item-action" href="#q-13">Changing or removing an account for an employee</a>
+            <a class="list-group-item list-group-item-action" href="#q-14">Changing how schedules are formatted</a>
+          </div>
+          
+          
+          
+          
+          </div>
+          
+          <div class="col-md-8">
+          <div data-spy="scroll" data-target="#navbar-questions" data-offset="0">
+            <h4 id="q-1">Creating an account for an employee</h4>
+            <p>To create an account for an employee, click on the particular employee in the 
+            list of employees. Then click on the 'Login Settings'. Then give the employee
+            a username and password.</p>
+            
+            <h4 id="q-1-1">Editing or removing an employee account</h4>
+            <p>To edit or remove an account for an employee, click on the particular 
+            employee in the list of employees. Then click on the 'Login Settings'. If the employee
+            already has an account, there will be several links, one to change the user name, the
+            password, and lastly to delete the account. Note, deleting the login account
+            does not delete the employee profile.</p>
+            
+            <h4 id="q-3">How to copy day or week of schedules</h4>
+            <p>To copy a day or week of schedules, simply click on the day (Or day in the week) 
+            whose schedule's you want to copy. Once the day is selected, click the 
+            'Copy Day' or 'Copy Week' button. Then <span class="font-weight-bold">double-click</span>
+            the day you want to schedules to copy to.</p>
+
+            <h4 id="q-1-2">Changing how schedules are formatted</h4>
+            <p>Changing how schedules are textually formatted is done by selecting
+            various settings in the calendar display settings page. You can get to this page
+            by clicking the dropdown on the calendar button or 
+            <a href="{% url 'schedulingcalendar:calendar_display_settings' %}">click here.</a></p>
+
+            <h4 id="q-2">Printing the calendar</h4>
+            <p>Always print the live published version of the calendar. Because the draft calendar is
+            never viewable by employees, it is best to print the live calendar both for 
+            looks and to keep the print and online versions synchronized. For tips on how 
+            to best print the calendar, go to the live version you wish to print and click
+            on the 'Print Help' button.</p>
+            
+            
+            <h4 id="q-3-1">How does publishing work?</h4>
+            <p>When you are ready to release your schedules, click the 'Publish'
+            button on the calendar page. This will create a pop-up that gives you additional options
+            such as 'View Rights' and choosing what methods to notify employees of changes.</p>
+            <p>Once you click 'Publish' in the pop-up menu the calendar will be 
+            copied and the employees who both have accounts and have the 'View Rights' 
+            will be allowed to see the calendar. Note, any changes you
+            make on the draft calendar will not be visible. Employees who have the 
+            'View Rights' can only see the Published version, not the draft version.</p>
+            
+            <h4 id="q-3-2">What are the view rights?</h4>
+            <p>View rights simply means what employees can see the published schedules.
+            If you want to limit what employees can see the schedules, you can select specifically
+            which employees or departments can see the schedules. When not selecting to allow 
+            every employee to view the calendar, only employees who have the 'right' to see
+            the calendar can see it. All other employees will not be able to see the calendar.
+            If they attempt to see the calendar they will be notified no calendar exists for
+            that date and department.</p>
+            <p>If you have already published the calendar once and wish to change the view rights
+            without publishing again, say, let more employees see the calendar, click the 
+            'View Rights' button next to the 'Publish' button. This allows you to modify
+            the set of employees who can see the calendar. You can also choose if you want
+            the employees who could not see, but now can see the calendar, if these new
+            employees will get a text and/or email notifying them that a calendar with schedules
+            on them exists.</p>
+          </div>
+          
+          
+          </div>
+          
+          
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
