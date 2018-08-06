@@ -161,7 +161,7 @@ def delete_account(request):
 @login_required
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def delete_confirm(request, uidb64, token):
-    """Activate user if user's token matches url token."""
+    """Delete user if user's token matches url token."""
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
@@ -196,3 +196,53 @@ def account_delete_feedback_send(request):
             return redirect('/front/')
     else:
         return redirect('/front/')
+        
+        
+def change_email(request):
+    """Send authorization email to change email of user account."""
+    if request.method == 'POST':
+        form = ChangeEmailForm(request.POST)
+        if form.is_valid():
+            new_email = form.cleaned_data['new_email']
+            new_email_repeat = form.cleaned_data['new_email']
+            if new_email == new_email_repeat:
+                current_site = get_current_site(request)
+                subject = 'Change the email associated with your Schedule Hours account'
+                message = loader.render_to_string('registration/account_email_change.html', {
+                          'new_email': new_email,
+                          'user': logged_in_user,
+                          'domain': current_site.domain,
+                          'uid': urlsafe_base64_encode(force_bytes(logged_in_user.pk)),
+                          'token': account_email_change_token.make_token(logged_in_user),
+                })
+                logged_in_user.email_user(subject, message)
+        
+                return redirect("/account_email_change_sent/")
+            else:
+              form = ChangeEmailForm()
+        else:
+            form = ChangeEmailForm()
+    return render(request, 'registration/change_email.html')
+    
+    
+def email_change_confirm(request):
+    """Change email of user if user's token matches url token."""
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_delete_token.check_token(user, token):
+        # Change profile email
+        user.email = new_email
+        user.save()
+        return render(request, 'registration/delete_account_feedback.html')
+    else:
+        return render(request, 'registration/account_delete_invalid.html')
+    
+    
+    
+    
+    
+    

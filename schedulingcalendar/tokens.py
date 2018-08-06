@@ -14,6 +14,14 @@ class AccountDeleteTokenGenerator(PasswordResetTokenGenerator):
         return (
             six.text_type(user.pk) + six.text_type(timestamp) + "DELETE"
         )
+        
+        
+class AccountEmailChangeTokenGenerator(PasswordResetTokenGenerator):
+    def _make_hash_value(self, user, timestamp):
+        return (
+            six.text_type(user.pk) + six.text_type(timestamp) + "EMAIL"
+        )
 
 account_activation_token = AccountActivationTokenGenerator()
 account_delete_token = AccountDeleteTokenGenerator()
+account_email_change_token = AccountEmailChangeTokenGenerator()

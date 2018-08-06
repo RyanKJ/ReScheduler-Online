@@ -6,7 +6,6 @@
 
 
 .landing-page-bg-top {
-  background: linear-gradient(to bottom, #0079D7, #1190f2);
   color: white;
   font-family: 'Nanum Myeongjo', serif;
 }
@@ -15,10 +14,17 @@
   color: #212A35;
 }
 
-.landing-page-bg-example {
+.landing-page-bg {
   color: #212A35;
 }
 
+.example-front {
+  background: url("/static/site/images/front-bg-4.png");
+}
+
+.example-front2 {
+  background: linear-gradient(to bottom, #0079D7, #1190f2);
+}
 .section-gap {
   height: 12px;
 }

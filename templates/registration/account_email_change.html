@@ -1,0 +1,7 @@
+{% autoescape off %}
+Hi {{ user.username }},
+
+By clicking the link below, your account's associated email address will be changed to: {{ new_email }}
+
+http://{{ domain }}{% url 'schedulingcalendar:email_change_confirm' uidb64=uid token=token new_email=new_email %}
+{% endautoescape %}

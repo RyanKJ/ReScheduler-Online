@@ -535,6 +535,12 @@ class EmployeeDisplaySettingsForm(forms.ModelForm):
     class Meta:
         model = Employee
         fields = ['override_list_view', 'see_all_departments']
+        
+        
+class ChangeEmailForm(forms.Form):
+    """Form for changing user's email."""
+    new_email = forms.EmailField()
+    new_email_repeat = forms.EmailField()
 
 
 class DeleteAccountForm(forms.Form):
