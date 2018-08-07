@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^account_activation_sent/$', account_activation_sent, name='account_activation_sent'),
     url(r'^account_activation_success/$', account_activation_success, name='account_activation_success'),
     url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', activate, name='activate'),
+    url(r'^forgot_username/$', forgot_username, name='forgot_username'),
     url(r'^delete_account/$', delete_account, name='delete_account'),
     url(r'^account_delete_sent/$', account_delete_sent, name='account_delete_sent'),
     url(r'^delete_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', delete_confirm, name='delete_confirm'),

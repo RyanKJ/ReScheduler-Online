@@ -1,0 +1,7 @@
+{% autoescape off %}
+
+The username for your Schedule Hours account is: {{ user.username }}
+
+You can login to your account by clicking this link:
+http://{{ domain }}{% url 'schedulingcalendar:login' %}
+{% endautoescape %}

@@ -541,6 +541,11 @@ class ChangeEmailForm(forms.Form):
     """Form for changing user's email."""
     new_email = forms.EmailField()
     new_email_repeat = forms.EmailField(label="Repeat New Email")
+    
+    
+class ForgotUsernameForm(forms.Form):
+    """Form for changing user's email."""
+    email = forms.EmailField(label="Email associated with your account")
 
 
 class DeleteAccountForm(forms.Form):

@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from ..tokens import account_activation_token, account_delete_token, account_email_change_token
 from ..models import Department, DepartmentMembership, Employee, BusinessData
 from ..forms import (SignUpForm, DeleteAccountForm, DeleteAccountFeedbackForm, 
-                     ChangeEmailForm)
+                     ChangeEmailForm, ForgotUsernameForm)
 from datetime import datetime, date
 
 
@@ -181,6 +181,8 @@ def delete_confirm(request, uidb64, token):
         return render(request, 'registration/account_delete_invalid.html')
 
 
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def account_delete_sent(request):
     """Display the confirmation email sent page for user account termination."""
     template = loader.get_template('registration/account_delete_sent.html')
@@ -203,6 +205,8 @@ def account_delete_feedback_send(request):
         return redirect('/front/')
         
         
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def change_email(request):
     """Send authorization email to change email of user account."""
     logged_in_user = request.user
@@ -237,6 +241,8 @@ def change_email(request):
     return render(request, 'registration/change_email.html', context)
     
     
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def account_email_change_sent(request):
     """Display the confirmation email sent page for user email change."""
     template = loader.get_template('registration/account_email_change_sent.html')
@@ -262,7 +268,38 @@ def email_change_confirm(request, uidb64, token, new_email):
         return render(request, 'registration/account_email_change_invalid.html')
     
     
-    
+def forgot_username(request):
+    """Send username to email associate with account."""
+    logged_in_user = request.user
+    if request.method == 'POST':
+        form = ForgotUsernameForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=email)
+            except:
+                user = None
+
+            if user is not None:
+                current_site = get_current_site(request)
+                subject = 'The username of your Schedule Hours account'
+                message = loader.render_to_string('registration/forgot_username_email.html', {
+                          'user': user,
+                          'domain': current_site.domain,
+                })
+                user.email_user(subject, message)
+                return render(request, 'registration/account_email_change_success.html')
+            else:
+                messages.error(request, "We cannot find any account with that email.")
+                form = ForgotUsernameForm()
+        else:
+            messages.error(request, "Email not valid.")
+            form = ForgotUsernameForm()
+    else:
+        form = ForgotUsernameForm()
+            
+    context = {'form': form}
+    return render(request, 'registration/forgot_username.html', context)
     
     
     
