@@ -5,12 +5,16 @@
 {% block form_content %}
   <h3 class="card-title text-center">Account Settings</h3>
   
-  <div class="text-center pt-3">
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item pb-5">
+  <div class="text-center">
+    <ul class="list-group card-section list-group-flush">
+      <li class="list-group-item pt-4 pb-4">
         <a class="btn btn-primary text-white" href="{% url 'schedulingcalendar:change_password' %}">Change Password</a>
       </li>
-      <li class="list-group-item pt-5">
+      <li class="list-group-item pt-4 pb-4">
+        <p class="font-weight-bold">Email: {{ user_email }} </p>
+        <a class="btn btn-primary text-white" href="{% url 'schedulingcalendar:change_email' %}">Change Email</a>
+      </li>
+      <li class="list-group-item pt-4 pb-4">
         <a class="btn btn-danger text-white" href="{% url 'schedulingcalendar:delete_account' %}">Delete Account</a>
       </li>
     </ul>

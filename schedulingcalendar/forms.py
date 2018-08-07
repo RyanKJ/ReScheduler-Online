@@ -540,7 +540,7 @@ class EmployeeDisplaySettingsForm(forms.ModelForm):
 class ChangeEmailForm(forms.Form):
     """Form for changing user's email."""
     new_email = forms.EmailField()
-    new_email_repeat = forms.EmailField()
+    new_email_repeat = forms.EmailField(label="Repeat New Email")
 
 
 class DeleteAccountForm(forms.Form):

@@ -1,0 +1,28 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Forgot Username{% endblock %}
+
+{% block form_content %}
+  <h3 class="card-title text-center mb-4">Forgot Username</h3>
+  <div class="text-center">
+    <div class="card-section">
+      <p>Type in the email associated with your account and we will send your username
+      to your account.</p>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+          {{ field.errors }}
+          <label class="font-weight-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field|add_class:'form-control' }}
+          {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+{% endblock %}

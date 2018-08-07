@@ -10,9 +10,10 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template import loader
 from django.core.mail import send_mail
-from ..tokens import account_activation_token, account_delete_token
+from ..tokens import account_activation_token, account_delete_token, account_email_change_token
 from ..models import Department, DepartmentMembership, Employee, BusinessData
-from ..forms import SignUpForm, DeleteAccountForm, DeleteAccountFeedbackForm
+from ..forms import (SignUpForm, DeleteAccountForm, DeleteAccountFeedbackForm, 
+                     ChangeEmailForm)
 from datetime import datetime, date
 
 
@@ -23,10 +24,14 @@ def manager_check(user):
 
 
 @login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
 def account_settings(request):
     """Page to edit account such as changing password."""
     template = loader.get_template('registration/account_settings.html')
     context = {}
+    
+    user_email = request.user.email
+    context['user_email'] = user_email
 
     return HttpResponse(template.render(context, request))
 
@@ -200,11 +205,12 @@ def account_delete_feedback_send(request):
         
 def change_email(request):
     """Send authorization email to change email of user account."""
+    logged_in_user = request.user
     if request.method == 'POST':
         form = ChangeEmailForm(request.POST)
         if form.is_valid():
             new_email = form.cleaned_data['new_email']
-            new_email_repeat = form.cleaned_data['new_email']
+            new_email_repeat = form.cleaned_data['new_email_repeat']
             if new_email == new_email_repeat:
                 current_site = get_current_site(request)
                 subject = 'Change the email associated with your Schedule Hours account'
@@ -219,13 +225,27 @@ def change_email(request):
         
                 return redirect("/account_email_change_sent/")
             else:
+              messages.error(request, "Emails must be the same.")
               form = ChangeEmailForm()
         else:
+            messages.error(request, "Emails not valid.")
             form = ChangeEmailForm()
-    return render(request, 'registration/change_email.html')
+    else:
+        form = ChangeEmailForm()
+            
+    context = {'form': form}
+    return render(request, 'registration/change_email.html', context)
     
     
-def email_change_confirm(request):
+def account_email_change_sent(request):
+    """Display the confirmation email sent page for user email change."""
+    template = loader.get_template('registration/account_email_change_sent.html')
+    context = {}
+
+    return HttpResponse(template.render(context, request))
+    
+    
+def email_change_confirm(request, uidb64, token, new_email):
     """Change email of user if user's token matches url token."""
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
@@ -233,13 +253,13 @@ def email_change_confirm(request):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user is not None and account_delete_token.check_token(user, token):
+    if user is not None and account_email_change_token.check_token(user, token):
         # Change profile email
         user.email = new_email
         user.save()
-        return render(request, 'registration/delete_account_feedback.html')
+        return render(request, 'registration/account_email_change_success.html')
     else:
-        return render(request, 'registration/account_delete_invalid.html')
+        return render(request, 'registration/account_email_change_invalid.html')
     
     
     
