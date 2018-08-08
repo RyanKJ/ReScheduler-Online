@@ -8,18 +8,29 @@
     <form method="post">
       {% csrf_token %}
       
-      {% for field in form %}
+      <!-- Username form input -->
+      <div class="card-section pb-2">
         <div class="form-group">
-          {{ field.errors }}
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field|add_class:'form-control' }}
-          {% if field.help_text %}
-            <p class="help">{{ field.help_text|safe }}</p>
+          {{ form.username.errors }}
+          {{ form.username.label_tag }}
+          {{ form.username|add_class:'form-control' }}
+          {% if form.username.help_text %}
+            <p class="help">{{ form.username.help_text|safe }}</p>
           {% endif %}
+          <a class="float-right" href="{% url 'schedulingcalendar:forgot_username' %}">Forgot Username</a>
         </div>
-      {% endfor %}
+        
+        <!-- Password form input -->
+        <div class="form-group">
+          {{ form.password.errors }}
+          {{ form.password.label_tag }}
+          {{ form.password|add_class:'form-control' }}
+          {% if form.password.help_text %}
+            <p class="help">{{ form.password.help_text|safe }}</p>
+          {% endif %}
+          <a class="float-right" href="{% url 'password_reset' %}">Forgot Password</a>
+        </div>
+      </div>
       <input type="submit" class="btn btn-primary" value="Login">
-      <a class="float-right" href="{% url 'password_reset' %}">Forgot Password</a>
-      <a class="float-right" href="{% url 'schedulingcalendar:forgot_username' %}">Forgot Username</a>
     </form>
 {% endblock form_content %}

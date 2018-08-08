@@ -4,19 +4,21 @@
 {% block title %}Register{% endblock %}
 
 {% block form_content %}
-  <h3 class="card-title text-center">Sign Up</h3>
+  <h3 class="card-title text-center">Register</h3>
     <form method="post">
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="form-group">
-          {{ field.errors }}
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field|add_class:'form-control' }}
-          {% if field.help_text %}
-            <p class="help">{{ field.help_text|safe }}</p>
-          {% endif %}
-        </div>
-      {% endfor %}
+      <div class="card-section">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="form-group">
+            {{ field.errors }}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field|add_class:'form-control' }}
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
       <input type="submit" class="btn btn-primary" value="Register">
     </form>
 {% endblock form_content %}
