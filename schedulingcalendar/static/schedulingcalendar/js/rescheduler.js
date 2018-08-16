@@ -40,8 +40,6 @@ $(document).ready(function() {
                            'oldHideStart': null, 'oldHideEnd': null};
   var timePickerInterval = $("section.schedule-adder").data("time-interval");
 
-  console.log("Interval passed is:", timePickerInterval);
-
   // Jquery object variables
   var $fullCal = $("#calendar");
   var $scheduleInfo = $("#schedule-info");
@@ -1938,8 +1936,6 @@ $(document).ready(function() {
       copySchedulePks = copyWeekSchedulePksList;
       isDayCopy = false;
     }
-
-    console.log("copySchedulePks are: ", copySchedulePks)
 
     if (copySchedulePks.length) {
       var strCalDate = calDate.format(DATE_FORMAT);

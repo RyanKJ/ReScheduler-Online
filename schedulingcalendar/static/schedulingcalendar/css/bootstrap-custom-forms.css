@@ -8,7 +8,7 @@
 
 .custom-card-general {
   margin: auto;
-  width: 50%;
+  width: 75%;
 }
 
 .card-section {
@@ -21,15 +21,18 @@
 
 .card-section label {
   font-weight: bold;
+  color: #424242;
 }
 
 .card-section .checkbox-custom-text {
   font-weight: 600;
+  color: #424242;
 }
 
 .card-section-header {
   text-align: center;
   font-weight: 600;
+  color: #424242;
 }
 
 /* Used to hide and display date and time pickers to create a datetime picker */

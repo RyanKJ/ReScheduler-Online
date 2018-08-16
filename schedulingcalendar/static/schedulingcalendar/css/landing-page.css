@@ -49,3 +49,12 @@
 }
 
 a.landing-page-btn { color: white; }
+
+.cal-example-tooltip { text-align: justify; }
+.cal-example-header { font-weight: bold; font-size: 1.3em; text-align: center }
+
+.cal-example-body { color: #424242; font-size: 1.1em; }
+
+.t1 { margin-top: 70px; }
+.t2 { margin-top: 40px; }
+.t4 { margin-top: 70px; }

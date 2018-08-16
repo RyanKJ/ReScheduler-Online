@@ -278,7 +278,7 @@ def forgot_username(request):
             user = User.objects.filter(email=email)
             if user.exists():
                 for u in user:
-                    if u.email:
+                    if u.email and manager_check(user):
                         current_site = get_current_site(request)
                         subject = 'The username of your Schedule Hours account'
                         message = loader.render_to_string('registration/forgot_username_email.html', {

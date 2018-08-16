@@ -11,24 +11,22 @@
 
 {% block content %}
   <div class="example-front2">
-  <div class="example-front3">
-  <div class="jumbotron example-front rounded-0 landing-page-bg-top mb-0">
-    <div class="container text-center">
-      <h2 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h2>
-      <h4 class="bold">A hybrid online/offline retail employee scheduling application.
-      Designed to be both print native and fully online to achieve the best of both worlds
-      for managers and employees.</h4>
-      <br>
-      <p>
-        <a class="btn btn-primary btn-lg landing-page-btn" href="{% url 'schedulingcalendar:register' %}" role="button">Register For Free &raquo;</a> 
-      </p>
+    <div class="jumbotron example-front rounded-0 landing-page-bg-top mb-0">
+      <div class="container text-center">
+        <h2 class="landing-page-title">A Scheduling App Built For Humans Not Computers</h2>
+        <h4 class="bold">A hybrid online/offline retail employee scheduling application.
+        Designed to be both print native and fully online to achieve the best of both worlds
+        for managers and employees.</h4>
+        <br>
+        <p>
+          <a class="btn btn-primary btn-lg landing-page-btn" href="{% url 'schedulingcalendar:register' %}" role="button">Register For Free &raquo;</a> 
+        </p>
+      </div>
     </div>
-  </div>
-  </div>
   </div>
 
   <section class="landing-page-bg pt-3">
-    <div class="container">
+    <div class="container-fluid">
       <div class="row">
         <div class="col-md-12">
           <div class="text-center">
@@ -38,12 +36,36 @@
       </div>
       
       <div class="row">
-        <div class="col-md-12">
-          <div class="text-center shadow">
-            <a class="cart-view " href="/static/site/images/front-page-2.png" onClick="return Pop(this.href,500,499)">
-              <img class="img-fluid" src="/static/site/images/front-page-2.png" alt="Example Picture">
-            </a>
+        <div class="col-md-2">
+          <div class="cal-example-tooltip t1">
+            <div class="cal-example-header">Departments & Locations</div>
+            <div class="cal-example-body">Easily divide employee schedules via department or location</div>
           </div>
+          
+          <div class="cal-example-tooltip t2">
+            <div class="cal-example-header">Weekly & Daily Costs</div>
+            <div class="cal-example-body">Immediately know the projected costs of employment for a week or day. 
+            Overtime and benefits such as monthly medical costs and social security are factored into the calculation.</div>
+          </div>
+        </div>
+        
+        <div class="col-md-8">
+          <div class="text-center">
+            <img class="img-fluid" src="/static/site/images/front-page-ex-info.png" alt="Example Picture">
+          </div>
+        </div>
+        
+        <div class="col-md-2">
+          <div class="cal-example-tooltip t4">
+            <div class="cal-example-header">Publishing</div>
+            <div class="cal-example-body">Simply click publish to allow employees to see the schedules.
+            </div><br>
+            <div class="cal-example-body">Publishing lets you choose both how employees can be notified (Text & Email) and which
+            employees can see the published schedules.
+            </div>
+          </div>
+          
+          
         </div>
       </div>
     </div>      
