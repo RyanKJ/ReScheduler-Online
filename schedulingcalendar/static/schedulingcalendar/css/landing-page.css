@@ -1,9 +1,10 @@
+h3 { color: #424242; }
+
 .landing-page-title {
   font-size: 2.5em;
   font-family: 'Nanum Myeongjo', serif;
   font-weight: bold;
 }
-
 
 .landing-page-bg-top {
   color: white;
@@ -25,9 +26,6 @@
 .example-front2 {
   background: linear-gradient(to bottom, #0079D7, #1190f2);
 }
-.section-gap {
-  height: 12px;
-}
 
 .landing-page-btn {
   background: #0079D7;
@@ -48,13 +46,52 @@
   font-weight: bold;
 }
 
+.features { 
+  background: #f7f7f7; 
+  background: linear-gradient(to bottom, #f7f7f7, #f2f2f2);
+  color: #424242; }
+.feature-header, .feature-title { font-weight: bold; }
+.feature-text { font-size: 1.2em; text-align: justify; }
+
 a.landing-page-btn { color: white; }
 
 .cal-example-tooltip { text-align: justify; }
-.cal-example-header { font-weight: bold; font-size: 1.3em; text-align: center }
+.cal-example-header { font-weight: bold; font-size: 1.3em; text-align: center; color: #424242; }
 
 .cal-example-body { color: #424242; font-size: 1.1em; }
 
-.t1 { margin-top: 70px; }
-.t2 { margin-top: 40px; }
-.t4 { margin-top: 70px; }
+.mobile-example { display: none; }
+
+
+.t1 { margin-top: 300px; }
+.t2 { margin-top: 300px; }
+.t3 { margin-top: 300px; }
+
+@media screen and (max-width: 2000px) {
+  .t1 { margin-top: 200px; }
+  .t2 { margin-top: 200px; }
+  .t3 { margin-top: 200px; }
+}
+
+@media screen and (max-width: 1800px) {
+  .t1 { margin-top: 120px; }
+  .t2 { margin-top: 140px; }
+  .t3 { margin-top: 220px; }
+}
+
+@media screen and (max-width: 1600px) {
+  .t1 { margin-top: 20px; }
+  .t2 { margin-top: 80px; }
+  .t3 { margin-top: 80px; }
+}
+
+@media screen and (max-width: 1400px) {
+  .t1 { margin-top: 20px; }
+  .t2 { margin-top: 20px; }
+  .t3 { margin-top: 20px; }
+}
+
+@media screen and (max-width: 1200px) {
+  .mobile-example { display: block; }
+  .desktop-example { display: none; }
+}

@@ -25,24 +25,42 @@
     </div>
   </div>
 
-  <section class="landing-page-bg pt-3">
+  <section class="landing-page-bg desktop-example mt-3 mb-0">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-12">
-          <div class="text-center">
-          <h3>An Example Calendar: </h3>
+        <div class="col-md-4">
+          <div class="cal-example-tooltip">
+            <div class="cal-example-header">Departments & Locations</div>
+            <div class="cal-example-body">Easily divide employee schedules via department or location.
+            Employees can belong to multiple departments/locations and ordered in terms of seniority.</div>
           </div>
         </div>
+        
+        <div class="col-md-1">
+        </div>
+        
+        <div class="col-md-4">
+          <div class="cal-example-tooltip">
+            <div class="cal-example-header">Copy Day Or Week</div>
+            <div class="cal-example-body">Copying schedules is as simple as double clicking a day in the calendar.
+            Quickly create a month of schedules by copying a day or week.</div>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <div class="cal-example-tooltip">
+            <div class="cal-example-header">Publishing</div>
+            <div class="cal-example-body">Simply click publish to allow employees to see the schedules.
+              Choose which employees can view the published schedules.
+            </div>
+          </div>
+        </div>
+          
       </div>
       
       <div class="row">
         <div class="col-md-2">
           <div class="cal-example-tooltip t1">
-            <div class="cal-example-header">Departments & Locations</div>
-            <div class="cal-example-body">Easily divide employee schedules via department or location</div>
-          </div>
-          
-          <div class="cal-example-tooltip t2">
             <div class="cal-example-header">Weekly & Daily Costs</div>
             <div class="cal-example-body">Immediately know the projected costs of employment for a week or day. 
             Overtime and benefits such as monthly medical costs and social security are factored into the calculation.</div>
@@ -51,25 +69,117 @@
         
         <div class="col-md-8">
           <div class="text-center">
-            <img class="img-fluid" src="/static/site/images/front-page-ex-info.png" alt="Example Picture">
+            <a href="/static/site/images/front-page-2.png" onclick="return Pop(this.href,500,499)">
+              <img class="img-fluid" src="/static/site/images/front-page-ex-info.png" alt="Example Picture">
+            </a>
           </div>
         </div>
         
         <div class="col-md-2">
-          <div class="cal-example-tooltip t4">
-            <div class="cal-example-header">Publishing</div>
-            <div class="cal-example-body">Simply click publish to allow employees to see the schedules.
-            </div><br>
-            <div class="cal-example-body">Publishing lets you choose both how employees can be notified (Text & Email) and which
-            employees can see the published schedules.
+          <div class="cal-example-tooltip t2">
+            <div class="cal-example-header">Employee List</div>
+            <div class="cal-example-body">The employee list sorts by an employee's availability
+            given the schedule you click on. Availability conflicts are calculated, as well as
+            an employee's desired times/hours. Never have to keep track of the thousand demands 
+            by employees again.
             </div>
           </div>
           
-          
+          <div class="cal-example-tooltip t3">
+            <div class="cal-example-header">Revenue To Employee Ratio</div>
+            <div class="cal-example-body">Know the percentage of cost of employment
+            to your monthly revenue. Just enter in that month's revenue and know the
+            percentage of employment cost.
+            </div>
+          </div>
         </div>
       </div>
     </div>      
   </section>
+  
+  <section class="landing-page-bg mobile-example mt-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="text-center">
+            <h3>An Example Calendar: </h3>
+          </div>
+        </div>
+      </div>
+    
+      <div class="row">
+        <div class="col-md-12">
+          <a href="/static/site/images/front-page-2.png" onclick="return Pop(this.href,500,499)">
+            <img class="img-fluid" src="/static/site/images/front-page-2.png" alt="Example Picture">
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>   
+
+  <section class="features mt-3 pt-3">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-md-12">
+          <div class="text-center">
+            <h3 class="feature-header">Features In Depth</h3>
+          </div>
+        </div>
+      </div>
+    
+      <div class="row">
+        <div class="col-md-3">
+          <h4 class="text-center feature-title">Printable</h4>
+          <p class="feature-text">The unique feature about ScheduleHours is that it is built for printing.
+          There are a myriad of reasons of why you or your employees would want a 
+          physical copy of the schedules. Other scheduling applications force you to
+          use apps and are not optimized for printing. The calendar will look exactly
+          as it looks on paper as it does on your computer.</p>
+        </div>
+        <div class="col-md-3">
+          <h4 class="text-center feature-title">Fully Online</h4>
+          <p class="feature-text">When you publish a schedule, you can notify employees via text and email, 
+          if you choose. Creating an employee account takes literally 2 seconds. 
+          Employees can see their schedules online, submit availabilities like vacations online, 
+          if you choose to allow those options.</p>
+        </div>
+        <div class="col-md-3">
+          <h4 class="text-center feature-title">Customizable</h4>
+          <p class="feature-text">Put notes in the day header, day body, or in the schedule text
+          itself. There are many options for displaying names and time formats.
+          This way you can get the schedules to look exactly the way you want
+          with exactly the information you want your employees to see.</p>
+        </div>
+        <div class="col-md-3">
+          <h4 class="text-center feature-title">Intelligent</h4>
+          <p class="feature-text">Everytime you click a schedule, or even a day and not a schedule, the app checks
+          all availabilities of all employees in the respective department. You'll no longer need
+          to sift through pages and pages of employee requests trying to make sure you get it all right.</p>
+          </div>
+      </div>
+    </div>
+  </section> 
+  
+  <section class="mt-3 pt-3">
+    <div class="container">
+      <div class="row mb-2">
+        <div class="col-md-12">
+          <div class="text-center">
+            <h3 class="feature-header">Used By</h3>
+          </div>
+        </div>
+      </div>
+    
+      <div class="row">
+        <div class="col-md-12">
+          <div class="text-center">
+            <img class="img-fluid" src="/static/site/images/ajf-logo.png" alt="A. Johnson & Sons Florist">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section> 
+  
   
   <br>
 {% endblock content %}
