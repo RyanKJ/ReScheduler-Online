@@ -27,6 +27,7 @@ h3 { color: #424242; }
   background: linear-gradient(to bottom, #0079D7, #1190f2);
 }
 
+
 .landing-page-btn {
   background: #0079D7;
   border-radius: 3px;
@@ -46,9 +47,9 @@ h3 { color: #424242; }
   font-weight: bold;
 }
 
+.features-bg { }
 .features { 
-  background: #f7f7f7; 
-  background: linear-gradient(to bottom, #f7f7f7, #f2f2f2);
+  background: url("/static/site/images/front-page-5.png");
   color: #424242; }
 .feature-header, .feature-title { font-weight: bold; }
 .feature-text { font-size: 1.2em; text-align: justify; }
@@ -70,8 +71,10 @@ a.landing-page-btn { color: white; }
 @media screen and (max-width: 2000px) {
   .t1 { margin-top: 200px; }
   .t2 { margin-top: 200px; }
-  .t3 { margin-top: 200px; }
+  .t3 { margin-top: 260px; }
 }
+
+
 
 @media screen and (max-width: 1800px) {
   .t1 { margin-top: 120px; }
@@ -82,7 +85,7 @@ a.landing-page-btn { color: white; }
 @media screen and (max-width: 1600px) {
   .t1 { margin-top: 20px; }
   .t2 { margin-top: 80px; }
-  .t3 { margin-top: 80px; }
+  .t3 { margin-top: 120px; }
 }
 
 @media screen and (max-width: 1400px) {
