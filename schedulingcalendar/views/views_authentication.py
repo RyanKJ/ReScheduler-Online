@@ -90,11 +90,9 @@ def activate(request, uidb64, token):
         # Create business logic for user
         business_data = BusinessData(user=user)
         business_data.save()
-        department = Department(user=user, name="Main")
-        department.save()
 
         login(request, user)
-        return redirect('/calendar/')
+        return redirect('/setup_new_account/')
     elif user is not None:
         return redirect("/login/")
     else:

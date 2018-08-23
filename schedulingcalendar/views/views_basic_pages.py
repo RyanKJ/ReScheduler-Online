@@ -1,6 +1,6 @@
 from django.contrib.sites.shortcuts import get_current_site
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import loader
@@ -9,7 +9,7 @@ from ..models import (Department, DepartmentMembership, Employee,
 from ..forms import (CalendarForm, LiveCalendarForm, LiveCalendarManagerForm,
                      ViewLiveCalendarForm, SetStateLiveCalForm, AddScheduleForm,
                      DayNoteHeaderForm, DayNoteBodyForm, ScheduleNoteForm,
-                     SignUpForm)
+                     SignUpForm, UserSetupForm)
 from datetime import datetime, date
 
 
@@ -127,3 +127,21 @@ def employee_calendar_page(request):
     context = {'live_calendar_form': live_calendar_form, 'employee_only': employee_only}
 
     return HttpResponse(template.render(context, request))
+    
+    
+@login_required
+@user_passes_test(manager_check, login_url="/live_calendar/")
+def new_manager_user_setup(request):
+    """Display the quick setup for new manager users form."""
+    if request.method == 'POST':
+        form = UserSetupForm(request.POST)
+        if form.is_valid():
+            # TO DO: Implement saving/creating appropriate models
+            # Redirect to the calendar page
+            return redirect('/calendar/')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = UserSetupForm()
+    return render(request, 'schedulingcalendar/newUserSetup.html', { 'form': form })
+

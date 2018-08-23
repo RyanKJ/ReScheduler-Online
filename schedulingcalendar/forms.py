@@ -557,7 +557,20 @@ class DeleteAccountFeedbackForm(forms.Form):
     """Form for getting feedback from deleted accounts."""
     feedback_text = forms.CharField(label='', required=False, max_length=2000,
                                     widget=forms.Textarea())
-
+                                    
+                                    
+class UserSetupForm(forms.Form):
+    """Form for creating initial department/employees when user first registers."""
+    company_name = forms.CharField(label='Company Name', max_length=120)
+    department_name = forms.CharField(label='Department Name', max_length=100)
+    
+    employee_1_first_name = forms.CharField(label='First Employee\'s First Name', max_length=80)
+    employee_1_last_name = forms.CharField(label='First Employee\'s Last Name', max_length=80)
+    employee_2_first_name = forms.CharField(label='Second Employee\'s First Name', max_length=80)
+    employee_2_last_name = forms.CharField(label='Second Employee\'s Last Name', max_length=80)
+    employee_3_first_name = forms.CharField(label='Third Employee\'s First Name', max_length=80)
+    employee_3_last_name = forms.CharField(label='Third Employee\'s Last Name', max_length=80)
+    
 
 def get_department_tuple(user, employee=None):
     """Return a tuple of strings departments

@@ -1,0 +1,41 @@
+{% extends "schedulingcalendar/__baseFormCard.html" %}
+{% load widget_tweaks %}
+
+{% block form_content %}
+  <div class="text-center">
+    <h4 class="card-title">Initial Account Setup</h4>
+    <h5>Lets set up some basic stuff to get you scheduling employees right away</h5>
+  </div>
+  <form id="setup-account-form"
+        name= "SetupAccountForm"
+        action="{% url 'schedulingcalendar:new_manager_user_setup' %}"
+        method="post">
+    {% csrf_token %}
+    <!-- Company name -->
+    {{ form.company_name.errors }}
+    {{ form.company_name.label_tag }}
+    {{ form.company_name|add_class:'form-control' }}
+    
+    <!-- Department name -->
+    {{ form.department_name.errors }}
+    {{ form.department_name.label_tag }}
+    {{ form.department_name|add_class:'form-control' }}
+    
+    <!-- Employee Names -->
+    
+    
+    
+    
+    {% for field in form %}
+      <div class="form-group">
+        {{ field.errors }}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field|add_class:'form-control' }}
+        {% if field.help_text %}
+          <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <input type="submit" class="btn btn-primary" value="Setup Account">
+  </form>
+{% endblock form_content %}  
