@@ -564,12 +564,12 @@ class UserSetupForm(forms.Form):
     company_name = forms.CharField(label='Company Name', max_length=120)
     department_name = forms.CharField(label='Department Name', max_length=100)
     
-    employee_1_first_name = forms.CharField(label='First Employee\'s First Name', max_length=80)
-    employee_1_last_name = forms.CharField(label='First Employee\'s Last Name', max_length=80)
-    employee_2_first_name = forms.CharField(label='Second Employee\'s First Name', max_length=80)
-    employee_2_last_name = forms.CharField(label='Second Employee\'s Last Name', max_length=80)
-    employee_3_first_name = forms.CharField(label='Third Employee\'s First Name', max_length=80)
-    employee_3_last_name = forms.CharField(label='Third Employee\'s Last Name', max_length=80)
+    employee_1_first_name = forms.CharField(label='First Name', max_length=80)
+    employee_1_last_name = forms.CharField(label='Last Name', max_length=80)
+    employee_2_first_name = forms.CharField(label='First Name', max_length=80)
+    employee_2_last_name = forms.CharField(label='Last Name', max_length=80)
+    employee_3_first_name = forms.CharField(label='First Name', max_length=80)
+    employee_3_last_name = forms.CharField(label='Last Name', max_length=80)
     
 
 def get_department_tuple(user, employee=None):

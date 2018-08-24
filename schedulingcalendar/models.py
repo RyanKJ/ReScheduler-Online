@@ -38,14 +38,17 @@ class Employee(models.Model):
     employee_id = models.IntegerField('employee id', default=0)
     wage = models.FloatField('employee wage', default=0)
     desired_hours = models.IntegerField('desired weekly hours', default=30)
+    
     # Benefits costs
     monthly_medical = models.FloatField('Monthly medical in dollars per month', default=0)
     workmans_comp = models.FloatField('workmans comp', default=0)
     social_security = models.FloatField('Social security percentage', default=7.5)
+    
     # Calendar display settings
     override_list_view = models.BooleanField(default=True)
     see_only_my_schedules = models.BooleanField(default=False)
     see_all_departments = models.BooleanField(default=False)
+    
     # Break time settings
     min_time_for_break = models.FloatField('Minimum Schedule Duration In Hours For Break Eligability',
                                            default=5)

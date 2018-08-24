@@ -94,7 +94,7 @@ def calendar_page(request):
     else:
         department = departments.first()
 
-    set_live_cal_form = SetStateLiveCalForm(logged_in_user, department)
+    set_live_cal_form = SetStateLiveCalForm(logged_in_user, department, initial={'all_employee_view': True})
 
 
     context = {'calendar_form': calendar_form,
@@ -133,11 +133,44 @@ def employee_calendar_page(request):
 @user_passes_test(manager_check, login_url="/live_calendar/")
 def new_manager_user_setup(request):
     """Display the quick setup for new manager users form."""
+    logged_in_user = request.user
     if request.method == 'POST':
         form = UserSetupForm(request.POST)
         if form.is_valid():
-            # TO DO: Implement saving/creating appropriate models
-            # Redirect to the calendar page
+            company_name = form.cleaned_data['company_name']
+            department_name = form.cleaned_data['department_name']
+            e1_first_name = form.cleaned_data['employee_1_first_name']
+            e1_last_name = form.cleaned_data['employee_1_last_name']
+            e2_first_name = form.cleaned_data['employee_2_first_name']
+            e2_last_name = form.cleaned_data['employee_2_last_name']
+            e3_first_name = form.cleaned_data['employee_3_first_name']
+            e3_last_name = form.cleaned_data['employee_3_last_name']
+            
+            # Save company name
+            business_settings = BusinessData.objects.get(user=logged_in_user)
+            business_settings.company_name = company_name
+            business_settings.save()
+            
+            # Create department
+            new_dep = Department(user=logged_in_user, name=department_name)
+            new_dep.save()
+            
+            # Create employees
+            employee_1 = Employee(user=logged_in_user, first_name=e1_first_name, last_name=e1_last_name)
+            employee_2 = Employee(user=logged_in_user, first_name=e2_first_name, last_name=e2_last_name)
+            employee_3 = Employee(user=logged_in_user, first_name=e3_first_name, last_name=e3_last_name)
+            employee_1.save()
+            employee_2.save()
+            employee_3.save()
+            
+            # Assign employees to department
+            employee_1_dep_mem = DepartmentMembership(user=logged_in_user, employee=employee_1, department=new_dep)
+            employee_2_dep_mem = DepartmentMembership(user=logged_in_user, employee=employee_2, department=new_dep)
+            employee_3_dep_mem = DepartmentMembership(user=logged_in_user, employee=employee_3, department=new_dep)
+            employee_1_dep_mem.save()
+            employee_2_dep_mem.save()
+            employee_3_dep_mem.save()
+            
             return redirect('/calendar/')
         else:
             messages.error(request, 'Please correct the error below.')

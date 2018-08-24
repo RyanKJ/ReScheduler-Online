@@ -2,40 +2,79 @@
 {% load widget_tweaks %}
 
 {% block form_content %}
-  <div class="text-center">
-    <h4 class="card-title">Initial Account Setup</h4>
-    <h5>Lets set up some basic stuff to get you scheduling employees right away</h5>
+  <div class="text-center mb-3">
+    <h5 class="font-weight-bold">Your Account Successfully Activated!</h5>
+    <h5>Let's set up some basic stuff to get you scheduling employees right away</h5>
   </div>
+  
   <form id="setup-account-form"
         name= "SetupAccountForm"
         action="{% url 'schedulingcalendar:new_manager_user_setup' %}"
         method="post">
-    {% csrf_token %}
-    <!-- Company name -->
-    {{ form.company_name.errors }}
-    {{ form.company_name.label_tag }}
-    {{ form.company_name|add_class:'form-control' }}
-    
-    <!-- Department name -->
-    {{ form.department_name.errors }}
-    {{ form.department_name.label_tag }}
-    {{ form.department_name|add_class:'form-control' }}
-    
-    <!-- Employee Names -->
-    
-    
-    
-    
-    {% for field in form %}
-      <div class="form-group">
-        {{ field.errors }}
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field|add_class:'form-control' }}
-        {% if field.help_text %}
-          <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
+        
+    <div class="card-section">
+      {% csrf_token %}
+      <!-- Company name -->
+      {{ form.company_name.errors }}
+      {{ form.company_name.label_tag }}
+      {{ form.company_name|add_class:'form-control' }}
+      
+      <!-- Department name -->
+      <div class="mt-2">
+      {{ form.department_name.errors }}
+      {{ form.department_name.label_tag }}
+      {{ form.department_name|add_class:'form-control' }}
       </div>
-    {% endfor %}
-    <input type="submit" class="btn btn-primary" value="Setup Account">
+      
+      <!-- Employee Names -->
+      <div class="container pl-0 pr-0 mt-2 mb-3">
+        <div class="row">
+          <div class="col-md-12 text-center">
+            <h6>*These employees will belong to the department above</h6>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <h6 class="text-center font-weight-bold">First Employee</h6>
+            {{ form.employee_1_first_name.errors }}
+            {{ form.employee_1_first_name.label_tag }}
+            {{ form.employee_1_first_name|add_class:'form-control' }}
+            <div class="mt-2">
+              {{ form.employee_1_last_name.errors }}
+              {{ form.employee_1_last_name.label_tag }}
+              {{ form.employee_1_last_name|add_class:'form-control' }}
+            </div>
+          </div>
+        
+          <div class="col-md-4">
+            <h6 class="text-center font-weight-bold">Second Employee</h6>
+            {{ form.employee_2_first_name.errors }}
+            {{ form.employee_2_first_name.label_tag }}
+            {{ form.employee_2_first_name|add_class:'form-control' }}
+            <div class="mt-2">
+              {{ form.employee_2_last_name.errors }}
+              {{ form.employee_2_last_name.label_tag }}
+              {{ form.employee_2_last_name|add_class:'form-control' }}
+            </div>
+          </div>
+        
+          <div class="col-md-4">
+            <h6 class="text-center font-weight-bold">Third Employee</h6>
+            {{ form.employee_3_first_name.errors }}
+            {{ form.employee_3_first_name.label_tag }}
+            {{ form.employee_3_first_name|add_class:'form-control' }}
+            <div class="mt-2">
+              {{ form.employee_3_last_name.errors }}
+              {{ form.employee_3_last_name.label_tag }}
+              {{ form.employee_3_last_name|add_class:'form-control' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <input type="submit" class="btn btn-primary" value="Setup Account">
+    </div>
   </form>
 {% endblock form_content %}  
