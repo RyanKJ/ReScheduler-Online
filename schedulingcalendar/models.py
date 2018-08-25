@@ -9,7 +9,7 @@ from datetime import datetime, date, time
 
 
 class UserProfile(models.Model):
-    """Meta-data and addition info for users"""
+    """Meta-data and additional info for users"""
     user = models.OneToOneField(User, db_index=True, on_delete=models.CASCADE)
     email_confirmed = models.BooleanField(default=False)
 
@@ -58,12 +58,22 @@ class Employee(models.Model):
 
     def __str__(self):
         return "%s %s" % (self.first_name, self.last_name)
-
+        
+        
+@receiver(post_save, sender=Employee)
+def update_employee_user(sender, instance, created, **kwargs):
+    """Set email of employee user to be same as email of employee profile."""
+    if instance.employee_user:
+        employee_user = instance.employee_user
+        employee_user.email = instance.email
+        employee_user.save()
+   
 
 @receiver(post_delete, sender=Employee)
 def delete_employee_user(sender, instance, **kwargs):
     """Delete employee user associated with deleted employee."""
-    instance.employee_user.delete()
+    if instance.employee_user:
+        instance.employee_user.delete()
 
 
 class Department(models.Model):

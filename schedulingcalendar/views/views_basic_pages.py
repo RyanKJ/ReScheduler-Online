@@ -96,7 +96,6 @@ def calendar_page(request):
 
     set_live_cal_form = SetStateLiveCalForm(logged_in_user, department, initial={'all_employee_view': True})
 
-
     context = {'calendar_form': calendar_form,
                'add_sch_form': add_schedule_form,
                'time_interval': business_data.time_picker_interval,
