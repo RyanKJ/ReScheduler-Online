@@ -491,7 +491,7 @@ $(document).ready(function() {
     var lastName = "";
     var isEmployeeAssigned = false;
     var schEmployePk = schedule["employee"];
-    if (schEmployePk != null) {
+    if (schEmployePk !== null && (typeof employeeNameDict[schEmployePk] != 'undefined')) {
       firstName = employeeNameDict[schEmployePk]["firstName"];
       lastName = employeeNameDict[schEmployePk]["lastName"];
       isEmployeeAssigned = true;
@@ -873,7 +873,7 @@ $(document).ready(function() {
     var displayLastNames = displaySettings["display_last_names"];
     var displayLastNameFirstChar = displaySettings["display_first_char_last_name"];
     var displayLastNameFirstCharNonUnique = displaySettings["display_first_char_last_name_non_unique_first_name"];
-    
+
 
     var employeeStr = "";
     if (firstName) {
@@ -2288,7 +2288,7 @@ $(document).ready(function() {
     var $stickyElement = $(".sticky");
     var newCalHeight = window.innerHeight * .85;
     $fullCal.fullCalendar('option', 'height', newCalHeight);
-    
+
     var windowWidth = window.innerWidth;
     if (windowWidth < 992) {
       $costBtn.html('Costs &raquo;');
